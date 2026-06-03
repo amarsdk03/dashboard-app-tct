@@ -1,0 +1,50 @@
+{
+    "expo": {
+        "name": "dashboard-cdt",
+        "slug": "dashboard-cdt",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/images/logo.png",
+        "scheme": "dashboard-cdt",
+        "userInterfaceStyle": "light",
+        "assetBundlePatterns": ["**/*"],
+        "ios": {
+			"userInterfaceStyle": "light",
+            "supportsTablet": true
+        },
+        "android": {
+			"userInterfaceStyle": "light",
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/images/logo.png",
+                "backgroundColor": "#ffffff"
+            },
+            "package": "com.anonymous.dashboardcdt"
+        },
+        "web": {
+            "bundler": "metro",
+            "output": "static",
+            "favicon": "./assets/images/logo.png"
+        },
+        "plugins": [
+            "expo-router",
+            [
+                "expo-splash-screen",
+                {
+                    "image": "./assets/images/logo.png",
+                    "imageWidth": 200
+                }
+            ],
+            [
+                "expo-font",
+                {
+                    "fonts": ["node_modules/@expo-google-fonts/inter/900Black/Inter_900Black.ttf"]
+                }
+            ],
+            "expo-status-bar",
+            "expo-secure-store"
+        ],
+        "experiments": {
+            "typedRoutes": true
+        }
+    }
+}
