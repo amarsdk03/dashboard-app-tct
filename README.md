@@ -329,6 +329,6 @@ Amar Sidkir.
 
 Per qualsiasi dubbio o segnalazione, potete contattarci tramite email:
 - [amarsdk03@gmail.com](mailto:amarsdk03@gmail.com)
-- [alessandrogremes04@icloud.com](mailto:alessandrogremes04@icloud.com)
+- [alessandrogremes04@gmail.com](mailto:alessandrogremes04@gmail.com)
 
 oppure potete contattare direttamente gli organizzatori del torneo alla loro [pagina Instagram qui](https://www.instagram.com/torneocittaditrento/).
