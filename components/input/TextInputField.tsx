@@ -1,9 +1,8 @@
 import { StyleSheet, TextInput, View } from 'react-native';
 import { InterText } from '@/components/InterText';
-import DateTimePicker from '@expo/ui/community/datetime-picker';
 import React from 'react';
 
-interface DateTimePickerFieldProps {
+interface TextInputFieldProps {
     label: string;
     value: string | null;
     onChange: (text: string) => void;
@@ -11,16 +10,12 @@ interface DateTimePickerFieldProps {
     multiline?: boolean;
 }
 
-export default function TextInputField({ label, value, onChange, placeholder, multiline }: DateTimePickerFieldProps) {
+export default function TextInputField({ label, value, onChange, placeholder, multiline }: TextInputFieldProps) {
     return (
         <View style={styles.inputContainer}>
             <InterText style={styles.label}>{label}</InterText>
             <TextInput
-                style={[
-                    styles.input,
-                    multiline && styles.textArea,
-                    { fontFamily: "Inter" },
-                ]}
+                style={[styles.input, multiline && styles.textArea, { fontFamily: 'Inter' }]}
                 placeholder={placeholder}
                 placeholderTextColor="#94a3b8"
                 value={value || ''}
@@ -57,14 +52,5 @@ const styles = StyleSheet.create({
     textArea: {
         height: 80,
         paddingTop: 12,
-    },
-    datePickerWrapper: {
-        backgroundColor: '#f8fafc',
-        borderWidth: 1,
-        borderColor: '#e2e8f0',
-        borderRadius: 10,
-        overflow: 'hidden',
-        height: 32,
-        justifyContent: 'center',
     },
 });

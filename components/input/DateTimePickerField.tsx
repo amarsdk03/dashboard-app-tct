@@ -1,30 +1,116 @@
-import { StyleSheet, View } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { InterText } from '@/components/InterText';
-import DateTimePicker from '@expo/ui/community/datetime-picker';
-import React from 'react';
 
-interface DateTimePickerFieldProps {
-    label: string;
-    value: Date | null;
-    onChange: (date: Date) => void;
+// Lazy-load the native picker only on native platforms
+let DateTimePicker: any = null;
+if (Platform.OS !== 'web') {
+    DateTimePicker = require('@expo/ui/community/datetime-picker').default;
 }
 
-export default function DateTimePickerField({ label, value, onChange }: DateTimePickerFieldProps) {
-    const dateValue = value instanceof Date && !isNaN(value.getTime())
-        ? value
-        : new Date();
+interface DateTimePickerFieldProps {
+    mode: 'date' | 'time' | 'datetime';
+    label: string;
+    value: Date | null;
+    onChange: (date: Date | null) => void;
+    placeholder?: string;
+}
+
+// Converts a Date to "YYYY-MM-DD" for the HTML input value
+function toInputValue(date: Date | null): string {
+    if (!date) return '';
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+// Parses "YYYY-MM-DD" back to a local midnight Date
+function fromInputValue(val: string): Date | null {
+    if (!val) return null;
+    const [y, m, d] = val.split('-').map(Number);
+    return new Date(y, m - 1, d);
+}
+
+export default function DateTimePickerField({
+                                                mode,
+                                                label,
+                                                value,
+                                                onChange,
+                                                placeholder = 'Seleziona data...',
+                                            }: DateTimePickerFieldProps) {
+    const [showPicker, setShowPicker] = useState(false);
+    const webInputRef = useRef<any>(null);
+
+    const handleWebChange = (e: any) => {
+        onChange(fromInputValue(e.target.value));
+    };
 
     return (
         <View style={styles.inputContainer}>
             <InterText style={styles.label}>{label}</InterText>
-            <View style={styles.datePickerWrapper}>
+
+            <Pressable
+                style={styles.fieldBox}
+                onPress={() => {
+                    if (Platform.OS === 'web') {
+                        // Programmatically open the native browser date picker
+                        webInputRef.current?.showPicker?.();
+                    } else {
+                        setShowPicker(true);
+                    }
+                }}>
+                <Text style={[styles.inputText, !value && styles.placeholder]}>
+                    {value ? value.toLocaleDateString() : placeholder}
+                </Text>
+
+                {/* Clear button */}
+                {value && Platform.OS !== 'web' && (
+                    <Pressable
+                        style={styles.clearBtn}
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            onChange(null);
+                        }}>
+                        <Text style={styles.clearBtnLabel}>X</Text>
+                    </Pressable>
+                )}
+
+                {/* Invisible web date input — sits on top, triggers the browser picker */}
+                {Platform.OS === 'web' && (
+                    <input
+                        ref={webInputRef}
+                        type={mode === 'datetime' ? 'datetime-local' : mode}
+                        value={toInputValue(value)}
+                        onChange={handleWebChange}
+                        style={{
+                            position: 'absolute',
+                            inset: 0,
+                            opacity: 0,
+                            width: '100%',
+                            height: '100%',
+                            cursor: 'pointer',
+                            // Hide the default input chrome but keep it clickable
+                            border: 'none',
+                            background: 'transparent',
+                        }}
+                    />
+                )}
+            </Pressable>
+
+            {/* Native DateTimePicker — Android / iOS only */}
+            {Platform.OS !== 'web' && showPicker && DateTimePicker && (
                 <DateTimePicker
-                    value={dateValue}
-                    mode="date"
-                    display="compact"
-                    onValueChange={(_, selectedDate) => selectedDate && onChange(selectedDate)}
+                    value={value ?? new Date()}
+                    mode={mode}
+                    presentation="dialog"
+                    onValueChange={(event: any, selectedDate: Date) => {
+                        setShowPicker(false);
+                        onChange(selectedDate);
+                    }}
+                    onDismiss={() => setShowPicker(false)}
                 />
-            </View>
+            )}
         </View>
     );
 }
@@ -32,6 +118,7 @@ export default function DateTimePickerField({ label, value, onChange }: DateTime
 const styles = StyleSheet.create({
     inputContainer: {
         marginBottom: 20,
+        width: '100%',
     },
     label: {
         fontSize: 13,
@@ -39,13 +126,40 @@ const styles = StyleSheet.create({
         color: '#111111',
         marginBottom: 6,
     },
-    datePickerWrapper: {
+    fieldBox: {
+        position: 'relative',
         backgroundColor: '#f8fafc',
         borderWidth: 1,
         borderColor: '#e2e8f0',
         borderRadius: 10,
-        overflow: 'hidden',
-        height: 32,
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: 44,
+    },
+    inputText: {
+        fontSize: 13,
+        color: '#0f172a',
+    },
+    placeholder: {
+        color: '#94a3b8',
+    },
+    clearBtn: {
+        position: 'absolute',
+        right: 12,
+        backgroundColor: '#f37979',
+        borderRadius: 20,
+        width: 20,
+        height: 20,
         justifyContent: 'center',
+        alignItems: 'center',
+    },
+    clearBtnLabel: {
+        color: '#ffffff',
+        fontSize: 10,
+        fontWeight: 'bold',
     },
 });

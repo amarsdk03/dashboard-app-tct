@@ -10,7 +10,6 @@ import {
     Animated,
 } from 'react-native';
 import { getDatiTorneo, datiTorneoType } from '@/data/tornei';
-import { Row } from '@expo/ui';
 import { InterText } from '@/components/InterText';
 import DateTimePickerField from '@/components/input/DateTimePickerField';
 import TextInputField from '@/components/input/TextInputField';
@@ -19,7 +18,7 @@ export type TorneoModalMode = 'view' | 'create' | 'edit';
 
 type Props = {
     mode: TorneoModalMode;
-    torneoId: number;
+    torneoId?: number;
     onClose: () => void;
 };
 
@@ -32,13 +31,9 @@ interface datiTorneo {
     urlLogo: string | null;
 }
 
-/*
-* Modal per la visualizzazione, creazione o modifica dei dati di un torneo e delle sue categorie
-* */
 export default function TorneoModal(props: Props) {
     const slideAnim = useRef(new Animated.Value(600)).current;
 
-    // Animazione iniziale del modal
     useEffect(() => {
         Animated.spring(slideAnim, {
             toValue: 0,
@@ -48,7 +43,6 @@ export default function TorneoModal(props: Props) {
         }).start();
     }, []);
 
-    // Animazione di uscita del modal
     const handleClose = () => {
         Animated.timing(slideAnim, {
             toValue: 600,
@@ -58,7 +52,7 @@ export default function TorneoModal(props: Props) {
     };
 
     const [form, setForm] = useState<datiTorneo>({
-        id: props.mode !== 'create' ? props.torneoId : null,
+        id: props.mode !== 'create' ? props.torneoId ?? null : null,
         nome: '',
         descrizione: '',
         dataInizio: null,
@@ -66,9 +60,8 @@ export default function TorneoModal(props: Props) {
         urlLogo: '',
     });
 
-    // Se sono in modalità visualizzazione o modifica, recupero i dati dal database
     useEffect(() => {
-        if (props.mode !== 'create') {
+        if (props.mode !== 'create' && props.torneoId) {
             getDatiTorneo(props.torneoId)
                 .then((dati: datiTorneoType) => {
                     setForm({
@@ -91,30 +84,30 @@ export default function TorneoModal(props: Props) {
         setForm({ ...form, [key]: value });
     };
 
-    const handleDateChange = (key: keyof datiTorneo, value: Date) => {
-        setForm({ ...form, [key]: value });
+    const handleDateChange = (key: keyof datiTorneo, value: Date | null) => {
+        if (value) {
+            // Create a copy and zero out the time to keep ONLY the date
+            const dateOnly = new Date(value);
+            dateOnly.setHours(0, 0, 0, 0);
+
+            setForm({ ...form, [key]: value });
+        } else {
+            setForm({ ...form, [key]: value });
+        }
     };
 
     const handleSubmit = () => {
         console.log('Form creato correttamente:', form);
-        // Handle submission logic here (e.g., API call for torneo-cdt)
     };
 
     return (
-        <Animated.View
-            style={[
-                styles.animatedWrapper,
-                { transform: [{ translateY: slideAnim }] },
-            ]}
-        >
+        <Animated.View style={[styles.animatedWrapper, { transform: [{ translateY: slideAnim }] }]}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.container}
-            >
+                style={styles.container}>
                 <ScrollView
                     contentContainerStyle={styles.scrollContainer}
-                    showsVerticalScrollIndicator={false}
-                >
+                    showsVerticalScrollIndicator={false}>
                     <View style={styles.formCard}>
                         <TextInputField
                             label={'Nome Torneo'}
@@ -126,26 +119,32 @@ export default function TorneoModal(props: Props) {
                             label={'Descrizione'}
                             value={form.descrizione}
                             onChange={(val) => handleInputChange('descrizione', val)}
-                            placeholder={'Quota iscrizione, numero posti disponibili, modulistica...'}
+                            placeholder={
+                                'Quota iscrizione, numero posti disponibili, link regolamento...'
+                            }
                             multiline={true}
                         />
 
-                        <Row spacing={16}>
+                        <View style={styles.row}>
                             <View style={styles.flexChild}>
                                 <DateTimePickerField
-                                    label="Data Inizio"
+                                    mode={'date'}
+                                    label="Data d'inizio"
                                     value={form.dataInizio}
                                     onChange={(val) => handleDateChange('dataInizio', val)}
+                                    placeholder="Seleziona..."
                                 />
                             </View>
                             <View style={styles.flexChild}>
                                 <DateTimePickerField
-                                    label="Data Fine"
+                                    mode={'date'}
+                                    label="Data di fine"
                                     value={form.dataFine}
                                     onChange={(val) => handleDateChange('dataFine', val)}
+                                    placeholder="Seleziona..."
                                 />
                             </View>
-                        </Row>
+                        </View>
 
                         <TextInputField
                             label={'URL Logo'}
@@ -154,25 +153,24 @@ export default function TorneoModal(props: Props) {
                             placeholder={'https://example.com/logo.png'}
                         />
 
-                        <Row spacing={16}>
+                        <View style={[styles.row, { marginTop: 12 }]}>
                             <TouchableOpacity
                                 style={[styles.button, styles.buttonDestructive]}
                                 onPress={handleClose}
-                                activeOpacity={0.8}
-                            >
-                                <InterText style={[styles.buttonText, styles.buttonDestructiveText]}>
-                                    Annulla modifiche
+                                activeOpacity={0.8}>
+                                <InterText
+                                    style={[styles.buttonText, styles.buttonDestructiveText]}>
+                                    Annulla
                                 </InterText>
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 style={styles.button}
                                 onPress={handleSubmit}
-                                activeOpacity={0.8}
-                            >
+                                activeOpacity={0.8}>
                                 <InterText style={styles.buttonText}>Crea</InterText>
                             </TouchableOpacity>
-                        </Row>
+                        </View>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -189,19 +187,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f8fafc',
     },
     scrollContainer: {
-        padding: 24,
-        justifyContent: 'center',
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: '700',
-        color: '#0f172a',
-        letterSpacing: -0.5,
-    },
-    subtitle: {
-        fontSize: 15,
-        color: '#64748b',
-        marginTop: 4,
+        padding: 16,
     },
     formCard: {
         backgroundColor: '#ffffff',
@@ -211,9 +197,14 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.03,
         shadowRadius: 12,
-        elevation: 2, // Soft shadow for Android
+        elevation: 2,
         borderWidth: 1,
         borderColor: '#f1f5f9',
+    },
+    row: {
+        flexDirection: 'row',
+        width: '100%',
+        gap: 8,
     },
     flexChild: {
         flex: 1,
@@ -223,8 +214,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#0f172a',
         borderRadius: 12,
         padding: 12,
+        alignSelf: 'center',
         alignItems: 'center',
-        marginTop: 12,
 
         shadowColor: '#0f172a',
         shadowOffset: { width: 0, height: 4 },

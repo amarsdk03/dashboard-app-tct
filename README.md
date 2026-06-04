@@ -21,7 +21,7 @@ del costo richiesto di **99 USD annuali** per il rilascio tramite l'Apple Develo
 
 ## Feature disponibili
 
-![Mockup dell'app]()
+![Mockup dell'app](https://raw.githubusercontent.com/amarsdk03/dashboard-app-tct/refs/heads/main/assets/screen-mockups/all.png)
 
 - **Login:**
     - Accesso tramite email e password
@@ -114,13 +114,15 @@ Raccoglie tutte le risorse statiche utilizzate dall'app.
 Contiene i componenti React riutilizzabili.
 
 * `giocatori/`, `squadre/`, `partite/`, `tornei/`: componenti specifici delle varie sezioni funzionali.
+* `input/`: componenti generici per i vari campi di input.
 * `login/`: componenti relativi all'autenticazione.
 * `ui/`: componenti generici dell'interfaccia utente (button, input, card, dialog, ecc.).
+* `InterText.tsx`: elemento di testo di default con font Inter preapplicato.
 * `splash-screen-controller.tsx`: gestione della schermata iniziale dell'app.
 
 #### `data/`
 
-Contiene dati di esempio e fixture utilizzati durante lo sviluppo o per il popolamento iniziale dell'interfaccia.
+Contiene le varie query SQL utilizzate per recuperare i dati dal database.
 
 #### `hooks/`
 
@@ -193,6 +195,7 @@ Di seguito la struttura parziale del progetto:
 │   └── screen-mockups
 ├── components
 │   ├── giocatori
+│   ├── input
 │   ├── login
 │   ├── partite
 │   ├── squadre
@@ -312,6 +315,11 @@ Per maggiori info sulle tecnologie di sviluppo utilizzate:
 
 Per il deployment viene usato [Expo Application Services (EAS)](https://expo.dev/eas).
 
+La configurazione per il deployment può essere direttamente eseguita tramite il seguente comando:
+```bash
+eas build
+```
+
 
 
 ## Contatti
@@ -320,7 +328,7 @@ La progettazione, lo sviluppo, il rilascio e il mantenimento del progetto sono s
 Amar Sidkir.
 
 Per qualsiasi dubbio o segnalazione, potete contattarci tramite email:
-- _email Gremes qui_
-- _email Amar qui_
+- [amarsdk03@gmail.com](mailto:amarsdk03@gmail.com)
+- [alessandrogremes04@icloud.com](mailto:alessandrogremes04@icloud.com)
 
 oppure potete contattare direttamente gli organizzatori del torneo alla loro [pagina Instagram qui](https://www.instagram.com/torneocittaditrento/).
