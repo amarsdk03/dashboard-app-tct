@@ -5,14 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="02039681-6d6f-43de-b84f-55cbb0bd0377" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/(app)/(tabs)/tornei/_layout.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/(app)/(tabs)/tornei/modal.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/eas.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/ErrorMessage.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/tornei/TorneoCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AGENTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/AGENTS.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/tornei.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/tornei/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/giocatori.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/giocatori/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/partite.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/partite/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/squadre.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/squadre/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/tornei/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/tornei/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/tornei/modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/tornei/modal.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/input/DateTimePickerField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/DateTimePickerField.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/input/TextInputField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/TextInputField.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/tornei/TorneoModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoModal.tsx" afterDir="false" />
@@ -23,7 +28,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="150" />
+    <option name="cachedIndexableFilesCount" value="155" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
@@ -54,61 +59,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0000002708504832" />
-      <entry key="S2" value="1.0228130001664768" />
-      <entry key="S5" value="1.2204311474964233" />
-      <entry key="S10" value="1.469501249852195" />
-      <entry key="S30" value="1.7930767301392434" />
-      <entry key="S60" value="2.132251690090076" />
-      <entry key="M2" value="2.976100489447954" />
-      <entry key="M5" value="5.237581555646255" />
-      <entry key="M10" value="9.313813239723183" />
-      <entry key="M15" value="14.46196823107604" />
-      <entry key="M30" value="36.64638014228094" />
-      <entry key="H1" value="80.09683080205966" />
-      <entry key="H2" value="128.49977485730744" />
-      <entry key="H4" value="165.70433797795556" />
-      <entry key="D1" value="206.51768492099015" />
-      <entry key="W1" value="214.61553066222015" />
+      <entry key="MS100" value="1.0012106520507216" />
+      <entry key="MS500" value="1.2609779818788345" />
+      <entry key="S2" value="1.7217388750173512" />
+      <entry key="S5" value="2.3552161175853215" />
+      <entry key="S10" value="4.114721272022065" />
+      <entry key="S30" value="8.509873272866063" />
+      <entry key="S60" value="10.80566487574672" />
+      <entry key="M2" value="12.813614124775253" />
+      <entry key="M5" value="28.21604672952349" />
+      <entry key="M10" value="71.23385640718264" />
+      <entry key="M15" value="109.03277154511788" />
+      <entry key="M30" value="186.83781837676315" />
+      <entry key="H1" value="281.1361724628619" />
+      <entry key="H2" value="397.01173831308216" />
+      <entry key="H4" value="515.2360672419131" />
+      <entry key="D1" value="688.0746277957589" />
+      <entry key="W1" value="728.8034333229729" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="1.8059746135250706E-17" />
-      <entry key="MS500" value="4.4806634878484644E-4" />
-      <entry key="S2" value="0.14549081680026707" />
-      <entry key="S5" value="0.4625239573688041" />
-      <entry key="S10" value="0.6800911390165321" />
-      <entry key="S30" value="0.8794052192189952" />
-      <entry key="S60" value="0.9377662319147815" />
-      <entry key="M2" value="0.9687816628119792" />
-      <entry key="M5" value="1.0507051373456442" />
-      <entry key="M10" value="1.5561361001374936" />
-      <entry key="M15" value="2.3387378975675013" />
-      <entry key="M30" value="4.691895626201025" />
-      <entry key="H1" value="7.781070193017845" />
-      <entry key="H2" value="10.575157145951144" />
-      <entry key="H4" value="12.523870741637143" />
-      <entry key="D1" value="14.543947381423852" />
-      <entry key="W1" value="14.933685485105885" />
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="1.862364899346525E-208" />
+      <entry key="S2" value="1.4860322389592837E-52" />
+      <entry key="S5" value="2.6897234269323912E-21" />
+      <entry key="S10" value="7.274384903238875E-11" />
+      <entry key="S30" value="6.6144595934932E-4" />
+      <entry key="S60" value="0.03651439734594589" />
+      <entry key="M2" value="0.28260077253884824" />
+      <entry key="M5" value="1.1916110851978383" />
+      <entry key="M10" value="2.6625531960353963" />
+      <entry key="M15" value="4.2475647731944015" />
+      <entry key="M30" value="10.070745215633822" />
+      <entry key="H1" value="22.51253621938602" />
+      <entry key="H2" value="40.17863209391105" />
+      <entry key="H4" value="57.0452798247856" />
+      <entry key="D1" value="79.24730433419502" />
+      <entry key="W1" value="84.14558155942733" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="5.394796609394656E-6" />
-      <entry key="MS500" value="0.08857485063886916" />
-      <entry key="S2" value="0.6830193871437287" />
-      <entry key="S5" value="1.4212318115871636" />
-      <entry key="S10" value="1.9981633295644536" />
-      <entry key="S30" value="2.613141697989569" />
-      <entry key="S60" value="3.0210488729756486" />
-      <entry key="M2" value="3.8909325217294026" />
-      <entry key="M5" value="6.245039721737588" />
-      <entry key="M10" value="10.839426417061304" />
-      <entry key="M15" value="16.77631098489897" />
-      <entry key="M30" value="41.32193980288542" />
-      <entry key="H1" value="87.8674796882926" />
-      <entry key="H2" value="139.06876409034706" />
-      <entry key="H4" value="178.22479803036768" />
-      <entry key="D1" value="221.0610079306442" />
-      <entry key="W1" value="229.54912541571696" />
+      <entry key="MS100" value="0.9086178452436147" />
+      <entry key="MS500" value="1.2367407291186092" />
+      <entry key="S2" value="1.7134036459997026" />
+      <entry key="S5" value="2.350613262841622" />
+      <entry key="S10" value="4.110648011259204" />
+      <entry key="S30" value="8.507654956510697" />
+      <entry key="S60" value="10.839877863918913" />
+      <entry key="M2" value="13.092950391743726" />
+      <entry key="M5" value="29.401146396094713" />
+      <entry key="M10" value="73.88539024424136" />
+      <entry key="M15" value="113.26636400436482" />
+      <entry key="M30" value="196.89064110868665" />
+      <entry key="H1" value="303.62969971912474" />
+      <entry key="H2" value="437.1741207261214" />
+      <entry key="H4" value="572.2700447788532" />
+      <entry key="D1" value="767.3193541646334" />
+      <entry key="W1" value="812.9486247518873" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -125,6 +130,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
     "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.MCP Project settings loaded": "true",
@@ -137,7 +143,7 @@
     "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
     "javascript.preferred.runtime.type.id": "node",
-    "last_opened_file_path": "C:/Users/AmarSDK/OneDrive/Documenti/Projects/Torneo-CdT/dashboard-cdt/app/(app)/(tabs)/tornei",
+    "last_opened_file_path": "C:/Users/AmarSDK/OneDrive/Documenti/Projects/Torneo-CdT/dashboard-cdt",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -145,20 +151,24 @@
     "nodejs_package_manager_path": "npm",
     "npm.dev.executor": "Run",
     "prettierjs.PrettierConfiguration.Package": "C:\\Users\\AmarSDK\\OneDrive\\Documenti\\Projects\\Torneo-CdT\\dashboard-cdt\\node_modules\\prettier",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "settings.editor.selected.configurable": "ml.llm.LLMConfigurable",
     "ts.external.directory.path": "C:\\Users\\AmarSDK\\OneDrive\\Documenti\\Projects\\Torneo-CdT\\dashboard-cdt\\node_modules\\typescript\\lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt" />
       <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\app\(app)\(tabs)\tornei" />
       <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\components\input" />
       <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\my-app\assets\images" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\src" />
+      <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\app\(app)\(tabs)\giocatori" />
+      <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\app\(app)\(tabs)\partite" />
+      <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\app\(app)\(tabs)\squadre" />
       <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\components\input" />
-      <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt" />
     </key>
   </component>
   <component name="RunManager">
@@ -201,7 +211,9 @@
       <workItem from="1780508312683" duration="3061000" />
       <workItem from="1780515625140" duration="246000" />
       <workItem from="1780516239573" duration="4172000" />
-      <workItem from="1780554364568" duration="6580000" />
+      <workItem from="1780554364568" duration="6982000" />
+      <workItem from="1780584560289" duration="2952000" />
+      <workItem from="1780654947911" duration="12486000" />
     </task>
     <servers />
   </component>

@@ -4,7 +4,7 @@
     "slug": "dashboard-cdt",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logo.png",
+    "icon": "./assets/images/logo-eagle-only.png",
     "scheme": "dashboard-cdt",
     "userInterfaceStyle": "light",
     "assetBundlePatterns": [
@@ -21,7 +21,7 @@
     "android": {
       "userInterfaceStyle": "light",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
+        "foregroundImage": "./assets/images/logo-eagle-only.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.dashboardcdt"
@@ -29,14 +29,14 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/logo.png"
+      "favicon": "./assets/images/logo-eagle-only.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/logo.png",
+          "image": "./assets/images/logo-eagle-only.png",
           "imageWidth": 200
         }
       ],

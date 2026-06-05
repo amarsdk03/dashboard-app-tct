@@ -1,8 +1,7 @@
 import { Tabs } from 'expo-router';
-import { Image, StyleSheet, Platform, View, Text } from 'react-native';
-import { Award, CalendarDays, LogOut, ShieldUser, UsersRound } from 'lucide-react-native';
+import { Image, StyleSheet, Platform } from 'react-native';
+import { Award, CalendarDays, ShieldUser, UsersRound } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
-import { Button } from '@expo/ui';
 
 /*
 Navbar principale dell'applicazione, basata sulle Tabs di Expo Router:

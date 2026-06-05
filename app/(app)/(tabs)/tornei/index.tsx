@@ -8,10 +8,11 @@ import {
     StyleSheet,
 } from 'react-native';
 import { Link } from 'expo-router';
-import { Text } from '@/components/ui/text';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
-import { Plus, Trophy } from 'lucide-react-native';
+import { PlusIcon, TrophyIcon } from 'lucide-react-native';
 import { InterText } from '@/components/InterText';
+import TorneoCard from '@/components/tornei/TorneoCard';
+import errorMessage from '@/components/ErrorMessage';
 
 export default function TorneiScreen() {
     const [tornei, setTornei] = useState<listaTorneiType[]>([]);
@@ -23,12 +24,9 @@ export default function TorneiScreen() {
         else setLoading(true);
         try {
             const data = await getListaTornei(null);
-            console.log('Tornei caricati:', data);
-
             setTornei(data ?? []);
-        } catch (e: unknown) {
-            const msg = e instanceof Error ? e.message : 'Errore sconosciuto';
-            Alert.alert('Errore', msg);
+        } catch (error: any) {
+            errorMessage('Impossibile recuperare i dati', error);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -48,10 +46,10 @@ export default function TorneiScreen() {
             {/* ── Header ── */}
             <View className="bg-background p-6 pb-4">
                 <View className="flex-row items-center justify-between">
-                    <InterText className="text-2xl font-black">Lista tornei</InterText>
+                    <InterText className="text-3xl font-black">Lista tornei</InterText>
                     <Link href="/tornei/modal" asChild>
                         <TouchableOpacity style={styles.button} activeOpacity={0.85}>
-                            <Plus size={16} color="#fff" />
+                            <PlusIcon size={16} color="#fff" />
                             <InterText style={styles.buttonText}>Crea nuovo</InterText>
                         </TouchableOpacity>
                     </Link>
@@ -62,7 +60,7 @@ export default function TorneiScreen() {
             {loading ? (
                 <View className="flex-1 items-center justify-center gap-3">
                     <ActivityIndicator size="large" />
-                    <Text className="text-muted-foreground">Caricamento tornei...</Text>
+                    <InterText className="text-muted-foreground">Caricamento tornei...</InterText>
                 </View>
             ) : (
                 <FlatList
@@ -75,15 +73,30 @@ export default function TorneiScreen() {
                     ListEmptyComponent={
                         <View className="mt-16 items-center gap-3">
                             <View className="bg-muted rounded-full p-5">
-                                <Trophy size={36} color="hsl(var(--muted-foreground))" />
+                                <TrophyIcon size={36} color="hsl(var(--muted-foreground))" />
                             </View>
-                            <Text className="text-foreground text-lg font-semibold">
+                            <InterText className="text-foreground text-lg font-semibold">
                                 Nessun torneo trovato
-                            </Text>
+                            </InterText>
                         </View>
                     }
                     renderItem={({ item }) => (
-                        <InterText style={styles.listItem}>{item.nome}</InterText>
+                        <Link
+                            key={item.id}
+                            href={`/tornei/modal?mode=view&torneoId=${item.id}`}
+                            asChild>
+                            <TouchableOpacity activeOpacity={0.85}>
+                                <TorneoCard
+                                    key={item.id}
+                                    id={item.id}
+                                    nomeTorneo={item.nome}
+                                    logoTorneo={item.logo_torneo}
+                                    dataInizio={item.data_inizio}
+                                    dataFine={item.data_fine}
+                                    nomeCampo={(item.campo as any)?.nome}
+                                />
+                            </TouchableOpacity>
+                        </Link>
                     )}
                 />
             )}
@@ -109,7 +122,7 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: '#ffffff',
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: '600',
     },
     listItem: {

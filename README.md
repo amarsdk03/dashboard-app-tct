@@ -117,6 +117,7 @@ Contiene i componenti React riutilizzabili.
 * `input/`: componenti generici per i vari campi di input.
 * `login/`: componenti relativi all'autenticazione.
 * `ui/`: componenti generici dell'interfaccia utente (button, input, card, dialog, ecc.).
+* `ErrorMessage.tsx`: elemento di default per mostrare messaggi di errore all'utente.
 * `InterText.tsx`: elemento di testo di default con font Inter preapplicato.
 * `splash-screen-controller.tsx`: gestione della schermata iniziale dell'app.
 
@@ -175,12 +176,12 @@ Di seguito la struttura parziale del progetto:
 ├── app
 │   ├── (app)
 │   │   ├── (tabs)
-│   │   │   ├── giocatori.tsx
-│   │   │   ├── index.tsx
-│   │   │   ├── partite.tsx
-│   │   │   ├── squadre.tsx
-│   │   │   ├── tornei.tsx
-│   │   │   └── _layout.tsx
+│   │   │   ├── giocatori
+│   │   │   ├── partite
+│   │   │   ├── squadre
+│   │   │   ├── tornei
+│   │   │   ├── _layout.tsx
+│   │   │   └── index.tsx
 │   │   ├── impostazioni.tsx
 │   │   └── _layout.tsx
 │   ├── +html.tsx
@@ -191,7 +192,8 @@ Di seguito la struttura parziale del progetto:
 │   ├── images
 │   │   ├── background-login.png
 │   │   ├── background.png
-│   │   └── logo.png
+│   │   ├── logo.png
+│   │   └── logo-eagle-only.png
 │   └── screen-mockups
 ├── components
 │   ├── giocatori
@@ -201,6 +203,8 @@ Di seguito la struttura parziale del progetto:
 │   ├── squadre
 │   ├── tornei
 │   ├── ui
+│   ├── ErrorMessage.tsx
+│   ├── InterText.tsx
 │   └── splash-screen-controller.tsx
 ├── data
 │   ├── fixtures.ts
@@ -301,6 +305,11 @@ Questo avvierà Expo Dev Server. Per aprire l'app su:
 - **Web**: premi `w` per avviare sul browser
 
 Puoi anche scannerizzare il codice QR, utilizzando l'app [Expo Go](https://expo.dev/go) per testare l'app sul tuo dispositivo fisico.
+
+Oppure esegui il seguente comando:
+```bash
+npm run ios
+```
 
 ### Documentazione:
 

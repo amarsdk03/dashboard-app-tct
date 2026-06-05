@@ -12,6 +12,7 @@ interface DateTimePickerFieldProps {
     mode: 'date' | 'time' | 'datetime';
     label: string;
     value: Date | null;
+    readonly?: boolean;
     onChange: (date: Date | null) => void;
     placeholder?: string;
 }
@@ -32,15 +33,19 @@ function fromInputValue(val: string): Date | null {
     return new Date(y, m - 1, d);
 }
 
-export default function DateTimePickerField({
-                                                mode,
-                                                label,
-                                                value,
-                                                onChange,
-                                                placeholder = 'Seleziona data...',
-                                            }: DateTimePickerFieldProps) {
+export default function DateTimePickerField(
+    {
+        mode,
+        label,
+        readonly = false,
+        value,
+        onChange,
+        placeholder = 'Seleziona data...',
+    }: DateTimePickerFieldProps) {
     const [showPicker, setShowPicker] = useState(false);
     const webInputRef = useRef<any>(null);
+
+    const placeholderValue = readonly ? 'N/A' : placeholder;
 
     const handleWebChange = (e: any) => {
         onChange(fromInputValue(e.target.value));
@@ -48,10 +53,11 @@ export default function DateTimePickerField({
 
     return (
         <View style={styles.inputContainer}>
-            <InterText style={styles.label}>{label}</InterText>
+            <InterText style={styles.label}>{label}:</InterText>
 
             <Pressable
-                style={styles.fieldBox}
+                disabled={readonly}
+                style={[styles.fieldBox, readonly && styles.readonlyFieldBox]}
                 onPress={() => {
                     if (Platform.OS === 'web') {
                         // Programmatically open the native browser date picker
@@ -60,12 +66,17 @@ export default function DateTimePickerField({
                         setShowPicker(true);
                     }
                 }}>
-                <Text style={[styles.inputText, !value && styles.placeholder]}>
-                    {value ? value.toLocaleDateString() : placeholder}
+                <Text
+                    style={[
+                        styles.inputText,
+                        !value && styles.placeholder,
+                        readonly && styles.readonlyPlaceholder,
+                    ]}>
+                    {value ? value.toLocaleDateString() : placeholderValue}
                 </Text>
 
                 {/* Clear button */}
-                {value && Platform.OS !== 'web' && (
+                {value && !readonly && Platform.OS !== 'web' && (
                     <Pressable
                         style={styles.clearBtn}
                         onPress={(e) => {
@@ -121,16 +132,16 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     label: {
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: '500',
         color: '#111111',
         marginBottom: 6,
     },
     fieldBox: {
         position: 'relative',
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#faf6f2',
         borderWidth: 1,
-        borderColor: '#e2e8f0',
+        borderColor: '#e0d3ca',
         borderRadius: 10,
         paddingHorizontal: 12,
         paddingVertical: 12,
@@ -140,12 +151,24 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         minHeight: 44,
     },
+    readonlyFieldBox: {
+        backgroundColor: '#ffffff',
+        paddingHorizontal: 0,
+        paddingVertical: 0,
+        borderRadius: 0,
+        minHeight: 0,
+        borderColor: '#ffffff00',
+        color: '#737373',
+    },
     inputText: {
         fontSize: 13,
-        color: '#0f172a',
+        color: '#402c20',
     },
     placeholder: {
-        color: '#94a3b8',
+        color: '#00000066',
+    },
+    readonlyPlaceholder: {
+        color: '#737373',
     },
     clearBtn: {
         position: 'absolute',

@@ -16,7 +16,7 @@ export default function TorneoModalRoute() {
         <View style={styles.container}>
             <TorneoModal
                 mode={mode}
-                torneoId={Number.isFinite(torneoId) ? torneoId : undefined}
+                torneoId={torneoId}
                 onClose={() => {
                     if (router.canGoBack()) {
                         router.back();
