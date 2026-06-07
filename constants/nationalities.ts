@@ -98,3 +98,12 @@ export function filterNationalities(query: string, limit = 6) {
 export function getNationalityFlag(value: string | null | undefined) {
     return findNationality(value)?.flag ?? null;
 }
+
+export function formatNationalityLabel(value: string | null | undefined) {
+    if (!value) return null;
+
+    const country = findNationality(value);
+    if (!country) return value.trim() || null;
+
+    return `${country.name} (${country.code})`;
+}
