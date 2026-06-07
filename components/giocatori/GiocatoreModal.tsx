@@ -10,6 +10,7 @@ import { Link, type Href } from 'expo-router';
 import { ArrowLeftIcon, SaveIcon, SquarePenIcon } from 'lucide-react-native';
 import { InterText } from '@/components/InterText';
 import DateTimePickerField from '@/components/input/DateTimePickerField';
+import ImageInputField from '@/components/input/ImageInputField';
 import TextInputField from '@/components/input/TextInputField';
 import errorMessage from '@/components/ErrorMessage';
 import {
@@ -375,8 +376,8 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                             </View>
                         </View>
 
-                        <TextInputField
-                            label="URL foto"
+                        <ImageInputField
+                            label="Foto giocatore"
                             readonly={readonly}
                             value={form.linkFoto}
                             onChange={(value) => setField('linkFoto', value)}
