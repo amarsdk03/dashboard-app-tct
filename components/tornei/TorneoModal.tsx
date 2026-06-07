@@ -8,12 +8,16 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { getDatiTorneo, datiTorneoType, insertTorneo, updateTorneo } from '@/data/tornei';
+import { getListaGiocatori } from '@/data/giocatori';
+import { getConteggioPartiteTorneo } from '@/data/partite';
+import { getListaSquadre } from '@/data/squadre';
 import { InterText } from '@/components/InterText';
 import DateTimePickerField from '@/components/input/DateTimePickerField';
 import TextInputField from '@/components/input/TextInputField';
 import { ArrowLeftIcon, SaveIcon, SquarePenIcon } from 'lucide-react-native';
 import { Link } from 'expo-router';
 import errorMessage from '@/components/ErrorMessage';
+import TorneoLinkedDataSummary from '@/components/tornei/TorneoLinkedDataSummary';
 
 export type TorneoModalMode = 'view' | 'create' | 'edit';
 
@@ -32,9 +36,21 @@ interface datiTorneo {
     urlLogo: string | null;
 }
 
+type LinkedDataSummary = {
+    squadreCount: number;
+    giocatoriCount: number;
+    partiteCount: number;
+};
+
 export default function TorneoModal(props: Props) {
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [summaryLoading, setSummaryLoading] = useState(false);
+    const [summary, setSummary] = useState<LinkedDataSummary>({
+        squadreCount: 0,
+        giocatoriCount: 0,
+        partiteCount: 0,
+    });
 
     const handleClose = () => {
         props.onClose();
@@ -72,6 +88,43 @@ export default function TorneoModal(props: Props) {
             })
             .finally(() => {
                 setLoading(false);
+        });
+    }, [props.mode, props.torneoId]);
+
+    useEffect(() => {
+        if (props.mode !== 'view' || !props.torneoId) {
+            setSummary({
+                squadreCount: 0,
+                giocatoriCount: 0,
+                partiteCount: 0,
+            });
+            return;
+        }
+
+        setSummaryLoading(true);
+
+        Promise.all([
+            getListaSquadre(null, props.torneoId),
+            getListaGiocatori('', props.torneoId, 1, 1),
+            getConteggioPartiteTorneo(props.torneoId),
+        ])
+            .then(([squadre, giocatori, partiteCount]) => {
+                setSummary({
+                    squadreCount: squadre.length,
+                    giocatoriCount: giocatori.count ?? 0,
+                    partiteCount,
+                });
+            })
+            .catch((error) => {
+                errorMessage('Impossibile recuperare i dati collegati', error);
+                setSummary({
+                    squadreCount: 0,
+                    giocatoriCount: 0,
+                    partiteCount: 0,
+                });
+            })
+            .finally(() => {
+                setSummaryLoading(false);
             });
     }, [props.mode, props.torneoId]);
 
@@ -205,6 +258,16 @@ export default function TorneoModal(props: Props) {
                     onChange={(val) => handleInputChange('urlLogo', val)}
                     placeholder={'https://example.com/logo.png'}
                 />
+
+                {props.mode === 'view' && form.id && (
+                    <TorneoLinkedDataSummary
+                        torneoId={form.id}
+                        loading={summaryLoading}
+                        squadreCount={summary.squadreCount}
+                        giocatoriCount={summary.giocatoriCount}
+                        partiteCount={summary.partiteCount}
+                    />
+                )}
 
                 <View style={[styles.dynamicRow, { marginTop: 12 }]}>
                     {props.mode !== 'view' ? (
