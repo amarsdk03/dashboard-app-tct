@@ -62,6 +62,24 @@ const RUOLI: Enums<'ruolo_giocatore'>[] = [
 
 const PIEDI: Enums<'piede_principale'>[] = ['Destro', 'Sinistro', 'Entrambi'];
 
+const NAZIONI_HINT = [
+    'Italia',
+    'Albania',
+    'Marocco',
+    'Tunisia',
+    'Romania',
+    'Moldavia',
+    'Ucraina',
+    'Brasile',
+    'Argentina',
+    'Francia',
+    'Germania',
+    'Spagna',
+    'Senegal',
+    'Ghana',
+    'Nigeria',
+];
+
 const EMPTY_FORM: FormState = {
     id: null,
     nome: '',
@@ -406,6 +424,14 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                             </View>
                         </View>
 
+                        <HintSection
+                            label="Suggerimenti nazionalità"
+                            readonly={readonly}
+                            options={NAZIONI_HINT}
+                            selected={form.nazionalita}
+                            onSelect={(value) => setField('nazionalita', value)}
+                        />
+
                         <ChipSection
                             label="Ruolo principale"
                             readonly={readonly}
@@ -588,6 +614,40 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                 </View>
             </View>
         </ScrollView>
+    );
+}
+
+type HintSectionProps = {
+    label: string;
+    readonly: boolean;
+    options: string[];
+    selected: string;
+    onSelect: (value: string) => void;
+};
+
+function HintSection({ label, readonly, options, selected, onSelect }: HintSectionProps) {
+    if (readonly) return null;
+
+    return (
+        <View style={styles.hintGroup}>
+            <InterText style={styles.hintLabel}>{label}:</InterText>
+            <View style={styles.chipRow}>
+                {options.map((option) => {
+                    const active = selected.trim().toLowerCase() === option.toLowerCase();
+                    return (
+                        <TouchableOpacity
+                            key={option}
+                            style={[styles.hintChip, active && styles.chipActive]}
+                            onPress={() => onSelect(option)}
+                            activeOpacity={0.85}>
+                            <InterText style={[styles.hintChipText, active && styles.chipTextActive]}>
+                                {option}
+                            </InterText>
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
+        </View>
     );
 }
 
@@ -795,10 +855,22 @@ const styles = StyleSheet.create({
         width: '100%',
         gap: 8,
     },
+    hintGroup: {
+        marginTop: -12,
+        marginBottom: 20,
+        width: '100%',
+        gap: 8,
+    },
     label: {
         fontSize: 14,
         fontWeight: '500',
         color: '#111111',
+        fontFamily: 'Inter-Medium',
+    },
+    hintLabel: {
+        fontSize: 12,
+        fontWeight: '500',
+        color: '#64748b',
         fontFamily: 'Inter-Medium',
     },
     chipRow: {
@@ -830,6 +902,21 @@ const styles = StyleSheet.create({
     },
     chipTextActive: {
         color: '#ffffff',
+    },
+    hintChip: {
+        maxWidth: '100%',
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        backgroundColor: '#ffffff',
+        paddingHorizontal: 9,
+        paddingVertical: 6,
+    },
+    hintChipText: {
+        color: '#64748b',
+        fontSize: 11,
+        fontWeight: '600',
+        fontFamily: 'Inter-SemiBold',
     },
     readonlyValue: {
         color: '#737373',
