@@ -24,6 +24,9 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
+# local brainstorming companion sessions
+.superpowers/
+
 # macOS
 .DS_Store
 *.pem
