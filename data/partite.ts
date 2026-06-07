@@ -83,7 +83,7 @@ export async function getListaPartite(
 
 export type listaPartiteType = Awaited<
     ReturnType<typeof getListaPartite>
->;
+>[number];
 
 
 
