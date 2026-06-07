@@ -33,7 +33,8 @@ export async function getListaCategorie() {
     const { data, error } = await supabase
         .from('lista_categorie')
         .select('*')
-        .order('torneo_id', { ascending: false });
+        .order('torneo_id', { ascending: false })
+        .abortSignal(AbortSignal.timeout(20000));
 
     if (error) throw error;
 
@@ -70,7 +71,9 @@ export async function getListaPartite(
         query = query.eq('girone', valGirone);
     }
 
-    query = query.order('fischio_inizio', {ascending: false});
+    query = query
+        .order('fischio_inizio', {ascending: false})
+        .abortSignal(AbortSignal.timeout(20000));
 
     const {data, error} = await query;
     if (error) throw error;
@@ -91,7 +94,8 @@ export async function getProssimiIncontri(idTorneo: number, dateFilter: Date) {
         .eq('torneo_id', idTorneo)
         .gte('fischio_inizio', dateFilter.toISOString())
         .order('fischio_inizio', {ascending: true})
-        .limit(6);
+        .limit(6)
+        .abortSignal(AbortSignal.timeout(20000));
 
     if (error) throw error;
 
@@ -100,6 +104,23 @@ export async function getProssimiIncontri(idTorneo: number, dateFilter: Date) {
 
 export type prossimiIncontriType = Awaited<
     ReturnType<typeof getProssimiIncontri>
+>;
+
+
+export async function getConteggioPartiteTorneo(idTorneo: number) {
+    const { count, error } = await supabase
+        .from('risultati_partite')
+        .select('id_partita', { count: 'exact', head: true })
+        .eq('torneo_id', idTorneo)
+        .abortSignal(AbortSignal.timeout(20000));
+
+    if (error) throw error;
+
+    return count ?? 0;
+}
+
+export type conteggioPartiteTorneoType = Awaited<
+    ReturnType<typeof getConteggioPartiteTorneo>
 >;
 
 
