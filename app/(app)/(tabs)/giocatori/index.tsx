@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Link, type Href } from 'expo-router';
+import { Link, type Href, useLocalSearchParams } from 'expo-router';
 import { PlusIcon, SearchIcon, SlidersHorizontal, UserRound } from 'lucide-react-native';
 import { InterText } from '@/components/InterText';
 import errorMessage from '@/components/ErrorMessage';
@@ -36,6 +36,7 @@ const RUOLI: Enums<'ruolo_giocatore'>[] = [
 ];
 
 export default function GiocatoriScreen() {
+    const params = useLocalSearchParams<{ torneoId?: string }>();
     const [tornei, setTornei] = useState<listaTorneiType[]>([]);
     const [selectedTorneo, setSelectedTorneo] = useState<listaTorneiType | null>(null);
     const [squadre, setSquadre] = useState<listaSquadreType[]>([]);
@@ -54,13 +55,26 @@ export default function GiocatoriScreen() {
         if (!selectedTorneo?.id) return '/giocatori/modal?mode=create' as Href;
         return `/giocatori/modal?mode=create&torneoId=${selectedTorneo.id}` as Href;
     }, [selectedTorneo?.id]);
+    const routeTorneoId = useMemo(() => {
+        const value = Number(params.torneoId);
+        return Number.isFinite(value) && value > 0 ? value : null;
+    }, [params.torneoId]);
 
     async function loadTornei() {
         try {
             const data = await getListaTornei(null);
             const lista = data ?? [];
             setTornei(lista);
-            setSelectedTorneo((current) => current ?? lista[0] ?? null);
+            setSelectedTorneo((current) => {
+                const routeMatch = routeTorneoId
+                    ? lista.find((torneo) => torneo.id === routeTorneoId)
+                    : null;
+                const currentMatch = current
+                    ? lista.find((torneo) => torneo.id === current.id)
+                    : null;
+
+                return routeMatch ?? currentMatch ?? lista[0] ?? null;
+            });
         } catch (error: any) {
             errorMessage('Impossibile recuperare i tornei', error.message ?? String(error));
         }
@@ -135,6 +149,16 @@ export default function GiocatoriScreen() {
     useEffect(() => {
         loadTornei().then(() => null);
     }, []);
+
+    useEffect(() => {
+        if (!routeTorneoId || tornei.length === 0) return;
+
+        const routeMatch = tornei.find((torneo) => torneo.id === routeTorneoId);
+        if (routeMatch) {
+            setSelectedTorneo(routeMatch);
+            setSelectedSquadra(null);
+        }
+    }, [routeTorneoId, tornei]);
 
     useEffect(() => {
         if (selectedTorneo?.id) {
