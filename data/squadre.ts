@@ -1,6 +1,27 @@
 import { supabase } from '@/lib/supabase';
 
 
+function dedupeSquadre<T extends { s_id: number | null; t_id: number | null; s_nome: string | null }>(
+    data: T[] | null,
+) {
+    const result: T[] = [];
+    const seen = new Set<string>();
+
+    for (const squadra of data ?? []) {
+        const key = squadra.s_id
+            ? `id:${squadra.s_id}`
+            : `name:${squadra.t_id ?? 'none'}:${squadra.s_nome ?? 'none'}`;
+
+        if (seen.has(key)) continue;
+
+        seen.add(key);
+        result.push(squadra);
+    }
+
+    return result;
+}
+
+
 export async function getListaSquadre(
     searchParam: string | null,
     idTorneo: number,
@@ -31,7 +52,7 @@ export async function getListaSquadre(
     const { data, error } = await query;
     if (error) throw error;
 
-    return data;
+    return dedupeSquadre(data);
 }
 
 export type listaSquadreType = Awaited<
