@@ -36,7 +36,9 @@ export async function getListaSquadre(
             s_id_capitano,
             s_acronimo,
             s_link_stemma,
-            s_colore_squadra
+            s_colore_squadra,
+            g_nome,
+            g_cognome
         `)
         .eq('t_id', idTorneo);
 
