@@ -1,6 +1,26 @@
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { ArrowLeftIcon } from 'lucide-react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+    ActivityIndicator,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { Link, type Href } from 'expo-router';
+import { ArrowLeftIcon, SaveIcon, SquarePenIcon } from 'lucide-react-native';
 import { InterText } from '@/components/InterText';
+import DateTimePickerField from '@/components/input/DateTimePickerField';
+import TextInputField from '@/components/input/TextInputField';
+import errorMessage from '@/components/ErrorMessage';
+import {
+    getDatiGiocatoreConIscrizione,
+    insertIscrizione,
+    updateGiocatore,
+    updateIscrizione,
+} from '@/data/giocatori';
+import { getListaSquadre, listaSquadreType } from '@/data/squadre';
+import { getListaTornei, listaTorneiType } from '@/data/tornei';
+import { Enums } from '@/types/database.types';
 
 export type GiocatoreModalMode = 'view' | 'create' | 'edit';
 
@@ -11,36 +31,591 @@ type Props = {
     onClose: () => void;
 };
 
+type FormState = {
+    id: number | null;
+    nome: string;
+    cognome: string;
+    linkFoto: string;
+    nazionalita: string;
+    dataNascita: Date | null;
+    ruoloPrincipale: Enums<'ruolo_giocatore'> | null;
+    piedePrincipale: Enums<'piede_principale'> | null;
+    nomeMaglia: string;
+    numeroMaglia: string;
+    usernameIg: string;
+    isCapitano: boolean;
+    idIscrizione: number | null;
+    idTorneo: number | null;
+    idSquadra: number | null;
+    dettagli: string;
+};
+
+const RUOLI: Enums<'ruolo_giocatore'>[] = [
+    'Tecnico',
+    'Portiere',
+    'Difensore',
+    'Centrocampista',
+    'Attaccante',
+];
+
+const PIEDI: Enums<'piede_principale'>[] = ['Destro', 'Sinistro', 'Entrambi'];
+
+const EMPTY_FORM: FormState = {
+    id: null,
+    nome: '',
+    cognome: '',
+    linkFoto: '',
+    nazionalita: '',
+    dataNascita: null,
+    ruoloPrincipale: null,
+    piedePrincipale: null,
+    nomeMaglia: '',
+    numeroMaglia: '',
+    usernameIg: '',
+    isCapitano: false,
+    idIscrizione: null,
+    idTorneo: null,
+    idSquadra: null,
+    dettagli: '',
+};
+
+function emptyToNull(value: string) {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+}
+
+function dateToIso(date: Date | null) {
+    return date ? date.toISOString() : null;
+}
+
+function parseDate(value: string | null) {
+    if (!value) return null;
+    const date = new Date(value);
+    return isNaN(date.getTime()) ? null : date;
+}
+
 export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }: Props) {
-    const title =
-        mode === 'create'
-            ? 'Nuovo giocatore'
-            : mode === 'edit'
-              ? 'Modifica giocatore'
-              : 'Dati giocatore';
+    const [form, setForm] = useState<FormState>({ ...EMPTY_FORM, idTorneo: torneoId ?? null });
+    const [tornei, setTornei] = useState<listaTorneiType[]>([]);
+    const [squadre, setSquadre] = useState<listaSquadreType[]>([]);
+    const [loading, setLoading] = useState(mode !== 'create');
+    const [submitting, setSubmitting] = useState(false);
+
+    const readonly = mode === 'view';
+    const selectedTorneo = useMemo(
+        () => tornei.find((torneo) => torneo.id === form.idTorneo) ?? null,
+        [form.idTorneo, tornei],
+    );
+    const selectedSquadra = useMemo(
+        () => squadre.find((squadra) => squadra.s_id === form.idSquadra) ?? null,
+        [form.idSquadra, squadre],
+    );
+    const editHref = useMemo(() => {
+        return `/giocatori/modal?mode=edit&giocatoreId=${form.id ?? giocatoreId}&torneoId=${form.idTorneo ?? torneoId}` as Href;
+    }, [form.id, form.idTorneo, giocatoreId, torneoId]);
+
+    function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
+        setForm((current) => ({ ...current, [key]: value }));
+    }
+
+    async function loadTornei() {
+        try {
+            const data = await getListaTornei(null);
+            setTornei(data ?? []);
+        } catch (error: any) {
+            errorMessage('Impossibile recuperare i tornei', error.message ?? String(error));
+        }
+    }
+
+    async function loadSquadre(idTorneo: number) {
+        try {
+            const data = await getListaSquadre(null, idTorneo);
+            setSquadre(data ?? []);
+        } catch (error: any) {
+            errorMessage('Impossibile recuperare le squadre', error.message ?? String(error));
+        }
+    }
+
+    async function loadDati() {
+        if (mode === 'create') {
+            setLoading(false);
+            return;
+        }
+
+        if (!giocatoreId || !torneoId) {
+            errorMessage('Parametri mancanti', 'ID giocatore o torneo mancante');
+            setLoading(false);
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const { giocatore, iscrizione } = await getDatiGiocatoreConIscrizione(
+                giocatoreId,
+                torneoId,
+            );
+
+            if (!giocatore) {
+                errorMessage('Giocatore non trovato', `ID giocatore: ${giocatoreId}`);
+                return;
+            }
+
+            setForm({
+                id: giocatore.id,
+                nome: giocatore.nome ?? '',
+                cognome: giocatore.cognome ?? '',
+                linkFoto: giocatore.link_foto ?? '',
+                nazionalita: giocatore.nazionalita ?? '',
+                dataNascita: parseDate(giocatore.data_nascita),
+                ruoloPrincipale: giocatore.ruolo_principale,
+                piedePrincipale: giocatore.piede_principale,
+                nomeMaglia: giocatore.nome_maglia ?? '',
+                numeroMaglia: giocatore.numero_maglia ?? '',
+                usernameIg: giocatore.username_ig ?? '',
+                isCapitano: giocatore.is_capitano ?? false,
+                idIscrizione: iscrizione?.id ?? null,
+                idTorneo: iscrizione?.id_torneo ?? torneoId,
+                idSquadra: iscrizione?.id_squadra ?? null,
+                dettagli: iscrizione?.dettagli ?? '',
+            });
+        } catch (error: any) {
+            errorMessage('Impossibile recuperare i dati', error.message ?? String(error));
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function validateForm() {
+        if (!form.nome.trim()) {
+            errorMessage('Campi obbligatori mancanti', 'Il nome del giocatore è obbligatorio');
+            return false;
+        }
+
+        if (!form.cognome.trim()) {
+            errorMessage('Campi obbligatori mancanti', 'Il cognome del giocatore è obbligatorio');
+            return false;
+        }
+
+        if (!form.idTorneo || !form.idSquadra) {
+            errorMessage('Campi obbligatori mancanti', 'Seleziona torneo e squadra');
+            return false;
+        }
+
+        return true;
+    }
+
+    async function handleSubmit() {
+        if (!validateForm()) return;
+
+        if (!form.id) {
+            errorMessage('Errore', 'ID giocatore mancante');
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            await updateGiocatore(form.id, {
+                nome: form.nome.trim(),
+                cognome: form.cognome.trim(),
+                link_foto: emptyToNull(form.linkFoto),
+                nazionalita: emptyToNull(form.nazionalita),
+                data_nascita: dateToIso(form.dataNascita),
+                ruolo_principale: form.ruoloPrincipale,
+                piede_principale: form.piedePrincipale,
+                nome_maglia: emptyToNull(form.nomeMaglia),
+                numero_maglia: emptyToNull(form.numeroMaglia),
+                username_ig: emptyToNull(form.usernameIg),
+                is_capitano: form.isCapitano,
+            });
+
+            const iscrizionePayload = {
+                id_giocatore: form.id,
+                id_torneo: form.idTorneo!,
+                id_squadra: form.idSquadra!,
+                dettagli: emptyToNull(form.dettagli),
+            };
+
+            if (form.idIscrizione) {
+                await updateIscrizione(form.idIscrizione, iscrizionePayload);
+            } else {
+                await insertIscrizione(iscrizionePayload);
+            }
+
+            onClose();
+        } catch (error: any) {
+            errorMessage('Impossibile salvare i dati', error.message ?? String(error));
+        } finally {
+            setSubmitting(false);
+        }
+    }
+
+    useEffect(() => {
+        loadTornei().then(() => null);
+    }, []);
+
+    useEffect(() => {
+        loadDati().then(() => null);
+    }, [mode, giocatoreId, torneoId]);
+
+    useEffect(() => {
+        if (form.idTorneo) {
+            loadSquadre(form.idTorneo).then(() => null);
+        } else {
+            setSquadre([]);
+        }
+    }, [form.idTorneo]);
+
+    if (loading) {
+        return (
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.formCard}>
+                    <View className="flex-1 items-center justify-center gap-3 py-16">
+                        <ActivityIndicator size="large" />
+                        <InterText className="text-muted-foreground">Caricamento dati...</InterText>
+                    </View>
+                    <TouchableOpacity
+                        style={[styles.button, styles.buttonSecondary]}
+                        onPress={onClose}
+                        activeOpacity={0.8}>
+                        <ArrowLeftIcon size={16} color="#6b7280" />
+                        <InterText style={[styles.buttonText, styles.buttonSecondaryText]}>
+                            Torna indietro
+                        </InterText>
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
+        );
+    }
 
     return (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
             <View style={styles.formCard}>
-                <InterText style={styles.title}>{title}</InterText>
-                <InterText style={styles.description}>
-                    {giocatoreId
-                        ? `ID giocatore: ${giocatoreId}`
-                        : 'Wizard di creazione in preparazione'}
-                    {torneoId ? ` · Torneo: ${torneoId}` : ''}
-                </InterText>
+                <InterText style={styles.sectionTitle}>Dati giocatore</InterText>
 
-                <TouchableOpacity
-                    style={[styles.button, styles.buttonSecondary]}
-                    onPress={onClose}
-                    activeOpacity={0.8}>
-                    <ArrowLeftIcon size={16} color="#6b7280" />
-                    <InterText style={[styles.buttonText, styles.buttonSecondaryText]}>
-                        Torna indietro
-                    </InterText>
-                </TouchableOpacity>
+                <View style={styles.row}>
+                    <View style={styles.flexChild}>
+                        <TextInputField
+                            label="Nome"
+                            readonly={readonly}
+                            value={form.nome}
+                            onChange={(value) => setField('nome', value)}
+                            placeholder="Angelo"
+                        />
+                    </View>
+                    <View style={styles.flexChild}>
+                        <TextInputField
+                            label="Cognome"
+                            readonly={readonly}
+                            value={form.cognome}
+                            onChange={(value) => setField('cognome', value)}
+                            placeholder="Del Piero"
+                        />
+                    </View>
+                </View>
+
+                <TextInputField
+                    label="URL foto"
+                    readonly={readonly}
+                    value={form.linkFoto}
+                    onChange={(value) => setField('linkFoto', value)}
+                    placeholder="https://example.com/foto.png"
+                />
+
+                <View style={styles.row}>
+                    <View style={styles.flexChild}>
+                        <TextInputField
+                            label="Nazionalità"
+                            readonly={readonly}
+                            value={form.nazionalita}
+                            onChange={(value) => setField('nazionalita', value)}
+                            placeholder="Italia"
+                        />
+                    </View>
+                    <View style={styles.flexChild}>
+                        <DateTimePickerField
+                            mode="date"
+                            label="Data di nascita"
+                            readonly={readonly}
+                            value={form.dataNascita}
+                            onChange={(value) => setField('dataNascita', value)}
+                            placeholder="Seleziona..."
+                        />
+                    </View>
+                </View>
+
+                <ChipSection
+                    label="Ruolo principale"
+                    readonly={readonly}
+                    options={RUOLI}
+                    selected={form.ruoloPrincipale}
+                    onSelect={(value) => setField('ruoloPrincipale', value)}
+                    onClear={() => setField('ruoloPrincipale', null)}
+                />
+
+                <ChipSection
+                    label="Piede principale"
+                    readonly={readonly}
+                    options={PIEDI}
+                    selected={form.piedePrincipale}
+                    onSelect={(value) => setField('piedePrincipale', value)}
+                    onClear={() => setField('piedePrincipale', null)}
+                />
+
+                <View style={styles.row}>
+                    <View style={styles.flexChild}>
+                        <TextInputField
+                            label="Nome maglia"
+                            readonly={readonly}
+                            value={form.nomeMaglia}
+                            onChange={(value) => setField('nomeMaglia', value)}
+                            placeholder="Del Piero"
+                        />
+                    </View>
+                    <View style={styles.flexChild}>
+                        <TextInputField
+                            label="Numero maglia"
+                            readonly={readonly}
+                            value={form.numeroMaglia}
+                            onChange={(value) => setField('numeroMaglia', value)}
+                            placeholder="10"
+                        />
+                    </View>
+                </View>
+
+                <TextInputField
+                    label="Username IG"
+                    readonly={readonly}
+                    value={form.usernameIg}
+                    onChange={(value) => setField('usernameIg', value)}
+                    placeholder="@username"
+                />
+
+                <ToggleRow
+                    label="Capitano"
+                    readonly={readonly}
+                    value={form.isCapitano}
+                    onChange={(value) => setField('isCapitano', value)}
+                />
+
+                <View style={styles.separator} />
+                <InterText style={styles.sectionTitle}>Dati iscrizione</InterText>
+
+                <SelectSection
+                    label="Torneo"
+                    readonly={readonly}
+                    options={tornei}
+                    selectedId={form.idTorneo}
+                    getId={(torneo) => torneo.id}
+                    getLabel={(torneo) => torneo.nome}
+                    onSelect={(torneo) => {
+                        setField('idTorneo', torneo.id);
+                        setField('idSquadra', null);
+                    }}
+                />
+
+                <SelectSection
+                    label="Squadra"
+                    readonly={readonly}
+                    options={squadre}
+                    selectedId={form.idSquadra}
+                    getId={(squadra) => squadra.s_id}
+                    getLabel={(squadra) => squadra.s_nome ?? 'Squadra senza nome'}
+                    onSelect={(squadra) => setField('idSquadra', squadra.s_id)}
+                    emptyText={selectedTorneo ? 'Nessuna squadra disponibile' : 'Seleziona un torneo'}
+                />
+
+                <TextInputField
+                    label="Dettagli"
+                    readonly={readonly}
+                    value={form.dettagli}
+                    onChange={(value) => setField('dettagli', value)}
+                    placeholder="Note iscrizione..."
+                    multiline
+                />
+
+                <View style={[styles.dynamicRow, { marginTop: 12 }]}>
+                    {mode !== 'view' ? (
+                        <TouchableOpacity
+                            style={[styles.button, styles.buttonDestructive]}
+                            onPress={onClose}
+                            activeOpacity={0.8}>
+                            <ArrowLeftIcon size={16} color="#7c3f3f" />
+                            <InterText style={[styles.buttonText, styles.buttonDestructiveText]}>
+                                Annulla
+                            </InterText>
+                        </TouchableOpacity>
+                    ) : (
+                        <>
+                            <TouchableOpacity
+                                style={[styles.button, styles.buttonSecondary]}
+                                onPress={onClose}
+                                activeOpacity={0.8}>
+                                <ArrowLeftIcon size={16} color="#6b7280" />
+                                <InterText style={[styles.buttonText, styles.buttonSecondaryText]}>
+                                    Torna indietro
+                                </InterText>
+                            </TouchableOpacity>
+                            <Link href={editHref} asChild>
+                                <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+                                    <SquarePenIcon size={16} color="#fff" />
+                                    <InterText style={styles.buttonText}>Modifica</InterText>
+                                </TouchableOpacity>
+                            </Link>
+                        </>
+                    )}
+
+                    {mode === 'edit' && (
+                        <TouchableOpacity
+                            style={[styles.button, submitting && { opacity: 0.6 }]}
+                            onPress={handleSubmit}
+                            disabled={submitting}
+                            activeOpacity={0.8}>
+                            <SaveIcon size={16} color="#fff" />
+                            <InterText style={styles.buttonText}>Salva modifiche</InterText>
+                        </TouchableOpacity>
+                    )}
+                </View>
             </View>
         </ScrollView>
+    );
+}
+
+type ChipSectionProps<T extends string> = {
+    label: string;
+    readonly: boolean;
+    options: T[];
+    selected: T | null;
+    onSelect: (value: T) => void;
+    onClear: () => void;
+};
+
+function ChipSection<T extends string>({
+    label,
+    readonly,
+    options,
+    selected,
+    onSelect,
+    onClear,
+}: ChipSectionProps<T>) {
+    return (
+        <View style={styles.inputGroup}>
+            <InterText style={styles.label}>{label}:</InterText>
+            <View style={styles.chipRow}>
+                {!readonly && (
+                    <TouchableOpacity
+                        style={[styles.chip, !selected && styles.chipActive]}
+                        onPress={onClear}
+                        activeOpacity={0.85}>
+                        <InterText style={[styles.chipText, !selected && styles.chipTextActive]}>
+                            Nessuno
+                        </InterText>
+                    </TouchableOpacity>
+                )}
+                {options.map((option) => {
+                    const active = selected === option;
+                    return (
+                        <TouchableOpacity
+                            key={option}
+                            disabled={readonly}
+                            style={[styles.chip, active && styles.chipActive, readonly && styles.readonlyChip]}
+                            onPress={() => onSelect(option)}
+                            activeOpacity={0.85}>
+                            <InterText style={[styles.chipText, active && styles.chipTextActive]}>
+                                {option}
+                            </InterText>
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
+        </View>
+    );
+}
+
+type SelectSectionProps<T> = {
+    label: string;
+    readonly: boolean;
+    options: T[];
+    selectedId: number | null;
+    getId: (item: T) => number | null;
+    getLabel: (item: T) => string;
+    onSelect: (item: T) => void;
+    emptyText?: string;
+};
+
+function SelectSection<T>({
+    label,
+    readonly,
+    options,
+    selectedId,
+    getId,
+    getLabel,
+    onSelect,
+    emptyText = 'Nessuna opzione disponibile',
+}: SelectSectionProps<T>) {
+    const selected = options.find((item) => getId(item) === selectedId) ?? null;
+
+    if (readonly) {
+        return (
+            <View style={styles.inputGroup}>
+                <InterText style={styles.label}>{label}:</InterText>
+                <InterText style={styles.readonlyValue}>
+                    {selected ? getLabel(selected) : 'N/A'}
+                </InterText>
+            </View>
+        );
+    }
+
+    return (
+        <View style={styles.inputGroup}>
+            <InterText style={styles.label}>{label}:</InterText>
+            <View style={styles.chipRow}>
+                {options.length === 0 ? (
+                    <InterText style={styles.emptyOptions}>{emptyText}</InterText>
+                ) : (
+                    options.map((option) => {
+                        const id = getId(option);
+                        const active = id === selectedId;
+                        return (
+                            <TouchableOpacity
+                                key={String(id ?? getLabel(option))}
+                                style={[styles.chip, active && styles.chipActive]}
+                                onPress={() => onSelect(option)}
+                                activeOpacity={0.85}>
+                                <InterText
+                                    style={[styles.chipText, active && styles.chipTextActive]}
+                                    numberOfLines={1}>
+                                    {getLabel(option)}
+                                </InterText>
+                            </TouchableOpacity>
+                        );
+                    })
+                )}
+            </View>
+        </View>
+    );
+}
+
+type ToggleRowProps = {
+    label: string;
+    readonly: boolean;
+    value: boolean;
+    onChange: (value: boolean) => void;
+};
+
+function ToggleRow({ label, readonly, value, onChange }: ToggleRowProps) {
+    return (
+        <View style={styles.toggleRow}>
+            <InterText style={styles.label}>{label}:</InterText>
+            <TouchableOpacity
+                disabled={readonly}
+                style={[styles.toggle, value && styles.toggleActive, readonly && styles.readonlyChip]}
+                onPress={() => onChange(!value)}
+                activeOpacity={0.85}>
+                <InterText style={[styles.toggleText, value && styles.toggleTextActive]}>
+                    {value ? 'Sì' : 'No'}
+                </InterText>
+            </TouchableOpacity>
+        </View>
     );
 }
 
@@ -60,20 +635,115 @@ const styles = StyleSheet.create({
         elevation: 2,
         borderWidth: 1,
         borderColor: '#f1f5f9',
+    },
+    sectionTitle: {
+        color: '#111111',
+        fontSize: 20,
+        fontWeight: '700',
+        fontFamily: 'Inter-Bold',
+        marginBottom: 16,
+    },
+    row: {
+        flexDirection: 'row',
+        width: '100%',
+        gap: 8,
+    },
+    dynamicRow: {
+        flexDirection: 'column',
+        width: '100%',
         gap: 12,
     },
-    title: {
-        color: '#111111',
-        fontSize: 24,
-        fontFamily: 'Inter-Bold',
-        fontWeight: '700',
+    flexChild: {
+        flex: 1,
     },
-    description: {
-        color: '#6b7280',
+    inputGroup: {
+        marginBottom: 20,
+        width: '100%',
+        gap: 8,
+    },
+    label: {
         fontSize: 14,
+        fontWeight: '500',
+        color: '#111111',
+        fontFamily: 'Inter-Medium',
+    },
+    chipRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    chip: {
+        maxWidth: '100%',
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        backgroundColor: '#f8fafc',
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+    },
+    chipActive: {
+        borderColor: '#0f172a',
+        backgroundColor: '#0f172a',
+    },
+    readonlyChip: {
+        opacity: 0.8,
+    },
+    chipText: {
+        color: '#475569',
+        fontSize: 12,
+        fontWeight: '600',
+        fontFamily: 'Inter-SemiBold',
+    },
+    chipTextActive: {
+        color: '#ffffff',
+    },
+    readonlyValue: {
+        color: '#737373',
+        fontSize: 13,
         fontFamily: 'Inter',
     },
+    emptyOptions: {
+        color: '#737373',
+        fontSize: 13,
+        fontFamily: 'Inter',
+    },
+    toggleRow: {
+        marginBottom: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12,
+    },
+    toggle: {
+        minWidth: 64,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        backgroundColor: '#f8fafc',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        alignItems: 'center',
+    },
+    toggleActive: {
+        borderColor: '#0f172a',
+        backgroundColor: '#0f172a',
+    },
+    toggleText: {
+        color: '#475569',
+        fontSize: 12,
+        fontWeight: '600',
+        fontFamily: 'Inter-SemiBold',
+    },
+    toggleTextActive: {
+        color: '#ffffff',
+    },
+    separator: {
+        height: 1,
+        backgroundColor: '#f1f5f9',
+        marginBottom: 18,
+    },
     button: {
+        flex: 1,
         width: '100%',
         backgroundColor: '#0f172a',
         borderRadius: 12,
@@ -93,6 +763,12 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         fontFamily: 'Inter-SemiBold',
+    },
+    buttonDestructive: {
+        backgroundColor: '#d9a3a3',
+    },
+    buttonDestructiveText: {
+        color: '#7c3f3f',
     },
     buttonSecondary: {
         backgroundColor: '#e5e7eb',
