@@ -1,4 +1,13 @@
 import { supabase } from '@/lib/supabase';
+import { Enums, TablesInsert, TablesUpdate } from '@/types/database.types';
+
+
+export type filtroGiocatoriType = {
+    idSquadra?: number | null;
+    nomeSquadra?: string | null;
+    ruolo?: Enums<'ruolo_giocatore'> | null;
+    soloCapitani?: boolean;
+};
 
 
 export async function getListaGiocatori(
@@ -6,6 +15,7 @@ export async function getListaGiocatori(
     idTorneo: number,
     currentPage: number,
     resultsPerPage: number,
+    filters: filtroGiocatoriType = {},
 ) {
     let query = supabase
         .from('ricerca_giocatori')
@@ -14,6 +24,18 @@ export async function getListaGiocatori(
 
     if (searchParam && searchParam.trim().length > 0) {
         query = query.or(`g_nome.ilike.%${searchParam}%,g_cognome.ilike.%${searchParam}%`);
+    }
+
+    if (filters.nomeSquadra && filters.nomeSquadra.trim().length > 0) {
+        query = query.eq('s_nome', filters.nomeSquadra);
+    }
+
+    if (filters.ruolo) {
+        query = query.eq('g_ruolo_principale', filters.ruolo);
+    }
+
+    if (filters.soloCapitani) {
+        query = query.eq('g_is_capitano', true);
     }
 
     query = query
@@ -54,6 +76,32 @@ export type datiGiocatoreType = Awaited<
 >;
 
 
+export async function getDatiGiocatoreConIscrizione(idGiocatore: number, idTorneo: number) {
+    const { data: giocatore, error: giocatoreError } = await supabase
+        .from('giocatore')
+        .select(`*`)
+        .eq('id', idGiocatore)
+        .maybeSingle();
+
+    if (giocatoreError) throw giocatoreError;
+
+    const { data: iscrizione, error: iscrizioneError } = await supabase
+        .from('iscrizione')
+        .select(`*`)
+        .eq('id_giocatore', idGiocatore)
+        .eq('id_torneo', idTorneo)
+        .maybeSingle();
+
+    if (iscrizioneError) throw iscrizioneError;
+
+    return { giocatore, iscrizione };
+}
+
+export type datiGiocatoreConIscrizioneType = Awaited<
+    ReturnType<typeof getDatiGiocatoreConIscrizione>
+>;
+
+
 
 export async function getStatisticheGiocatore(idGiocatore: number) {
     const query = supabase
@@ -70,3 +118,71 @@ export async function getStatisticheGiocatore(idGiocatore: number) {
 export type statisticheGiocatoreType = Awaited<
     ReturnType<typeof getStatisticheGiocatore>
 >;
+
+
+export async function insertGiocatore(payload: TablesInsert<'giocatore'>) {
+    const { data, error } = await supabase
+        .from('giocatore')
+        .insert(payload)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    return data;
+}
+
+export type insertGiocatorePayload = Parameters<typeof insertGiocatore>[0];
+
+
+export async function updateGiocatore(
+    idGiocatore: number,
+    payload: TablesUpdate<'giocatore'>,
+) {
+    const { data, error } = await supabase
+        .from('giocatore')
+        .update({ ...payload, data_ultima_modifica: new Date().toISOString() })
+        .eq('id', idGiocatore)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    return data;
+}
+
+export type updateGiocatorePayload = Parameters<typeof updateGiocatore>[1];
+
+
+export async function insertIscrizione(payload: TablesInsert<'iscrizione'>) {
+    const { data, error } = await supabase
+        .from('iscrizione')
+        .insert(payload)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    return data;
+}
+
+export type insertIscrizionePayload = Parameters<typeof insertIscrizione>[0];
+
+
+export async function updateIscrizione(
+    idIscrizione: number,
+    payload: TablesUpdate<'iscrizione'>,
+) {
+    const { data, error } = await supabase
+        .from('iscrizione')
+        .update({ ...payload, data_ultima_modifica: new Date().toISOString() })
+        .eq('id', idIscrizione)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    return data;
+}
+
+export type updateIscrizionePayload = Parameters<typeof updateIscrizione>[1];
