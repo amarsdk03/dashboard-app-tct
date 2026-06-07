@@ -14,6 +14,7 @@ import TextInputField from '@/components/input/TextInputField';
 import errorMessage from '@/components/ErrorMessage';
 import {
     getDatiGiocatoreConIscrizione,
+    insertGiocatore,
     insertIscrizione,
     updateGiocatore,
     updateIscrizione,
@@ -100,6 +101,7 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
     const [squadre, setSquadre] = useState<listaSquadreType[]>([]);
     const [loading, setLoading] = useState(mode !== 'create');
     const [submitting, setSubmitting] = useState(false);
+    const [createStep, setCreateStep] = useState<1 | 2>(1);
 
     const readonly = mode === 'view';
     const selectedTorneo = useMemo(
@@ -185,7 +187,7 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
         }
     }
 
-    function validateForm() {
+    function validatePlayerFields() {
         if (!form.nome.trim()) {
             errorMessage('Campi obbligatori mancanti', 'Il nome del giocatore è obbligatorio');
             return false;
@@ -196,12 +198,60 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
             return false;
         }
 
+        return true;
+    }
+
+    function validateRegistrationFields() {
         if (!form.idTorneo || !form.idSquadra) {
             errorMessage('Campi obbligatori mancanti', 'Seleziona torneo e squadra');
             return false;
         }
 
         return true;
+    }
+
+    function validateForm() {
+        return validatePlayerFields() && validateRegistrationFields();
+    }
+
+    function handleNextStep() {
+        if (validatePlayerFields()) {
+            setCreateStep(2);
+        }
+    }
+
+    async function handleCreateSubmit() {
+        if (!validateForm()) return;
+
+        setSubmitting(true);
+        try {
+            const nuovoGiocatore = await insertGiocatore({
+                nome: form.nome.trim(),
+                cognome: form.cognome.trim(),
+                link_foto: emptyToNull(form.linkFoto),
+                nazionalita: emptyToNull(form.nazionalita),
+                data_nascita: dateToIso(form.dataNascita),
+                ruolo_principale: form.ruoloPrincipale,
+                piede_principale: form.piedePrincipale,
+                nome_maglia: emptyToNull(form.nomeMaglia),
+                numero_maglia: emptyToNull(form.numeroMaglia),
+                username_ig: emptyToNull(form.usernameIg),
+                is_capitano: form.isCapitano,
+            });
+
+            await insertIscrizione({
+                id_giocatore: nuovoGiocatore.id,
+                id_torneo: form.idTorneo!,
+                id_squadra: form.idSquadra!,
+                dettagli: emptyToNull(form.dettagli),
+            });
+
+            onClose();
+        } catch (error: any) {
+            errorMessage('Impossibile creare il giocatore', error.message ?? String(error));
+        } finally {
+            setSubmitting(false);
+        }
     }
 
     async function handleSubmit() {
@@ -290,151 +340,211 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
     return (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
             <View style={styles.formCard}>
-                <InterText style={styles.sectionTitle}>Dati giocatore</InterText>
+                {mode === 'create' && (
+                    <View style={styles.stepHeader}>
+                        <InterText style={styles.stepText}>Step {createStep} di 2</InterText>
+                        <View style={styles.stepTrack}>
+                            <View style={[styles.stepDot, styles.stepDotActive]} />
+                            <View style={[styles.stepDot, createStep === 2 && styles.stepDotActive]} />
+                        </View>
+                    </View>
+                )}
 
-                <View style={styles.row}>
-                    <View style={styles.flexChild}>
+                {(mode !== 'create' || createStep === 1) && (
+                    <>
+                        <InterText style={styles.sectionTitle}>Dati giocatore</InterText>
+
+                        <View style={styles.row}>
+                            <View style={styles.flexChild}>
+                                <TextInputField
+                                    label="Nome"
+                                    readonly={readonly}
+                                    value={form.nome}
+                                    onChange={(value) => setField('nome', value)}
+                                    placeholder="Angelo"
+                                />
+                            </View>
+                            <View style={styles.flexChild}>
+                                <TextInputField
+                                    label="Cognome"
+                                    readonly={readonly}
+                                    value={form.cognome}
+                                    onChange={(value) => setField('cognome', value)}
+                                    placeholder="Del Piero"
+                                />
+                            </View>
+                        </View>
+
                         <TextInputField
-                            label="Nome"
+                            label="URL foto"
                             readonly={readonly}
-                            value={form.nome}
-                            onChange={(value) => setField('nome', value)}
-                            placeholder="Angelo"
+                            value={form.linkFoto}
+                            onChange={(value) => setField('linkFoto', value)}
+                            placeholder="https://example.com/foto.png"
                         />
-                    </View>
-                    <View style={styles.flexChild}>
+
+                        <View style={styles.row}>
+                            <View style={styles.flexChild}>
+                                <TextInputField
+                                    label="Nazionalità"
+                                    readonly={readonly}
+                                    value={form.nazionalita}
+                                    onChange={(value) => setField('nazionalita', value)}
+                                    placeholder="Italia"
+                                />
+                            </View>
+                            <View style={styles.flexChild}>
+                                <DateTimePickerField
+                                    mode="date"
+                                    label="Data di nascita"
+                                    readonly={readonly}
+                                    value={form.dataNascita}
+                                    onChange={(value) => setField('dataNascita', value)}
+                                    placeholder="Seleziona..."
+                                />
+                            </View>
+                        </View>
+
+                        <ChipSection
+                            label="Ruolo principale"
+                            readonly={readonly}
+                            options={RUOLI}
+                            selected={form.ruoloPrincipale}
+                            onSelect={(value) => setField('ruoloPrincipale', value)}
+                            onClear={() => setField('ruoloPrincipale', null)}
+                        />
+
+                        <ChipSection
+                            label="Piede principale"
+                            readonly={readonly}
+                            options={PIEDI}
+                            selected={form.piedePrincipale}
+                            onSelect={(value) => setField('piedePrincipale', value)}
+                            onClear={() => setField('piedePrincipale', null)}
+                        />
+
+                        <View style={styles.row}>
+                            <View style={styles.flexChild}>
+                                <TextInputField
+                                    label="Nome maglia"
+                                    readonly={readonly}
+                                    value={form.nomeMaglia}
+                                    onChange={(value) => setField('nomeMaglia', value)}
+                                    placeholder="Del Piero"
+                                />
+                            </View>
+                            <View style={styles.flexChild}>
+                                <TextInputField
+                                    label="Numero maglia"
+                                    readonly={readonly}
+                                    value={form.numeroMaglia}
+                                    onChange={(value) => setField('numeroMaglia', value)}
+                                    placeholder="10"
+                                />
+                            </View>
+                        </View>
+
                         <TextInputField
-                            label="Cognome"
+                            label="Username IG"
                             readonly={readonly}
-                            value={form.cognome}
-                            onChange={(value) => setField('cognome', value)}
-                            placeholder="Del Piero"
+                            value={form.usernameIg}
+                            onChange={(value) => setField('usernameIg', value)}
+                            placeholder="@username"
                         />
-                    </View>
-                </View>
 
-                <TextInputField
-                    label="URL foto"
-                    readonly={readonly}
-                    value={form.linkFoto}
-                    onChange={(value) => setField('linkFoto', value)}
-                    placeholder="https://example.com/foto.png"
-                />
+                        <ToggleRow
+                            label="Capitano"
+                            readonly={readonly}
+                            value={form.isCapitano}
+                            onChange={(value) => setField('isCapitano', value)}
+                        />
+                    </>
+                )}
 
-                <View style={styles.row}>
-                    <View style={styles.flexChild}>
+                {(mode !== 'create' || createStep === 2) && (
+                    <>
+                        <View style={styles.separator} />
+                        <InterText style={styles.sectionTitle}>Dati iscrizione</InterText>
+
+                        <SelectSection
+                            label="Torneo"
+                            readonly={readonly}
+                            options={tornei}
+                            selectedId={form.idTorneo}
+                            getId={(torneo) => torneo.id}
+                            getLabel={(torneo) => torneo.nome}
+                            onSelect={(torneo) => {
+                                setField('idTorneo', torneo.id);
+                                setField('idSquadra', null);
+                            }}
+                        />
+
+                        <SelectSection
+                            label="Squadra"
+                            readonly={readonly}
+                            options={squadre}
+                            selectedId={form.idSquadra}
+                            getId={(squadra) => squadra.s_id}
+                            getLabel={(squadra) => squadra.s_nome ?? 'Squadra senza nome'}
+                            onSelect={(squadra) => setField('idSquadra', squadra.s_id)}
+                            emptyText={selectedTorneo ? 'Nessuna squadra disponibile' : 'Seleziona un torneo'}
+                        />
+
                         <TextInputField
-                            label="Nazionalità"
+                            label="Dettagli"
                             readonly={readonly}
-                            value={form.nazionalita}
-                            onChange={(value) => setField('nazionalita', value)}
-                            placeholder="Italia"
+                            value={form.dettagli}
+                            onChange={(value) => setField('dettagli', value)}
+                            placeholder="Note iscrizione..."
+                            multiline
                         />
-                    </View>
-                    <View style={styles.flexChild}>
-                        <DateTimePickerField
-                            mode="date"
-                            label="Data di nascita"
-                            readonly={readonly}
-                            value={form.dataNascita}
-                            onChange={(value) => setField('dataNascita', value)}
-                            placeholder="Seleziona..."
-                        />
-                    </View>
-                </View>
-
-                <ChipSection
-                    label="Ruolo principale"
-                    readonly={readonly}
-                    options={RUOLI}
-                    selected={form.ruoloPrincipale}
-                    onSelect={(value) => setField('ruoloPrincipale', value)}
-                    onClear={() => setField('ruoloPrincipale', null)}
-                />
-
-                <ChipSection
-                    label="Piede principale"
-                    readonly={readonly}
-                    options={PIEDI}
-                    selected={form.piedePrincipale}
-                    onSelect={(value) => setField('piedePrincipale', value)}
-                    onClear={() => setField('piedePrincipale', null)}
-                />
-
-                <View style={styles.row}>
-                    <View style={styles.flexChild}>
-                        <TextInputField
-                            label="Nome maglia"
-                            readonly={readonly}
-                            value={form.nomeMaglia}
-                            onChange={(value) => setField('nomeMaglia', value)}
-                            placeholder="Del Piero"
-                        />
-                    </View>
-                    <View style={styles.flexChild}>
-                        <TextInputField
-                            label="Numero maglia"
-                            readonly={readonly}
-                            value={form.numeroMaglia}
-                            onChange={(value) => setField('numeroMaglia', value)}
-                            placeholder="10"
-                        />
-                    </View>
-                </View>
-
-                <TextInputField
-                    label="Username IG"
-                    readonly={readonly}
-                    value={form.usernameIg}
-                    onChange={(value) => setField('usernameIg', value)}
-                    placeholder="@username"
-                />
-
-                <ToggleRow
-                    label="Capitano"
-                    readonly={readonly}
-                    value={form.isCapitano}
-                    onChange={(value) => setField('isCapitano', value)}
-                />
-
-                <View style={styles.separator} />
-                <InterText style={styles.sectionTitle}>Dati iscrizione</InterText>
-
-                <SelectSection
-                    label="Torneo"
-                    readonly={readonly}
-                    options={tornei}
-                    selectedId={form.idTorneo}
-                    getId={(torneo) => torneo.id}
-                    getLabel={(torneo) => torneo.nome}
-                    onSelect={(torneo) => {
-                        setField('idTorneo', torneo.id);
-                        setField('idSquadra', null);
-                    }}
-                />
-
-                <SelectSection
-                    label="Squadra"
-                    readonly={readonly}
-                    options={squadre}
-                    selectedId={form.idSquadra}
-                    getId={(squadra) => squadra.s_id}
-                    getLabel={(squadra) => squadra.s_nome ?? 'Squadra senza nome'}
-                    onSelect={(squadra) => setField('idSquadra', squadra.s_id)}
-                    emptyText={selectedTorneo ? 'Nessuna squadra disponibile' : 'Seleziona un torneo'}
-                />
-
-                <TextInputField
-                    label="Dettagli"
-                    readonly={readonly}
-                    value={form.dettagli}
-                    onChange={(value) => setField('dettagli', value)}
-                    placeholder="Note iscrizione..."
-                    multiline
-                />
+                    </>
+                )}
 
                 <View style={[styles.dynamicRow, { marginTop: 12 }]}>
-                    {mode !== 'view' ? (
+                    {mode === 'create' ? (
+                        <>
+                            <TouchableOpacity
+                                style={[styles.button, styles.buttonDestructive]}
+                                onPress={onClose}
+                                activeOpacity={0.8}>
+                                <ArrowLeftIcon size={16} color="#7c3f3f" />
+                                <InterText style={[styles.buttonText, styles.buttonDestructiveText]}>
+                                    Annulla
+                                </InterText>
+                            </TouchableOpacity>
+
+                            {createStep === 2 && (
+                                <TouchableOpacity
+                                    style={[styles.button, styles.buttonSecondary]}
+                                    onPress={() => setCreateStep(1)}
+                                    activeOpacity={0.8}>
+                                    <ArrowLeftIcon size={16} color="#6b7280" />
+                                    <InterText style={[styles.buttonText, styles.buttonSecondaryText]}>
+                                        Indietro
+                                    </InterText>
+                                </TouchableOpacity>
+                            )}
+
+                            {createStep === 1 ? (
+                                <TouchableOpacity
+                                    style={styles.button}
+                                    onPress={handleNextStep}
+                                    activeOpacity={0.8}>
+                                    <InterText style={styles.buttonText}>Avanti</InterText>
+                                </TouchableOpacity>
+                            ) : (
+                                <TouchableOpacity
+                                    style={[styles.button, submitting && { opacity: 0.6 }]}
+                                    onPress={handleCreateSubmit}
+                                    disabled={submitting}
+                                    activeOpacity={0.8}>
+                                    <SaveIcon size={16} color="#fff" />
+                                    <InterText style={styles.buttonText}>Crea giocatore</InterText>
+                                </TouchableOpacity>
+                            )}
+                        </>
+                    ) : mode === 'edit' ? (
                         <TouchableOpacity
                             style={[styles.button, styles.buttonDestructive]}
                             onPress={onClose}
@@ -642,6 +752,29 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         fontFamily: 'Inter-Bold',
         marginBottom: 16,
+    },
+    stepHeader: {
+        marginBottom: 18,
+        gap: 8,
+    },
+    stepText: {
+        color: '#6b7280',
+        fontSize: 13,
+        fontWeight: '600',
+        fontFamily: 'Inter-SemiBold',
+    },
+    stepTrack: {
+        flexDirection: 'row',
+        gap: 8,
+    },
+    stepDot: {
+        flex: 1,
+        height: 4,
+        borderRadius: 999,
+        backgroundColor: '#e5e7eb',
+    },
+    stepDotActive: {
+        backgroundColor: '#0f172a',
     },
     row: {
         flexDirection: 'row',
