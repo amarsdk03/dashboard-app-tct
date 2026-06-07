@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
-    Alert,
     FlatList,
     StyleSheet,
     TextInput,
@@ -14,7 +13,9 @@ import { InterText } from '@/components/InterText';
 import errorMessage from '@/components/ErrorMessage';
 import GiocatoreCard from '@/components/giocatori/GiocatoreCard';
 import { getListaGiocatori, listaGiocatoriType } from '@/data/giocatori';
+import { getListaSquadre, listaSquadreType } from '@/data/squadre';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
+import { Enums } from '@/types/database.types';
 
 const RESULTS_PER_PAGE = 30;
 
@@ -26,13 +27,26 @@ const TABS: { key: TabKey; label: string }[] = [
     { key: 'capitani', label: 'Capitani' },
 ];
 
+const RUOLI: Enums<'ruolo_giocatore'>[] = [
+    'Tecnico',
+    'Portiere',
+    'Difensore',
+    'Centrocampista',
+    'Attaccante',
+];
+
 export default function GiocatoriScreen() {
     const [tornei, setTornei] = useState<listaTorneiType[]>([]);
     const [selectedTorneo, setSelectedTorneo] = useState<listaTorneiType | null>(null);
+    const [squadre, setSquadre] = useState<listaSquadreType[]>([]);
+    const [selectedSquadra, setSelectedSquadra] = useState<listaSquadreType | null>(null);
+    const [selectedRole, setSelectedRole] = useState<Enums<'ruolo_giocatore'> | null>(null);
+    const [captainFilter, setCaptainFilter] = useState(false);
     const [giocatori, setGiocatori] = useState<listaGiocatoriType[]>([]);
     const [count, setCount] = useState<number | null>(null);
     const [search, setSearch] = useState('');
     const [activeTab, setActiveTab] = useState<TabKey>('tutti');
+    const [filterOpen, setFilterOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -49,6 +63,15 @@ export default function GiocatoriScreen() {
             setSelectedTorneo((current) => current ?? lista[0] ?? null);
         } catch (error: any) {
             errorMessage('Impossibile recuperare i tornei', error.message ?? String(error));
+        }
+    }
+
+    async function loadSquadre(idTorneo: number) {
+        try {
+            const data = await getListaSquadre(null, idTorneo);
+            setSquadre(data ?? []);
+        } catch (error: any) {
+            errorMessage('Impossibile recuperare le squadre', error.message ?? String(error));
         }
     }
 
@@ -69,7 +92,12 @@ export default function GiocatoriScreen() {
                 selectedTorneo.id,
                 1,
                 RESULTS_PER_PAGE,
-                { soloCapitani: activeTab === 'capitani' },
+                {
+                    idSquadra: selectedSquadra?.s_id,
+                    nomeSquadra: selectedSquadra?.s_nome,
+                    ruolo: selectedRole,
+                    soloCapitani: activeTab === 'capitani' || captainFilter,
+                },
             );
             setGiocatori(data.result ?? []);
             setCount(data.count ?? 0);
@@ -82,7 +110,7 @@ export default function GiocatoriScreen() {
     }
 
     function handleFilterPress() {
-        Alert.alert('Filtri giocatori', 'I filtri avanzati arrivano nel prossimo step.');
+        setFilterOpen((value) => !value);
     }
 
     function handleTabPress(key: TabKey) {
@@ -92,13 +120,41 @@ export default function GiocatoriScreen() {
         }
     }
 
+    function handleSelectTorneo(torneo: listaTorneiType) {
+        setSelectedTorneo(torneo);
+        setSelectedSquadra(null);
+    }
+
+    function handleResetFilters() {
+        setSelectedSquadra(null);
+        setSelectedRole(null);
+        setCaptainFilter(false);
+        setActiveTab('tutti');
+    }
+
     useEffect(() => {
         loadTornei().then(() => null);
     }, []);
 
     useEffect(() => {
+        if (selectedTorneo?.id) {
+            loadSquadre(selectedTorneo.id).then(() => null);
+        } else {
+            setSquadre([]);
+            setSelectedSquadra(null);
+        }
+    }, [selectedTorneo?.id]);
+
+    useEffect(() => {
         loadGiocatori().then(() => null);
-    }, [selectedTorneo?.id, search, activeTab]);
+    }, [
+        selectedTorneo?.id,
+        selectedSquadra?.s_id,
+        selectedRole,
+        captainFilter,
+        search,
+        activeTab,
+    ]);
 
     return (
         <View className="bg-background flex-1">
@@ -130,6 +186,120 @@ export default function GiocatoriScreen() {
                         <SlidersHorizontal size={20} color="#0f6096" strokeWidth={2.5} />
                     </TouchableOpacity>
                 </View>
+
+                {filterOpen && (
+                    <View style={styles.filterPanel}>
+                        <View style={styles.filterSection}>
+                            <InterText style={styles.filterLabel}>Torneo</InterText>
+                            <View style={styles.chipRow}>
+                                {tornei.map((torneo) => {
+                                    const active = selectedTorneo?.id === torneo.id;
+                                    return (
+                                        <TouchableOpacity
+                                            key={torneo.id}
+                                            style={[styles.chip, active && styles.chipActive]}
+                                            onPress={() => handleSelectTorneo(torneo)}
+                                            activeOpacity={0.85}>
+                                            <InterText
+                                                style={[styles.chipText, active && styles.chipTextActive]}
+                                                numberOfLines={1}>
+                                                {torneo.nome}
+                                            </InterText>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        </View>
+
+                        <View style={styles.filterSection}>
+                            <InterText style={styles.filterLabel}>Squadra</InterText>
+                            <View style={styles.chipRow}>
+                                <TouchableOpacity
+                                    style={[styles.chip, !selectedSquadra && styles.chipActive]}
+                                    onPress={() => setSelectedSquadra(null)}
+                                    activeOpacity={0.85}>
+                                    <InterText
+                                        style={[styles.chipText, !selectedSquadra && styles.chipTextActive]}>
+                                        Tutte
+                                    </InterText>
+                                </TouchableOpacity>
+                                {squadre.map((squadra) => {
+                                    const active = selectedSquadra?.s_id === squadra.s_id;
+                                    return (
+                                        <TouchableOpacity
+                                            key={`${squadra.t_id}-${squadra.s_id}`}
+                                            style={[styles.chip, active && styles.chipActive]}
+                                            onPress={() => setSelectedSquadra(squadra)}
+                                            activeOpacity={0.85}>
+                                            <InterText
+                                                style={[styles.chipText, active && styles.chipTextActive]}
+                                                numberOfLines={1}>
+                                                {squadra.s_nome}
+                                            </InterText>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        </View>
+
+                        <View style={styles.filterSection}>
+                            <InterText style={styles.filterLabel}>Ruolo</InterText>
+                            <View style={styles.chipRow}>
+                                <TouchableOpacity
+                                    style={[styles.chip, !selectedRole && styles.chipActive]}
+                                    onPress={() => setSelectedRole(null)}
+                                    activeOpacity={0.85}>
+                                    <InterText
+                                        style={[styles.chipText, !selectedRole && styles.chipTextActive]}>
+                                        Tutti
+                                    </InterText>
+                                </TouchableOpacity>
+                                {RUOLI.map((ruolo) => {
+                                    const active = selectedRole === ruolo;
+                                    return (
+                                        <TouchableOpacity
+                                            key={ruolo}
+                                            style={[styles.chip, active && styles.chipActive]}
+                                            onPress={() => setSelectedRole(ruolo)}
+                                            activeOpacity={0.85}>
+                                            <InterText
+                                                style={[styles.chipText, active && styles.chipTextActive]}>
+                                                {ruolo}
+                                            </InterText>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        </View>
+
+                        <View style={styles.filterActions}>
+                            <TouchableOpacity
+                                style={[styles.actionChip, captainFilter && styles.actionChipActive]}
+                                onPress={() => setCaptainFilter((value) => !value)}
+                                activeOpacity={0.85}>
+                                <InterText
+                                    style={[
+                                        styles.actionChipText,
+                                        captainFilter && styles.actionChipTextActive,
+                                    ]}>
+                                    Solo capitani
+                                </InterText>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.resetButton}
+                                onPress={handleResetFilters}
+                                activeOpacity={0.85}>
+                                <InterText style={styles.resetText}>Reset</InterText>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.applyButton}
+                                onPress={() => setFilterOpen(false)}
+                                activeOpacity={0.85}>
+                                <InterText style={styles.applyText}>Applica</InterText>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                )}
 
                 <View style={styles.tabsRow}>
                     <View style={styles.tabs}>
@@ -274,6 +444,109 @@ const styles = StyleSheet.create({
         backgroundColor: '#f1f5f9',
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    filterPanel: {
+        backgroundColor: '#ffffff',
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+        padding: 14,
+        gap: 14,
+        marginBottom: 14,
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 12,
+        elevation: 2,
+    },
+    filterSection: {
+        gap: 8,
+    },
+    filterLabel: {
+        color: '#111111',
+        fontSize: 12,
+        fontWeight: '700',
+        fontFamily: 'Inter-Bold',
+        textTransform: 'uppercase',
+    },
+    chipRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    chip: {
+        maxWidth: '100%',
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        backgroundColor: '#f8fafc',
+        paddingHorizontal: 10,
+        paddingVertical: 7,
+    },
+    chipActive: {
+        borderColor: '#0f172a',
+        backgroundColor: '#0f172a',
+    },
+    chipText: {
+        color: '#475569',
+        fontSize: 12,
+        fontWeight: '600',
+        fontFamily: 'Inter-SemiBold',
+    },
+    chipTextActive: {
+        color: '#ffffff',
+    },
+    filterActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        gap: 8,
+        flexWrap: 'wrap',
+    },
+    actionChip: {
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        backgroundColor: '#f8fafc',
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+    },
+    actionChipActive: {
+        borderColor: '#be185d',
+        backgroundColor: '#fce7f3',
+    },
+    actionChipText: {
+        color: '#475569',
+        fontSize: 12,
+        fontWeight: '600',
+        fontFamily: 'Inter-SemiBold',
+    },
+    actionChipTextActive: {
+        color: '#be185d',
+    },
+    resetButton: {
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 9,
+        backgroundColor: '#e5e7eb',
+    },
+    resetText: {
+        color: '#6b7280',
+        fontSize: 12,
+        fontWeight: '600',
+        fontFamily: 'Inter-SemiBold',
+    },
+    applyButton: {
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 9,
+        backgroundColor: '#0f172a',
+    },
+    applyText: {
+        color: '#ffffff',
+        fontSize: 12,
+        fontWeight: '600',
+        fontFamily: 'Inter-SemiBold',
     },
     tabsRow: {
         flexDirection: 'row',
