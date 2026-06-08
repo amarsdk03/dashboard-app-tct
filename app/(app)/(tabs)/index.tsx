@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Href, Link } from 'expo-router';
+import { Link, type Href } from 'expo-router';
 import {
     AwardIcon,
     CalendarDaysIcon,
@@ -202,9 +202,9 @@ export default function HomeScreen() {
 
                             {partiteOggi.length > 0 ? (
                                 <View style={styles.matchList}>
-                                    {partiteOggi.map((partita) => (
+                                    {partiteOggi.map((partita, index) => (
                                         <HomeMatchCard
-                                            key={partita.id_partita}
+                                            key={partita.id_partita ?? `${partita.fischio_inizio}-${index}`}
                                             fase={partita.fase}
                                             categoria={partita.categoria_nome}
                                             girone={partita.girone}
