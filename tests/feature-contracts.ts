@@ -5,8 +5,8 @@ import {
     getNationalityFlag,
     NATIONALITIES,
 } from '@/constants/nationalities';
-import { getConteggioPartiteTorneo } from '@/data/partite';
 import {
+    getConteggioPartiteTorneo,
     getPartiteOggi,
     getStatisticheHomeTorneo,
     homeTorneoStatsType,

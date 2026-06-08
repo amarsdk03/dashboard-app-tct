@@ -1,6 +1,20 @@
 import { supabase } from '@/lib/supabase';
 
 
+function getLocalDayRange(now: Date) {
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+
+    return {
+        startIso: start.toISOString(),
+        endIso: end.toISOString(),
+    };
+}
+
+
 export async function getPartiteSquadra(idSquadra: number) {
     const { data, error } = await supabase
         .from('partita')
@@ -104,6 +118,62 @@ export async function getProssimiIncontri(idTorneo: number, dateFilter: Date) {
 
 export type prossimiIncontriType = Awaited<
     ReturnType<typeof getProssimiIncontri>
+>;
+
+
+export async function getPartiteOggi(idTorneo: number, now = new Date()) {
+    const { startIso, endIso } = getLocalDayRange(now);
+
+    const { data, error } = await supabase
+        .from('risultati_partite')
+        .select(`*`)
+        .eq('torneo_id', idTorneo)
+        .gte('fischio_inizio', startIso)
+        .lte('fischio_inizio', endIso)
+        .order('fischio_inizio', { ascending: true })
+        .limit(3)
+        .abortSignal(AbortSignal.timeout(20000));
+
+    if (error) throw error;
+
+    return data ?? [];
+}
+
+export type partiteOggiType = Awaited<
+    ReturnType<typeof getPartiteOggi>
+>[number];
+
+
+export async function getStatisticheHomeTorneo(idTorneo: number, now = new Date()) {
+    const { count: upcomingMatches, error: upcomingError } = await supabase
+        .from('risultati_partite')
+        .select('id_partita', { count: 'exact', head: true })
+        .eq('torneo_id', idTorneo)
+        .gte('fischio_inizio', now.toISOString())
+        .abortSignal(AbortSignal.timeout(20000));
+
+    if (upcomingError) throw upcomingError;
+
+    const { data: goalRows, error: goalError } = await supabase
+        .from('risultati_partite')
+        .select('goal_casa, goal_ospite')
+        .eq('torneo_id', idTorneo)
+        .abortSignal(AbortSignal.timeout(20000));
+
+    if (goalError) throw goalError;
+
+    const goalsScored = (goalRows ?? []).reduce((total, match) => {
+        return total + (match.goal_casa ?? 0) + (match.goal_ospite ?? 0);
+    }, 0);
+
+    return {
+        upcomingMatches: upcomingMatches ?? 0,
+        goalsScored,
+    };
+}
+
+export type homeTorneoStatsType = Awaited<
+    ReturnType<typeof getStatisticheHomeTorneo>
 >;
 
 
