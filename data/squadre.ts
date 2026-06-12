@@ -249,6 +249,21 @@ export async function insertIscrizioneSquadra(payload: TablesInsert<'iscrizione'
 
 export type insertIscrizioneSquadraPayload = Parameters<typeof insertIscrizioneSquadra>[0];
 
+export async function deleteIscrizioneSquadra(idIscrizione: number) {
+    const { data, error } = await supabase
+        .from('iscrizione')
+        .delete()
+        .eq('id', idIscrizione)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    return data;
+}
+
+export type deleteIscrizioneSquadraType = Awaited<ReturnType<typeof deleteIscrizioneSquadra>>;
+
 export async function getIdSquadraGiocatore(idGiocatore: number) {
     const query = supabase
         .from('iscrizione')

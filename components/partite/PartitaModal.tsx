@@ -1,6 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { ArrowLeftIcon, SaveIcon } from 'lucide-react-native';
+import {
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { ArrowLeftIcon, PencilIcon, PlusIcon, SaveIcon, Trash2Icon } from 'lucide-react-native';
 import { InterText } from '@/components/InterText';
 import DateTimePickerField from '@/components/input/DateTimePickerField';
 import TextInputField from '@/components/input/TextInputField';
@@ -8,14 +15,18 @@ import errorMessage from '@/components/ErrorMessage';
 import {
     getAzioniPartita,
     getDatiPartita,
+    insertAzionePartita,
     getListaCategorie,
     insertPartita,
+    deleteAzionePartita,
+    updatePartita,
     azioniPartitaType,
     datiPartitaType,
     listaCategorieType,
 } from '@/data/partite';
 import { getListaSquadre, listaSquadreType } from '@/data/squadre';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
+import { Enums } from '@/types/database.types';
 
 export type PartitaModalMode = 'view' | 'create' | 'edit';
 
@@ -43,7 +54,30 @@ type CategoriaOption = {
     nome: string;
 };
 
+type TipoAzione = Enums<'tipo_azione'>;
+type AssegnamentoAzione = Enums<'assegnamento_azione'>;
+
+type ReportFormState = {
+    tipo: TipoAzione;
+    assegnamento: AssegnamentoAzione;
+    minuto: string;
+    dettagli: string;
+};
+
 const FASI_RAPIDE = ['Gironi', 'Ottavi di finale', 'Quarti di finale', 'Semifinale', 'Finale'];
+const TIPI_AZIONE: TipoAzione[] = [
+    'Goal',
+    'Assist',
+    'Goal su rigore',
+    'Autogoal',
+    'Cartellino giallo',
+    'Cartellino rosso',
+    'Calcio di rigore segnato',
+    'Calcio di rigore sbagliato',
+    'Sostituzione',
+    'Infortunio',
+];
+const ASSEGNAMENTI_AZIONE: AssegnamentoAzione[] = ['Casa', 'Ospiti'];
 
 function parsePositiveNumber(value: string) {
     const trimmed = value.trim();
@@ -89,6 +123,46 @@ function formatScore(partita: NonNullable<datiPartitaType>) {
     return `${partita.goal_casa} - ${partita.goal_ospite}`;
 }
 
+function getDatePart(value: string | null) {
+    if (!value) return null;
+
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return null;
+
+    return date;
+}
+
+function getTimePart(value: string | null) {
+    const date = getDatePart(value);
+    if (!date) return '';
+
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+}
+
+function buildFormFromPartita(partita: NonNullable<datiPartitaType>): FormState {
+    return {
+        idTorneo: partita.torneo_id,
+        idCategoria: partita.categoria_id,
+        girone: partita.girone,
+        idSquadraCasa: partita.squadra_casa_id,
+        idSquadraOspite: partita.squadra_ospite_id,
+        fase: partita.fase ?? '',
+        giornata: partita.giornata ? String(partita.giornata) : '',
+        dataPartita: getDatePart(partita.fischio_inizio),
+        oraPartita: getTimePart(partita.fischio_inizio),
+    };
+}
+
+function parseMinute(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    const parsed = Number(trimmed);
+    return Number.isInteger(parsed) && parsed >= 0 && parsed <= 130 ? parsed : NaN;
+}
+
 function isGoalAction(action: azioniPartitaType[number]) {
     return (
         action.a_tipo === 'Goal' ||
@@ -104,6 +178,7 @@ function isCardAction(action: azioniPartitaType[number]) {
 }
 
 export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Props) {
+    const [activeMode, setActiveMode] = useState<PartitaModalMode>(mode);
     const [tornei, setTornei] = useState<listaTorneiType[]>([]);
     const [categorie, setCategorie] = useState<listaCategorieType>([]);
     const [squadre, setSquadre] = useState<listaSquadreType[]>([]);
@@ -111,6 +186,8 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
     const [azioni, setAzioni] = useState<azioniPartitaType>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [reportSubmitting, setReportSubmitting] = useState(false);
+    const [deletingActionId, setDeletingActionId] = useState<number | null>(null);
     const [form, setForm] = useState<FormState>({
         idTorneo: torneoId ?? null,
         idCategoria: null,
@@ -122,9 +199,16 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         dataPartita: null,
         oraPartita: '',
     });
+    const [reportForm, setReportForm] = useState<ReportFormState>({
+        tipo: 'Goal',
+        assegnamento: 'Casa',
+        minuto: '',
+        dettagli: '',
+    });
 
-    const readonly = mode === 'view';
-    const isCreate = mode === 'create';
+    const readonly = activeMode === 'view';
+    const isCreate = activeMode === 'create';
+    const isEdit = activeMode === 'edit';
 
     const categorieTorneo = useMemo<CategoriaOption[]>(() => {
         const result: CategoriaOption[] = [];
@@ -159,6 +243,10 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         setForm((current) => ({ ...current, [key]: value }));
     }
 
+    function setReportField<K extends keyof ReportFormState>(key: K, value: ReportFormState[K]) {
+        setReportForm((current) => ({ ...current, [key]: value }));
+    }
+
     function selectTorneo(idTorneo: number) {
         setForm((current) => ({
             ...current,
@@ -182,6 +270,15 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         setLoading(true);
 
         try {
+            const [torneiData, categorieData] = await Promise.all([
+                getListaTornei(null),
+                getListaCategorie(),
+            ]);
+            const torneiList = torneiData ?? [];
+
+            setTornei(torneiList);
+            setCategorie(categorieData ?? []);
+
             if (!isCreate) {
                 if (!partitaId) {
                     setPartita(null);
@@ -196,17 +293,12 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
 
                 setPartita(partitaData);
                 setAzioni(azioniData ?? []);
+                if (partitaData) {
+                    setForm(buildFormFromPartita(partitaData));
+                }
                 return;
             }
 
-            const [torneiData, categorieData] = await Promise.all([
-                getListaTornei(null),
-                getListaCategorie(),
-            ]);
-            const torneiList = torneiData ?? [];
-
-            setTornei(torneiList);
-            setCategorie(categorieData ?? []);
             setForm((current) => ({
                 ...current,
                 idTorneo: current.idTorneo ?? torneiList[0]?.id ?? null,
@@ -231,14 +323,6 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
     }
 
     async function handleSubmit() {
-        if (!isCreate) {
-            errorMessage(
-                'Funzione non disponibile',
-                'La modifica delle partite non e ancora implementata.'
-            );
-            return;
-        }
-
         const fase = form.fase.trim();
         if (!form.idCategoria) {
             errorMessage('Dati mancanti', 'Seleziona una categoria.');
@@ -274,22 +358,114 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         setSubmitting(true);
 
         try {
-            await insertPartita({
+            const payload = {
                 fase,
                 id_categoria: form.idCategoria,
                 id_squadra_casa: form.idSquadraCasa,
                 id_squadra_ospite: form.idSquadraOspite,
-                girone: form.girone ?? undefined,
+                girone: form.girone ?? '',
                 giornata: giornata || null,
                 fischio_inizio: buildKickoffIso(form.dataPartita, form.oraPartita),
-            });
+            };
 
-            onClose();
+            if (isCreate) {
+                await insertPartita(payload);
+                onClose();
+                return;
+            }
+
+            if (!partitaId) {
+                errorMessage('Dati mancanti', 'Identificativo partita non disponibile.');
+                return;
+            }
+
+            await updatePartita(partitaId, payload);
+            const [partitaData, azioniData] = await Promise.all([
+                getDatiPartita(partitaId),
+                getAzioniPartita(partitaId),
+            ]);
+            setPartita(partitaData);
+            setAzioni(azioniData ?? []);
+            if (partitaData) setForm(buildFormFromPartita(partitaData));
+            setActiveMode('view');
         } catch (error: any) {
-            errorMessage('Impossibile creare la partita', error.message ?? String(error));
+            errorMessage(
+                isCreate ? 'Impossibile creare la partita' : 'Impossibile salvare la partita',
+                error.message ?? String(error)
+            );
         } finally {
             setSubmitting(false);
         }
+    }
+
+    async function refreshPartitaDetails() {
+        if (!partitaId) return;
+
+        const [partitaData, azioniData] = await Promise.all([
+            getDatiPartita(partitaId),
+            getAzioniPartita(partitaId),
+        ]);
+        setPartita(partitaData);
+        setAzioni(azioniData ?? []);
+        if (partitaData) setForm(buildFormFromPartita(partitaData));
+    }
+
+    async function handleAddAction(overrides: Partial<ReportFormState> = {}) {
+        if (!partitaId) {
+            errorMessage('Dati mancanti', 'Identificativo partita non disponibile.');
+            return;
+        }
+
+        const nextAction = { ...reportForm, ...overrides };
+        const minute = parseMinute(nextAction.minuto);
+        if (Number.isNaN(minute)) {
+            errorMessage('Dati non validi', 'Il minuto deve essere un numero tra 0 e 130.');
+            return;
+        }
+
+        setReportSubmitting(true);
+
+        try {
+            await insertAzionePartita({
+                id_partita: partitaId,
+                tipo: nextAction.tipo,
+                assegnamento: nextAction.assegnamento,
+                minuto: minute,
+                dettagli: nextAction.dettagli.trim() || null,
+            });
+            setReportForm((current) => ({ ...current, minuto: '', dettagli: '' }));
+            await refreshPartitaDetails();
+        } catch (error: any) {
+            errorMessage('Impossibile salvare il referto', error.message ?? String(error));
+        } finally {
+            setReportSubmitting(false);
+        }
+    }
+
+    async function handleDeleteAction(idAzione: number) {
+        setDeletingActionId(idAzione);
+
+        try {
+            await deleteAzionePartita(idAzione);
+            await refreshPartitaDetails();
+        } catch (error: any) {
+            errorMessage('Impossibile rimuovere azione', error.message ?? String(error));
+        } finally {
+            setDeletingActionId(null);
+        }
+    }
+
+    function confirmDeleteAction(idAzione: number | null) {
+        if (!idAzione) return;
+
+        Alert.alert('Rimuovere azione?', 'La riga verra eliminata dal referto.', [
+            { text: 'Annulla', style: 'cancel' },
+            {
+                text: 'Rimuovi',
+                style: 'destructive',
+                onPress: () => handleDeleteAction(idAzione).then(() => null),
+            },
+        ]);
     }
 
     useEffect(() => {
@@ -297,12 +473,12 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
     }, []);
 
     useEffect(() => {
-        if (isCreate && form.idTorneo) {
+        if (!readonly && form.idTorneo) {
             loadSquadre(form.idTorneo).then(() => null);
         } else {
             setSquadre([]);
         }
-    }, [form.idTorneo, isCreate]);
+    }, [form.idTorneo, readonly]);
 
     if (loading) {
         return (
@@ -318,7 +494,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         );
     }
 
-    if (!isCreate) {
+    if (readonly) {
         const goalActions = azioni.filter(isGoalAction);
         const cardActions = azioni.filter(isCardAction);
         const otherActions = azioni.filter(
@@ -396,6 +572,15 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                             variant="secondary"
                             onPress={onClose}
                         />
+                        {partita && (
+                            <TouchableOpacity
+                                style={styles.button}
+                                onPress={() => setActiveMode('edit')}
+                                activeOpacity={0.8}>
+                                <PencilIcon size={16} color="#fff" />
+                                <InterText style={styles.buttonText}>Modifica</InterText>
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </View>
             </ScrollView>
@@ -409,7 +594,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                     <View>
                         <InterText style={styles.eyebrow}>Partite</InterText>
                         <InterText style={styles.title}>
-                            {mode === 'create' ? 'Nuova partita' : `Partita ${partitaId ?? ''}`}
+                            {isCreate ? 'Nuova partita' : `Modifica partita ${partitaId ?? ''}`}
                         </InterText>
                     </View>
                 </View>
@@ -521,8 +706,32 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                     </View>
                 </View>
 
+                {isEdit && partita && (
+                    <ReportEditor
+                        partita={partita}
+                        azioni={azioni}
+                        reportForm={reportForm}
+                        reportSubmitting={reportSubmitting}
+                        deletingActionId={deletingActionId}
+                        onReportFieldChange={setReportField}
+                        onAddAction={handleAddAction}
+                        onDeleteAction={confirmDeleteAction}
+                    />
+                )}
+
                 <View style={styles.dynamicRow}>
-                    <FooterButton label="Annulla" variant="destructive" onPress={onClose} />
+                    <FooterButton
+                        label="Annulla"
+                        variant="destructive"
+                        onPress={() => {
+                            if (isCreate) {
+                                onClose();
+                            } else {
+                                if (partita) setForm(buildFormFromPartita(partita));
+                                setActiveMode('view');
+                            }
+                        }}
+                    />
                     <TouchableOpacity
                         style={[styles.button, submitting && { opacity: 0.6 }]}
                         onPress={handleSubmit}
@@ -530,7 +739,13 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                         activeOpacity={0.8}>
                         <SaveIcon size={16} color="#fff" />
                         <InterText style={styles.buttonText}>
-                            {submitting ? 'Creazione...' : 'Crea partita'}
+                            {submitting
+                                ? isCreate
+                                    ? 'Creazione...'
+                                    : 'Salvataggio...'
+                                : isCreate
+                                  ? 'Crea partita'
+                                  : 'Salva partita'}
                         </InterText>
                     </TouchableOpacity>
                 </View>
@@ -592,12 +807,18 @@ function ActionSection({
     homeTeam,
     awayTeam,
     emptyText,
+    editable = false,
+    deletingActionId = null,
+    onDeleteAction,
 }: {
     title: string;
     actions: azioniPartitaType;
     homeTeam: string | null;
     awayTeam: string | null;
     emptyText: string;
+    editable?: boolean;
+    deletingActionId?: number | null;
+    onDeleteAction?: (idAzione: number | null) => void;
 }) {
     return (
         <View style={styles.actionSection}>
@@ -631,10 +852,260 @@ function ActionSection({
                                     {actionTeamLabel(action, homeTeam, awayTeam)}
                                 </InterText>
                             </View>
+                            {editable && (
+                                <TouchableOpacity
+                                    style={[
+                                        styles.iconButton,
+                                        deletingActionId === action.a_id && { opacity: 0.5 },
+                                    ]}
+                                    disabled={!action.a_id || deletingActionId === action.a_id}
+                                    onPress={() => onDeleteAction?.(action.a_id)}
+                                    activeOpacity={0.8}>
+                                    <Trash2Icon size={16} color="#7c3f3f" />
+                                </TouchableOpacity>
+                            )}
                         </View>
                     ))}
                 </View>
             )}
+        </View>
+    );
+}
+
+function ReportEditor({
+    partita,
+    azioni,
+    reportForm,
+    reportSubmitting,
+    deletingActionId,
+    onReportFieldChange,
+    onAddAction,
+    onDeleteAction,
+}: {
+    partita: NonNullable<datiPartitaType>;
+    azioni: azioniPartitaType;
+    reportForm: ReportFormState;
+    reportSubmitting: boolean;
+    deletingActionId: number | null;
+    onReportFieldChange: <K extends keyof ReportFormState>(
+        key: K,
+        value: ReportFormState[K]
+    ) => void;
+    onAddAction: (overrides?: Partial<ReportFormState>) => void;
+    onDeleteAction: (idAzione: number | null) => void;
+}) {
+    const goalActions = azioni.filter(isGoalAction);
+    const cardActions = azioni.filter(isCardAction);
+    const otherActions = azioni.filter((azione) => !isGoalAction(azione) && !isCardAction(azione));
+
+    return (
+        <View style={styles.reportBox}>
+            <View style={styles.reportHeader}>
+                <View>
+                    <InterText style={styles.eyebrow}>Referto</InterText>
+                    <InterText style={styles.sectionTitle}>Risultato e azioni</InterText>
+                </View>
+                <View style={styles.scoreMiniBox}>
+                    <InterText style={styles.scoreMiniText}>{formatScore(partita)}</InterText>
+                </View>
+            </View>
+
+            <View style={styles.quickGrid}>
+                <QuickActionButton
+                    label="Goal casa"
+                    disabled={reportSubmitting}
+                    onPress={() => onAddAction({ tipo: 'Goal', assegnamento: 'Casa' })}
+                />
+                <QuickActionButton
+                    label="Goal ospiti"
+                    disabled={reportSubmitting}
+                    onPress={() => onAddAction({ tipo: 'Goal', assegnamento: 'Ospiti' })}
+                />
+                <QuickActionButton
+                    label="Rigore casa"
+                    disabled={reportSubmitting}
+                    onPress={() =>
+                        onAddAction({ tipo: 'Calcio di rigore segnato', assegnamento: 'Casa' })
+                    }
+                />
+                <QuickActionButton
+                    label="Rigore ospiti"
+                    disabled={reportSubmitting}
+                    onPress={() =>
+                        onAddAction({ tipo: 'Calcio di rigore segnato', assegnamento: 'Ospiti' })
+                    }
+                />
+                <QuickActionButton
+                    label="Giallo casa"
+                    disabled={reportSubmitting}
+                    onPress={() => onAddAction({ tipo: 'Cartellino giallo', assegnamento: 'Casa' })}
+                />
+                <QuickActionButton
+                    label="Giallo ospiti"
+                    disabled={reportSubmitting}
+                    onPress={() =>
+                        onAddAction({ tipo: 'Cartellino giallo', assegnamento: 'Ospiti' })
+                    }
+                />
+                <QuickActionButton
+                    label="Rosso casa"
+                    disabled={reportSubmitting}
+                    onPress={() => onAddAction({ tipo: 'Cartellino rosso', assegnamento: 'Casa' })}
+                />
+                <QuickActionButton
+                    label="Rosso ospiti"
+                    disabled={reportSubmitting}
+                    onPress={() =>
+                        onAddAction({ tipo: 'Cartellino rosso', assegnamento: 'Ospiti' })
+                    }
+                />
+            </View>
+
+            <EnumChipSection
+                label="Tipo azione"
+                options={TIPI_AZIONE}
+                selected={reportForm.tipo}
+                onSelect={(value) => onReportFieldChange('tipo', value as TipoAzione)}
+            />
+            <EnumChipSection
+                label="Squadra"
+                options={ASSEGNAMENTI_AZIONE}
+                selected={reportForm.assegnamento}
+                getLabel={(value) =>
+                    value === 'Casa'
+                        ? (partita.squadra_casa_nome ?? 'Casa')
+                        : (partita.squadra_ospite_nome ?? 'Ospiti')
+                }
+                onSelect={(value) =>
+                    onReportFieldChange('assegnamento', value as AssegnamentoAzione)
+                }
+            />
+
+            <View style={styles.row}>
+                <View style={styles.minuteField}>
+                    <TextInputField
+                        label="Minuto"
+                        value={reportForm.minuto}
+                        onChange={(value) => onReportFieldChange('minuto', value)}
+                        placeholder="42"
+                    />
+                </View>
+                <View style={styles.flexChild}>
+                    <TextInputField
+                        label="Dettagli"
+                        value={reportForm.dettagli}
+                        onChange={(value) => onReportFieldChange('dettagli', value)}
+                        placeholder="Nota rapida opzionale"
+                    />
+                </View>
+            </View>
+
+            <TouchableOpacity
+                style={[
+                    styles.button,
+                    styles.reportSubmitButton,
+                    reportSubmitting && { opacity: 0.6 },
+                ]}
+                onPress={() => onAddAction()}
+                disabled={reportSubmitting}
+                activeOpacity={0.8}>
+                <PlusIcon size={16} color="#fff" />
+                <InterText style={styles.buttonText}>
+                    {reportSubmitting ? 'Salvataggio...' : 'Aggiungi azione'}
+                </InterText>
+            </TouchableOpacity>
+
+            <ActionSection
+                title="Goal e rigori"
+                actions={goalActions}
+                homeTeam={partita.squadra_casa_nome}
+                awayTeam={partita.squadra_ospite_nome}
+                emptyText="Nessun goal o rigore registrato"
+                editable
+                deletingActionId={deletingActionId}
+                onDeleteAction={onDeleteAction}
+            />
+            <ActionSection
+                title="Cartellini"
+                actions={cardActions}
+                homeTeam={partita.squadra_casa_nome}
+                awayTeam={partita.squadra_ospite_nome}
+                emptyText="Nessun cartellino registrato"
+                editable
+                deletingActionId={deletingActionId}
+                onDeleteAction={onDeleteAction}
+            />
+            <ActionSection
+                title="Altre azioni"
+                actions={otherActions}
+                homeTeam={partita.squadra_casa_nome}
+                awayTeam={partita.squadra_ospite_nome}
+                emptyText="Nessuna altra azione registrata"
+                editable
+                deletingActionId={deletingActionId}
+                onDeleteAction={onDeleteAction}
+            />
+        </View>
+    );
+}
+
+function QuickActionButton({
+    label,
+    disabled,
+    onPress,
+}: {
+    label: string;
+    disabled: boolean;
+    onPress: () => void;
+}) {
+    return (
+        <TouchableOpacity
+            style={[styles.quickButton, disabled && { opacity: 0.6 }]}
+            disabled={disabled}
+            onPress={onPress}
+            activeOpacity={0.85}>
+            <PlusIcon size={14} color="#0f172a" />
+            <InterText style={styles.quickButtonText} numberOfLines={1}>
+                {label}
+            </InterText>
+        </TouchableOpacity>
+    );
+}
+
+function EnumChipSection<T extends string>({
+    label,
+    options,
+    selected,
+    getLabel,
+    onSelect,
+}: {
+    label: string;
+    options: T[];
+    selected: T;
+    getLabel?: (value: T) => string;
+    onSelect: (value: T) => void;
+}) {
+    return (
+        <View style={styles.inputGroup}>
+            <InterText style={styles.label}>{label}:</InterText>
+            <View style={styles.chipRow}>
+                {options.map((option) => {
+                    const active = selected === option;
+                    return (
+                        <TouchableOpacity
+                            key={option}
+                            style={[styles.chip, active && styles.chipActive]}
+                            onPress={() => onSelect(option)}
+                            activeOpacity={0.85}>
+                            <InterText
+                                style={[styles.chipText, active && styles.chipTextActive]}
+                                numberOfLines={1}>
+                                {getLabel ? getLabel(option) : option}
+                            </InterText>
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
         </View>
     );
 }
@@ -964,6 +1435,16 @@ const styles = StyleSheet.create({
         flex: 1,
         minWidth: 0,
     },
+    iconButton: {
+        width: 36,
+        height: 36,
+        borderRadius: 12,
+        backgroundColor: '#f8fafc',
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     actionTitle: {
         color: '#0f172a',
         fontFamily: 'Inter-SemiBold',
@@ -996,6 +1477,59 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter',
         fontSize: 13,
     },
+    reportBox: {
+        borderTopWidth: 1,
+        borderTopColor: '#f1f5f9',
+        paddingTop: 18,
+        marginTop: 2,
+        marginBottom: 8,
+    },
+    reportHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12,
+        marginBottom: 14,
+    },
+    scoreMiniBox: {
+        minWidth: 70,
+        minHeight: 42,
+        borderRadius: 12,
+        backgroundColor: '#0f172a',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 10,
+    },
+    scoreMiniText: {
+        color: '#ffffff',
+        fontFamily: 'Inter-Bold',
+        fontSize: 16,
+        fontWeight: '700',
+    },
+    quickGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginBottom: 18,
+    },
+    quickButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        backgroundColor: '#ffffff',
+        paddingHorizontal: 10,
+        paddingVertical: 9,
+        maxWidth: '48%',
+    },
+    quickButtonText: {
+        color: '#0f172a',
+        fontFamily: 'Inter-SemiBold',
+        fontSize: 12,
+        fontWeight: '600',
+    },
     row: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -1004,6 +1538,10 @@ const styles = StyleSheet.create({
     flexChild: {
         flex: 1,
         minWidth: 220,
+    },
+    minuteField: {
+        width: 110,
+        minWidth: 110,
     },
     inputGroup: {
         marginBottom: 20,
@@ -1059,6 +1597,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         gap: 12,
         marginTop: 12,
+    },
+    reportSubmitButton: {
+        alignSelf: 'flex-start',
+        marginBottom: 12,
     },
     button: {
         flexDirection: 'row',

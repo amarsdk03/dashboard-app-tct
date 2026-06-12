@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { TablesInsert } from '@/types/database.types';
+import { TablesInsert, TablesUpdate } from '@/types/database.types';
 
 function getLocalDayRange(now: Date) {
     const start = new Date(now);
@@ -31,7 +31,8 @@ export async function getPartiteSquadra(idSquadra: number) {
         `
         )
         .or(`id_squadra_casa.eq.${idSquadra},id_squadra_ospite.eq.${idSquadra}`)
-        .order('fischio_inizio', { ascending: true });
+        .order('fischio_inizio', { ascending: true })
+        .abortSignal(AbortSignal.timeout(20000));
 
     if (error) throw error;
 
@@ -79,9 +80,6 @@ export async function getListaPartite(
 
     if (idTorneo && idTorneo > 0) {
         query = query.eq('torneo_id', idTorneo);
-    } else {
-        // TEMP: if invalid id, return results from 3rd edition
-        query = query.eq('torneo_id', 3);
     }
 
     const idCategoria = filters.idCategoria;
@@ -131,7 +129,66 @@ export async function insertPartita(payload: TablesInsert<'partita'>) {
     return data;
 }
 
+export type insertPartitaType = Awaited<ReturnType<typeof insertPartita>>;
 export type insertPartitaPayload = Parameters<typeof insertPartita>[0];
+
+export async function updatePartita(idPartita: number, payload: TablesUpdate<'partita'>) {
+    const { data, error } = await supabase
+        .from('partita')
+        .update({ ...payload, data_ultima_modifica: new Date().toISOString() })
+        .eq('id', idPartita)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    return data;
+}
+
+export type updatePartitaType = Awaited<ReturnType<typeof updatePartita>>;
+export type updatePartitaPayload = Parameters<typeof updatePartita>[1];
+
+export async function insertAzionePartita(payload: TablesInsert<'azione'>) {
+    const { data, error } = await supabase.from('azione').insert(payload).select().single();
+
+    if (error) throw error;
+
+    return data;
+}
+
+export type insertAzionePartitaType = Awaited<ReturnType<typeof insertAzionePartita>>;
+export type insertAzionePartitaPayload = Parameters<typeof insertAzionePartita>[0];
+
+export async function updateAzionePartita(idAzione: number, payload: TablesUpdate<'azione'>) {
+    const { data, error } = await supabase
+        .from('azione')
+        .update({ ...payload, data_ultima_modifica: new Date().toISOString() })
+        .eq('id', idAzione)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    return data;
+}
+
+export type updateAzionePartitaType = Awaited<ReturnType<typeof updateAzionePartita>>;
+export type updateAzionePartitaPayload = Parameters<typeof updateAzionePartita>[1];
+
+export async function deleteAzionePartita(idAzione: number) {
+    const { data, error } = await supabase
+        .from('azione')
+        .delete()
+        .eq('id', idAzione)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    return data;
+}
+
+export type deleteAzionePartitaType = Awaited<ReturnType<typeof deleteAzionePartita>>;
 
 export async function getProssimiIncontri(idTorneo: number, dateFilter: Date) {
     const { data, error } = await supabase
