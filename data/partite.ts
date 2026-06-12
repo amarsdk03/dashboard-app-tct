@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-
+import { TablesInsert } from '@/types/database.types';
 
 function getLocalDayRange(now: Date) {
     const start = new Date(now);
@@ -14,11 +14,11 @@ function getLocalDayRange(now: Date) {
     };
 }
 
-
 export async function getPartiteSquadra(idSquadra: number) {
     const { data, error } = await supabase
         .from('partita')
-        .select(`
+        .select(
+            `
             *,
             squadra_casa:id_squadra_casa(
                 id,
@@ -28,7 +28,8 @@ export async function getPartiteSquadra(idSquadra: number) {
                 id,
                 nome
             )
-        `)
+        `
+        )
         .or(`id_squadra_casa.eq.${idSquadra},id_squadra_ospite.eq.${idSquadra}`)
         .order('fischio_inizio', { ascending: true });
 
@@ -37,11 +38,7 @@ export async function getPartiteSquadra(idSquadra: number) {
     return data;
 }
 
-export type partiteSquadraType = Awaited<
-    ReturnType<typeof getPartiteSquadra>
->;
-
-
+export type partiteSquadraType = Awaited<ReturnType<typeof getPartiteSquadra>>;
 
 export async function getListaCategorie() {
     const { data, error } = await supabase
@@ -55,20 +52,30 @@ export async function getListaCategorie() {
     return data ?? [];
 }
 
-export type listaCategorieType = Awaited<
-    ReturnType<typeof getListaCategorie>
->;
+export type listaCategorieType = Awaited<ReturnType<typeof getListaCategorie>>;
 
-
+export type listaPartiteFilters = {
+    search?: string | null;
+    idCategoria?: number | null;
+    valGirone?: string | null;
+    upcomingOnly?: boolean;
+    now?: Date;
+};
 
 export async function getListaPartite(
     idTorneo: number | null,
-    idCategoria: number | null,
-    valGirone: string | null
+    filtersOrIdCategoria: listaPartiteFilters | number | null = null,
+    valGironeParam: string | null = null
 ) {
-    let query = supabase
-        .from('risultati_partite')
-        .select(`*`);
+    const filters: listaPartiteFilters =
+        typeof filtersOrIdCategoria === 'object' && filtersOrIdCategoria !== null
+            ? filtersOrIdCategoria
+            : {
+                  idCategoria: filtersOrIdCategoria,
+                  valGirone: valGironeParam,
+              };
+
+    let query = supabase.from('risultati_partite').select(`*`);
 
     if (idTorneo && idTorneo > 0) {
         query = query.eq('torneo_id', idTorneo);
@@ -77,37 +84,62 @@ export async function getListaPartite(
         query = query.eq('torneo_id', 3);
     }
 
+    const idCategoria = filters.idCategoria;
     if (idCategoria && !isNaN(Number(idCategoria)) && Number(idCategoria) > -1) {
         query = query.eq('categoria_id', Number(idCategoria));
     }
 
+    const valGirone = filters.valGirone;
     if (valGirone && valGirone.trim() !== '') {
         query = query.eq('girone', valGirone);
     }
 
+    const search = filters.search?.trim();
+    if (search) {
+        query = query.or(
+            [
+                `squadra_casa_nome.ilike.%${search}%`,
+                `squadra_ospite_nome.ilike.%${search}%`,
+                `categoria_nome.ilike.%${search}%`,
+                `fase.ilike.%${search}%`,
+                `girone.ilike.%${search}%`,
+            ].join(',')
+        );
+    }
+
+    if (filters.upcomingOnly) {
+        query = query.gte('fischio_inizio', (filters.now ?? new Date()).toISOString());
+    }
+
     query = query
-        .order('fischio_inizio', {ascending: false})
+        .order('fischio_inizio', { ascending: filters.upcomingOnly ?? false })
         .abortSignal(AbortSignal.timeout(20000));
 
-    const {data, error} = await query;
+    const { data, error } = await query;
     if (error) throw error;
 
     return data ?? [];
 }
 
-export type listaPartiteType = Awaited<
-    ReturnType<typeof getListaPartite>
->[number];
+export type listaPartiteType = Awaited<ReturnType<typeof getListaPartite>>[number];
 
+export async function insertPartita(payload: TablesInsert<'partita'>) {
+    const { data, error } = await supabase.from('partita').insert(payload).select().single();
 
+    if (error) throw error;
+
+    return data;
+}
+
+export type insertPartitaPayload = Parameters<typeof insertPartita>[0];
 
 export async function getProssimiIncontri(idTorneo: number, dateFilter: Date) {
-    const {data, error} = await supabase
+    const { data, error } = await supabase
         .from('risultati_partite')
         .select(`*`)
         .eq('torneo_id', idTorneo)
         .gte('fischio_inizio', dateFilter.toISOString())
-        .order('fischio_inizio', {ascending: true})
+        .order('fischio_inizio', { ascending: true })
         .limit(6)
         .abortSignal(AbortSignal.timeout(20000));
 
@@ -116,10 +148,7 @@ export async function getProssimiIncontri(idTorneo: number, dateFilter: Date) {
     return data ?? [];
 }
 
-export type prossimiIncontriType = Awaited<
-    ReturnType<typeof getProssimiIncontri>
->;
-
+export type prossimiIncontriType = Awaited<ReturnType<typeof getProssimiIncontri>>;
 
 export async function getPartiteOggi(idTorneo: number, now = new Date()) {
     const { startIso, endIso } = getLocalDayRange(now);
@@ -139,10 +168,7 @@ export async function getPartiteOggi(idTorneo: number, now = new Date()) {
     return data ?? [];
 }
 
-export type partiteOggiType = Awaited<
-    ReturnType<typeof getPartiteOggi>
->[number];
-
+export type partiteOggiType = Awaited<ReturnType<typeof getPartiteOggi>>[number];
 
 export async function getStatisticheHomeTorneo(idTorneo: number, now = new Date()) {
     const { count: upcomingMatches, error: upcomingError } = await supabase
@@ -172,10 +198,7 @@ export async function getStatisticheHomeTorneo(idTorneo: number, now = new Date(
     };
 }
 
-export type homeTorneoStatsType = Awaited<
-    ReturnType<typeof getStatisticheHomeTorneo>
->;
-
+export type homeTorneoStatsType = Awaited<ReturnType<typeof getStatisticheHomeTorneo>>;
 
 export async function getConteggioPartiteTorneo(idTorneo: number) {
     const { count, error } = await supabase
@@ -189,14 +212,10 @@ export async function getConteggioPartiteTorneo(idTorneo: number) {
     return count ?? 0;
 }
 
-export type conteggioPartiteTorneoType = Awaited<
-    ReturnType<typeof getConteggioPartiteTorneo>
->;
-
-
+export type conteggioPartiteTorneoType = Awaited<ReturnType<typeof getConteggioPartiteTorneo>>;
 
 export async function getDatiPartita(idPartita: number) {
-    const {data, error} = await supabase
+    const { data, error } = await supabase
         .from('risultati_partite')
         .select(`*`)
         .eq('id_partita', idPartita)
@@ -207,48 +226,34 @@ export async function getDatiPartita(idPartita: number) {
     return data ?? null;
 }
 
-export type datiPartitaType = Awaited<
-    ReturnType<typeof getDatiPartita>
->;
-
-
+export type datiPartitaType = Awaited<ReturnType<typeof getDatiPartita>>;
 
 export async function getAzioniPartita(idPartita: number) {
-    const {data, error} = await supabase
+    const { data, error } = await supabase
         .from('azioni_partite')
         .select(`*`)
-        .eq('p_id', idPartita);
+        .eq('p_id', idPartita)
+        .abortSignal(AbortSignal.timeout(20000));
 
     if (error) throw error;
 
     return data ?? [];
 }
 
-export type azioniPartitaType = Awaited<
-    ReturnType<typeof getAzioniPartita>
->;
-
-
+export type azioniPartitaType = Awaited<ReturnType<typeof getAzioniPartita>>;
 
 export async function getDatiCampo(idCampo: number) {
-    const {data, error} = await supabase
-        .from('campo')
-        .select(`*`)
-        .eq('id', idCampo);
+    const { data, error } = await supabase.from('campo').select(`*`).eq('id', idCampo);
 
     if (error) throw error;
 
     return data ?? null;
 }
 
-export type datiCampoType = Awaited<
-    ReturnType<typeof getDatiCampo>
->;
-
-
+export type datiCampoType = Awaited<ReturnType<typeof getDatiCampo>>;
 
 export async function getContentPartita(idPartita: number) {
-    const {data, error} = await supabase
+    const { data, error } = await supabase
         .from('partita')
         .select('highlights_yt, link_post_ig')
         .eq('id', idPartita);
@@ -258,6 +263,4 @@ export async function getContentPartita(idPartita: number) {
     return data ?? null;
 }
 
-export type contentPartitaType = Awaited<
-    ReturnType<typeof getContentPartita>
->;
+export type contentPartitaType = Awaited<ReturnType<typeof getContentPartita>>;

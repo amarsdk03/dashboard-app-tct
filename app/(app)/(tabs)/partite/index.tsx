@@ -1,31 +1,87 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
     StyleSheet,
+    TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
-import { CalendarDaysIcon } from 'lucide-react-native';
+import { Link, type Href, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { CalendarDaysIcon, PlusIcon, SearchIcon, SlidersHorizontal } from 'lucide-react-native';
 import { InterText } from '@/components/InterText';
 import PartitaCard from '@/components/partite/PartitaCard';
 import errorMessage from '@/components/ErrorMessage';
-import { getListaPartite, listaPartiteType } from '@/data/partite';
+import {
+    getListaCategorie,
+    getListaPartite,
+    listaCategorieType,
+    listaPartiteType,
+} from '@/data/partite';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
+
+type TabKey = 'tutti' | 'questanno' | 'inarrivo';
+
+const TABS: { key: TabKey; label: string }[] = [
+    { key: 'tutti', label: 'Tutti' },
+    { key: 'questanno', label: "Quest'anno" },
+    { key: 'inarrivo', label: 'In arrivo' },
+];
 
 export default function PartiteScreen() {
     const params = useLocalSearchParams<{ torneoId?: string }>();
     const [tornei, setTornei] = useState<listaTorneiType[]>([]);
     const [selectedTorneo, setSelectedTorneo] = useState<listaTorneiType | null>(null);
+    const [categorie, setCategorie] = useState<listaCategorieType>([]);
+    const [selectedCategoriaId, setSelectedCategoriaId] = useState<number | null>(null);
+    const [selectedGirone, setSelectedGirone] = useState<string | null>(null);
     const [partite, setPartite] = useState<listaPartiteType[]>([]);
+    const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [activeTab, setActiveTab] = useState<TabKey>('tutti');
+    const [filterOpen, setFilterOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+
+    const createHref = useMemo<Href>(() => {
+        if (!selectedTorneo?.id) return '/partite/modal?mode=create' as Href;
+        return `/partite/modal?mode=create&torneoId=${selectedTorneo.id}` as Href;
+    }, [selectedTorneo?.id]);
 
     const routeTorneoId = useMemo(() => {
         const value = Number(params.torneoId);
         return Number.isFinite(value) && value > 0 ? value : null;
     }, [params.torneoId]);
+
+    const availableCategorie = useMemo(() => {
+        const result: { id: number; nome: string }[] = [];
+        const seen = new Set<number>();
+
+        for (const categoria of categorie) {
+            if (categoria.torneo_id !== selectedTorneo?.id || !categoria.categoria_id) continue;
+            if (seen.has(categoria.categoria_id)) continue;
+
+            seen.add(categoria.categoria_id);
+            result.push({
+                id: categoria.categoria_id,
+                nome: categoria.categoria_nome ?? `Categoria ${categoria.categoria_id}`,
+            });
+        }
+
+        return result.sort((a, b) => a.nome.localeCompare(b.nome, 'it'));
+    }, [categorie, selectedTorneo?.id]);
+
+    const availableGironi = useMemo(() => {
+        const values = new Set<string>();
+
+        for (const categoria of categorie) {
+            if (categoria.torneo_id !== selectedTorneo?.id || !categoria.girone) continue;
+            if (selectedCategoriaId && categoria.categoria_id !== selectedCategoriaId) continue;
+            values.add(categoria.girone);
+        }
+
+        return Array.from(values).sort((a, b) => a.localeCompare(b, 'it'));
+    }, [categorie, selectedCategoriaId, selectedTorneo?.id]);
 
     async function loadTornei() {
         try {
@@ -48,6 +104,15 @@ export default function PartiteScreen() {
         }
     }
 
+    async function loadCategorie() {
+        try {
+            const data = await getListaCategorie();
+            setCategorie(data ?? []);
+        } catch (error: any) {
+            errorMessage('Impossibile recuperare le categorie', error.message ?? String(error));
+        }
+    }
+
     async function loadPartite(isRefresh = false) {
         if (!selectedTorneo?.id) {
             setPartite([]);
@@ -59,7 +124,12 @@ export default function PartiteScreen() {
         else setLoading(true);
 
         try {
-            const data = await getListaPartite(selectedTorneo.id, null, null);
+            const data = await getListaPartite(selectedTorneo.id, {
+                search: debouncedSearch,
+                idCategoria: selectedCategoriaId,
+                valGirone: selectedGirone,
+                upcomingOnly: activeTab === 'inarrivo',
+            });
             setPartite(data ?? []);
         } catch (error: any) {
             errorMessage('Impossibile recuperare le partite', error.message ?? String(error));
@@ -71,10 +141,34 @@ export default function PartiteScreen() {
 
     function handleSelectTorneo(torneo: listaTorneiType) {
         setSelectedTorneo(torneo);
+        setSelectedCategoriaId(null);
+        setSelectedGirone(null);
+        if (activeTab === 'questanno' && torneo.id !== tornei[0]?.id) {
+            setActiveTab('tutti');
+        }
+    }
+
+    function handleTabPress(key: TabKey) {
+        setActiveTab(key);
+        if (key === 'questanno' && tornei[0]) {
+            setSelectedTorneo(tornei[0]);
+            setSelectedCategoriaId(null);
+            setSelectedGirone(null);
+        }
+    }
+
+    function handleResetFilters() {
+        setSelectedCategoriaId(null);
+        setSelectedGirone(null);
+        setSearch('');
+        setDebouncedSearch('');
+        setActiveTab('tutti');
+        setFilterOpen(false);
     }
 
     useEffect(() => {
         loadTornei().then(() => null);
+        loadCategorie().then(() => null);
     }, []);
 
     useEffect(() => {
@@ -86,40 +180,197 @@ export default function PartiteScreen() {
         }
     }, [routeTorneoId, tornei]);
 
+    useFocusEffect(
+        useCallback(() => {
+            loadPartite().then(() => null);
+        }, [selectedTorneo?.id, selectedCategoriaId, selectedGirone, debouncedSearch, activeTab])
+    );
+
     useEffect(() => {
-        loadPartite().then(() => null);
-    }, [selectedTorneo?.id]);
+        const timeout = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+        return () => clearTimeout(timeout);
+    }, [search]);
 
     return (
         <View className="bg-background flex-1">
             <View className="bg-background p-6 pb-4">
                 <View style={styles.headerRow}>
                     <InterText style={styles.title}>Lista partite</InterText>
-                    <View style={styles.countBadge}>
-                        <InterText style={styles.countText}>{partite.length}</InterText>
-                    </View>
+                    <Link href={createHref} asChild>
+                        <TouchableOpacity style={styles.roundButton} activeOpacity={0.85}>
+                            <PlusIcon size={22} color="#ffffff" strokeWidth={3} />
+                        </TouchableOpacity>
+                    </Link>
                 </View>
 
-                <View style={styles.filterSection}>
-                    <InterText style={styles.filterLabel}>Torneo</InterText>
-                    <View style={styles.chipRow}>
-                        {tornei.map((torneo) => {
-                            const active = selectedTorneo?.id === torneo.id;
-                            return (
+                <View style={styles.searchRow}>
+                    <View style={styles.searchBox}>
+                        <SearchIcon size={18} color="#6b7280" />
+                        <TextInput
+                            value={search}
+                            onChangeText={setSearch}
+                            placeholder="Cerca per squadre, categorie..."
+                            placeholderTextColor="#9ca3af"
+                            style={styles.searchInput}
+                        />
+                    </View>
+                    <TouchableOpacity
+                        style={[styles.filterButton, filterOpen && styles.filterButtonActive]}
+                        onPress={() => setFilterOpen((value) => !value)}
+                        activeOpacity={0.85}>
+                        <SlidersHorizontal
+                            size={20}
+                            color={filterOpen ? '#ffffff' : '#0f6096'}
+                            strokeWidth={2.5}
+                        />
+                    </TouchableOpacity>
+                </View>
+
+                {filterOpen && (
+                    <View style={styles.filterPanel}>
+                        <View style={styles.filterSection}>
+                            <InterText style={styles.filterLabel}>Torneo</InterText>
+                            <View style={styles.chipRow}>
+                                {tornei.map((torneo) => {
+                                    const active = selectedTorneo?.id === torneo.id;
+                                    return (
+                                        <TouchableOpacity
+                                            key={torneo.id}
+                                            style={[styles.chip, active && styles.chipActive]}
+                                            onPress={() => handleSelectTorneo(torneo)}
+                                            activeOpacity={0.85}>
+                                            <InterText
+                                                style={[
+                                                    styles.chipText,
+                                                    active && styles.chipTextActive,
+                                                ]}
+                                                numberOfLines={1}>
+                                                {torneo.nome}
+                                            </InterText>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        </View>
+
+                        <View style={styles.filterSection}>
+                            <InterText style={styles.filterLabel}>Categoria</InterText>
+                            <View style={styles.chipRow}>
                                 <TouchableOpacity
-                                    key={torneo.id}
-                                    style={[styles.chip, active && styles.chipActive]}
-                                    onPress={() => handleSelectTorneo(torneo)}
+                                    style={[styles.chip, !selectedCategoriaId && styles.chipActive]}
+                                    onPress={() => {
+                                        setSelectedCategoriaId(null);
+                                        setSelectedGirone(null);
+                                    }}
                                     activeOpacity={0.85}>
                                     <InterText
-                                        style={[styles.chipText, active && styles.chipTextActive]}
-                                        numberOfLines={1}>
-                                        {torneo.nome}
+                                        style={[
+                                            styles.chipText,
+                                            !selectedCategoriaId && styles.chipTextActive,
+                                        ]}>
+                                        Tutte
                                     </InterText>
+                                </TouchableOpacity>
+                                {availableCategorie.map((categoria) => {
+                                    const active = selectedCategoriaId === categoria.id;
+                                    return (
+                                        <TouchableOpacity
+                                            key={categoria.id}
+                                            style={[styles.chip, active && styles.chipActive]}
+                                            onPress={() => {
+                                                setSelectedCategoriaId(categoria.id);
+                                                setSelectedGirone(null);
+                                            }}
+                                            activeOpacity={0.85}>
+                                            <InterText
+                                                style={[
+                                                    styles.chipText,
+                                                    active && styles.chipTextActive,
+                                                ]}
+                                                numberOfLines={1}>
+                                                {categoria.nome}
+                                            </InterText>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        </View>
+
+                        <View style={styles.filterSection}>
+                            <InterText style={styles.filterLabel}>Girone</InterText>
+                            <View style={styles.chipRow}>
+                                <TouchableOpacity
+                                    style={[styles.chip, !selectedGirone && styles.chipActive]}
+                                    onPress={() => setSelectedGirone(null)}
+                                    activeOpacity={0.85}>
+                                    <InterText
+                                        style={[
+                                            styles.chipText,
+                                            !selectedGirone && styles.chipTextActive,
+                                        ]}>
+                                        Tutti
+                                    </InterText>
+                                </TouchableOpacity>
+                                {availableGironi.map((girone) => {
+                                    const active = selectedGirone === girone;
+                                    return (
+                                        <TouchableOpacity
+                                            key={girone}
+                                            style={[styles.chip, active && styles.chipActive]}
+                                            onPress={() => setSelectedGirone(girone)}
+                                            activeOpacity={0.85}>
+                                            <InterText
+                                                style={[
+                                                    styles.chipText,
+                                                    active && styles.chipTextActive,
+                                                ]}>
+                                                {girone}
+                                            </InterText>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        </View>
+
+                        <View style={styles.filterActions}>
+                            <TouchableOpacity
+                                style={styles.resetButton}
+                                onPress={handleResetFilters}
+                                activeOpacity={0.85}>
+                                <InterText style={styles.resetText}>Reset</InterText>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.applyButton}
+                                onPress={() => setFilterOpen(false)}
+                                activeOpacity={0.85}>
+                                <InterText style={styles.applyText}>Applica</InterText>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                )}
+
+                <View style={styles.tabsRow}>
+                    <View style={styles.tabs}>
+                        {TABS.map((tab) => {
+                            const active = activeTab === tab.key;
+                            return (
+                                <TouchableOpacity
+                                    key={tab.key}
+                                    style={styles.tabButton}
+                                    onPress={() => handleTabPress(tab.key)}
+                                    activeOpacity={0.85}>
+                                    <InterText
+                                        style={[styles.tabText, active && styles.tabTextActive]}>
+                                        {tab.label}
+                                    </InterText>
+                                    {active && <View style={styles.tabIndicator} />}
                                 </TouchableOpacity>
                             );
                         })}
                     </View>
+                    <InterText style={styles.totalText}>
+                        {partite.length} risultati totali
+                    </InterText>
                 </View>
 
                 {selectedTorneo && (
@@ -132,9 +383,7 @@ export default function PartiteScreen() {
             {loading ? (
                 <View className="flex-1 items-center justify-center gap-3">
                     <ActivityIndicator size="large" />
-                    <InterText className="text-muted-foreground">
-                        Caricamento partite...
-                    </InterText>
+                    <InterText className="text-muted-foreground">Caricamento partite...</InterText>
                 </View>
             ) : (
                 <FlatList
@@ -154,20 +403,36 @@ export default function PartiteScreen() {
                             </InterText>
                         </View>
                     }
-                    renderItem={({ item }) => (
-                        <PartitaCard
-                            fischioInizio={item.fischio_inizio}
-                            squadraCasa={item.squadra_casa_nome}
-                            squadraOspite={item.squadra_ospite_nome}
-                            goalCasa={item.goal_casa}
-                            goalOspite={item.goal_ospite}
-                            rigoriCasa={item.rigori_casa}
-                            rigoriOspite={item.rigori_ospite}
-                            categoria={item.categoria_nome}
-                            fase={item.fase}
-                            girone={item.girone}
-                        />
-                    )}
+                    renderItem={({ item }) => {
+                        const href = (
+                            item.id_partita
+                                ? `/partite/modal?mode=view&partitaId=${item.id_partita}&torneoId=${selectedTorneo?.id ?? item.torneo_id ?? ''}`
+                                : `/partite/modal?mode=create&torneoId=${selectedTorneo?.id ?? ''}`
+                        ) as Href;
+
+                        return (
+                            <Link href={href} asChild>
+                                <TouchableOpacity activeOpacity={0.85}>
+                                    <PartitaCard
+                                        fischioInizio={item.fischio_inizio}
+                                        squadraCasa={item.squadra_casa_nome}
+                                        squadraOspite={item.squadra_ospite_nome}
+                                        goalCasa={item.goal_casa}
+                                        goalOspite={item.goal_ospite}
+                                        squadraCasaAcronimo={item.squadra_casa_acronimo}
+                                        squadraOspiteAcronimo={item.squadra_ospite_acronimo}
+                                        squadraCasaStemma={item.squadra_casa_stemma}
+                                        squadraOspiteStemma={item.squadra_ospite_stemma}
+                                        squadraCasaColore={item.squadra_casa_colore}
+                                        squadraOspiteColore={item.squadra_ospite_colore}
+                                        categoria={item.categoria_nome}
+                                        fase={item.fase}
+                                        girone={item.girone}
+                                    />
+                                </TouchableOpacity>
+                            </Link>
+                        );
+                    }}
                 />
             )}
         </View>
@@ -183,25 +448,78 @@ const styles = StyleSheet.create({
         marginBottom: 18,
     },
     title: {
+        flex: 1,
         color: '#0f172a',
         fontFamily: 'Inter-Bold',
         fontSize: 30,
         fontWeight: '700',
     },
-    countBadge: {
-        minWidth: 44,
-        height: 36,
-        borderRadius: 999,
-        backgroundColor: '#0f172a',
+    roundButton: {
+        width: 42,
+        height: 42,
+        borderRadius: 21,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 12,
+        backgroundColor: '#b98e6b',
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
     },
-    countText: {
-        color: '#ffffff',
-        fontFamily: 'Inter-Bold',
-        fontSize: 14,
-        fontWeight: '700',
+    searchRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 16,
+    },
+    searchBox: {
+        flex: 1,
+        minHeight: 50,
+        borderRadius: 16,
+        backgroundColor: '#f1f5f9',
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        paddingHorizontal: 14,
+    },
+    searchInput: {
+        flex: 1,
+        color: '#0f172a',
+        fontFamily: 'Inter',
+        fontSize: 15,
+        minWidth: 0,
+        paddingVertical: 0,
+    },
+    filterButton: {
+        width: 50,
+        height: 50,
+        borderRadius: 16,
+        backgroundColor: '#eef6fb',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#dbeafe',
+    },
+    filterButtonActive: {
+        backgroundColor: '#0f6096',
+        borderColor: '#0f6096',
+    },
+    filterPanel: {
+        backgroundColor: '#ffffff',
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+        padding: 14,
+        marginBottom: 16,
+        gap: 2,
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 12,
+        elevation: 2,
     },
     filterSection: {
         gap: 8,
@@ -240,6 +558,87 @@ const styles = StyleSheet.create({
     },
     chipTextActive: {
         color: '#ffffff',
+    },
+    filterActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        gap: 10,
+        marginTop: 2,
+    },
+    resetButton: {
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        backgroundColor: '#ffffff',
+        paddingHorizontal: 14,
+        paddingVertical: 9,
+    },
+    resetText: {
+        color: '#475569',
+        fontFamily: 'Inter-SemiBold',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    applyButton: {
+        borderRadius: 12,
+        backgroundColor: '#0f172a',
+        paddingHorizontal: 16,
+        paddingVertical: 9,
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
+    },
+    applyText: {
+        color: '#ffffff',
+        fontFamily: 'Inter-SemiBold',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    tabsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e2e8f0',
+        marginBottom: 10,
+    },
+    tabs: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 20,
+        flexShrink: 1,
+    },
+    tabButton: {
+        minHeight: 38,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 8,
+    },
+    tabText: {
+        color: '#475569',
+        fontFamily: 'Inter-SemiBold',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    tabTextActive: {
+        color: '#0f6096',
+    },
+    tabIndicator: {
+        height: 3,
+        width: '100%',
+        minWidth: 34,
+        borderRadius: 999,
+        backgroundColor: '#0f6096',
+    },
+    totalText: {
+        color: '#64748b',
+        fontFamily: 'Inter-Medium',
+        fontSize: 13,
+        fontWeight: '500',
+        flexShrink: 0,
     },
     selectedTournament: {
         color: '#64748b',
