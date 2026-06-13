@@ -47,6 +47,12 @@ import {
     insertCategoriaTorneoPayload,
     listaSquadreTorneoSetupType,
 } from '@/data/tornei';
+import {
+    canAccessAdminArea,
+    getDeniedAccessReason,
+    isAdminAuthState,
+} from '@/lib/auth-guards';
+import { readRequiredPublicEnvValue } from '@/lib/env';
 
 const filtered = filterNationalities('ita');
 const firstName: string | undefined = filtered[0]?.name;
@@ -170,6 +176,39 @@ async function assertSquadraAvailablePlayersContract() {
     return { giocatori, firstId };
 }
 
+function assertAuthGuardContract() {
+    const allowed: boolean = canAccessAdminArea({
+        isLoading: false,
+        isLoggedIn: true,
+        claims: { app_role: 'admin' },
+        profile: null,
+    });
+
+    const deniedReason: string | null = getDeniedAccessReason({
+        isLoading: false,
+        isLoggedIn: true,
+        claims: null,
+        profile: { ruolo: 'viewer' },
+    });
+
+    const adminState: boolean = isAdminAuthState({
+        isLoggedIn: true,
+        claims: { role: 'admin' },
+        profile: null,
+    });
+
+    return { allowed, deniedReason, adminState };
+}
+
+function assertEnvContract() {
+    const value: string = readRequiredPublicEnvValue(
+        'EXPO_PUBLIC_SUPABASE_URL',
+        'https://example.supabase.co'
+    );
+
+    return value;
+}
+
 void firstName;
 void exactFlag;
 void exactLabel;
@@ -185,3 +224,5 @@ void assertPartitaDetailContract;
 void assertTorneoCompletoContracts;
 void assertSquadraWriteContracts;
 void assertSquadraAvailablePlayersContract;
+void assertAuthGuardContract;
+void assertEnvContract;

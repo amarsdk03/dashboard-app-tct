@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { deleteItemAsync, getItemAsync, setItemAsync } from 'expo-secure-store';
+import { supabaseEnv } from '@/lib/env';
+import { Database } from '@/types/database.types';
 
 const ExpoSecureStoreAdapter = {
     getItem: (key: string) => {
-        console.debug('getItem', { key, getItemAsync });
         return getItemAsync(key);
     },
     setItem: (key: string, value: string) => {
@@ -19,15 +20,11 @@ const ExpoSecureStoreAdapter = {
     },
 };
 
-export const supabase = createClient(
-    process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
-    process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '',
-    {
-        auth: {
-            storage: ExpoSecureStoreAdapter as any,
-            autoRefreshToken: true,
-            persistSession: true,
-            detectSessionInUrl: false,
-        },
-    }
-);
+export const supabase = createClient<Database>(supabaseEnv.url, supabaseEnv.publishableKey, {
+    auth: {
+        storage: ExpoSecureStoreAdapter as any,
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false,
+    },
+});

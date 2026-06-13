@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     Image,
     ScrollView,
     StyleSheet,
@@ -24,6 +25,7 @@ import TextInputField from '@/components/input/TextInputField';
 import errorMessage from '@/components/ErrorMessage';
 import { insertGiocatore } from '@/data/giocatori';
 import {
+    deleteIscrizioneSquadra,
     formazioneSquadraType,
     getDatiSquadra,
     getFormazioneSquadra,
@@ -94,6 +96,20 @@ function getPlayerId(player: PickerPlayer) {
     return player.id;
 }
 
+function getPlayerRole(player: PickerPlayer) {
+    if ('giocatore' in player) return player.giocatore?.ruolo_principale ?? null;
+    return player.ruolo_principale ?? null;
+}
+
+function getPlayerPhoto(player: PickerPlayer) {
+    if ('giocatore' in player) return player.giocatore?.link_foto ?? null;
+    return player.link_foto ?? null;
+}
+
+function getRosterPlayerIds(rows: formazioneSquadraType) {
+    return rows.map((row) => row.id_giocatore);
+}
+
 function isTeamAction(action: statisticheSquadraType[number], idSquadra: number) {
     if (action.id_squadra_azione === idSquadra) return true;
     if (action.a_assegnamento === 'Casa' && action.p_id_squadra_casa === idSquadra) return true;
@@ -135,6 +151,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
     const [newPlayerName, setNewPlayerName] = useState('');
     const [newPlayerSurname, setNewPlayerSurname] = useState('');
     const [creatingPlayer, setCreatingPlayer] = useState(false);
+    const [rosterMutationPlayerId, setRosterMutationPlayerId] = useState<number | null>(null);
     const tempPlayerIdRef = useRef(-1);
     const playerSearchRequestRef = useRef(0);
 
@@ -151,6 +168,11 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
 
         return roster;
     }, [isCreate, roster, selectedCreatePlayers]);
+
+    const selectedPlayerIds = useMemo(() => {
+        if (isCreate) return form.selectedPlayerIds;
+        return getRosterPlayerIds(roster);
+    }, [form.selectedPlayerIds, isCreate, roster]);
 
     const stats = useMemo(() => buildStats(statsRows, squadraId), [statsRows, squadraId]);
 
@@ -221,7 +243,93 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
         }
     }
 
-    function handleCreateInlinePlayer() {
+    async function refreshRoster() {
+        if (!squadraId || !form.idTorneo) return;
+
+        const formazione = (await getFormazioneSquadra(squadraId, form.idTorneo)) ?? [];
+        const rosterPlayerIds = getRosterPlayerIds(formazione);
+
+        setRoster(formazione);
+        setForm((current) => ({
+            ...current,
+            selectedPlayerIds: rosterPlayerIds,
+            idCapitano:
+                current.idCapitano && rosterPlayerIds.includes(current.idCapitano)
+                    ? current.idCapitano
+                    : null,
+        }));
+    }
+
+    async function handleAddRosterPlayer(player: giocatoriDisponibiliSquadraType) {
+        if (!squadraId || !form.idTorneo) {
+            errorMessage('Dati mancanti', 'Impossibile determinare squadra o torneo.');
+            return;
+        }
+
+        if (roster.some((row) => row.id_giocatore === player.id)) return;
+
+        setRosterMutationPlayerId(player.id);
+
+        try {
+            await insertIscrizioneSquadra({
+                id_giocatore: player.id,
+                id_squadra: squadraId,
+                id_torneo: form.idTorneo,
+            });
+            setAvailablePlayers((current) => current.filter((item) => item.id !== player.id));
+            setPlayerSearch('');
+            setDebouncedPlayerSearch('');
+            await refreshRoster();
+        } catch (error: any) {
+            errorMessage('Impossibile aggiungere giocatore', error.message ?? String(error));
+        } finally {
+            setRosterMutationPlayerId(null);
+        }
+    }
+
+    async function handleRemoveRosterPlayer(playerId: number) {
+        if (!squadraId) return;
+
+        const iscrizione = roster.find((row) => row.id_giocatore === playerId);
+        if (!iscrizione) return;
+
+        setRosterMutationPlayerId(playerId);
+
+        try {
+            await deleteIscrizioneSquadra(iscrizione.id);
+
+            if (form.idCapitano === playerId) {
+                await updateSquadra(squadraId, { id_capitano: null });
+                setForm((current) => ({ ...current, idCapitano: null }));
+            }
+
+            await refreshRoster();
+
+            if (form.idTorneo && debouncedPlayerSearch.length >= 2) {
+                await loadAvailablePlayers(form.idTorneo, debouncedPlayerSearch);
+            }
+        } catch (error: any) {
+            errorMessage('Impossibile rimuovere giocatore', error.message ?? String(error));
+        } finally {
+            setRosterMutationPlayerId(null);
+        }
+    }
+
+    function confirmRemoveRosterPlayer(playerId: number) {
+        const player = roster.find((row) => row.id_giocatore === playerId);
+        const playerName = player ? getPlayerName(player) : 'questo giocatore';
+
+        Alert.alert('Rimuovere dalla rosa?', `${playerName} verra rimosso dalla squadra.`, [
+            { text: 'Annulla', style: 'cancel' },
+            {
+                text: 'Rimuovi',
+                style: 'destructive',
+                onPress: () => handleRemoveRosterPlayer(playerId).then(() => null),
+            },
+        ]);
+    }
+
+    async function handleCreateInlinePlayer() {
         const nome = newPlayerName.trim();
         const cognome = newPlayerSurname.trim();
 
@@ -231,26 +339,56 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
         }
 
         setCreatingPlayer(true);
-        const nuovoGiocatore: PendingCreatePlayer = {
-            id: tempPlayerIdRef.current,
-            nome,
-            cognome,
-            is_capitano: false,
-            ruolo_principale: null,
-            link_foto: null,
-            nome_maglia: null,
-            numero_maglia: null,
-            isPending: true,
-        };
 
-        tempPlayerIdRef.current -= 1;
-        addPlayerToSelection(nuovoGiocatore);
-        setNewPlayerName('');
-        setNewPlayerSurname('');
-        setNewPlayerOpen(false);
-        setPlayerSearch('');
-        setDebouncedPlayerSearch('');
-        setCreatingPlayer(false);
+        if (isCreate) {
+            const nuovoGiocatore: PendingCreatePlayer = {
+                id: tempPlayerIdRef.current,
+                nome,
+                cognome,
+                is_capitano: false,
+                ruolo_principale: null,
+                link_foto: null,
+                nome_maglia: null,
+                numero_maglia: null,
+                isPending: true,
+            };
+
+            tempPlayerIdRef.current -= 1;
+            addPlayerToSelection(nuovoGiocatore);
+            setNewPlayerName('');
+            setNewPlayerSurname('');
+            setNewPlayerOpen(false);
+            setPlayerSearch('');
+            setDebouncedPlayerSearch('');
+            setCreatingPlayer(false);
+            return;
+        }
+
+        if (!squadraId || !form.idTorneo) {
+            errorMessage('Dati mancanti', 'Impossibile determinare squadra o torneo.');
+            setCreatingPlayer(false);
+            return;
+        }
+
+        try {
+            const createdPlayer = await insertGiocatore({ nome, cognome });
+            await insertIscrizioneSquadra({
+                id_giocatore: createdPlayer.id,
+                id_squadra: squadraId,
+                id_torneo: form.idTorneo,
+            });
+            setNewPlayerName('');
+            setNewPlayerSurname('');
+            setNewPlayerOpen(false);
+            setPlayerSearch('');
+            setDebouncedPlayerSearch('');
+            setAvailablePlayers([]);
+            await refreshRoster();
+        } catch (error: any) {
+            errorMessage('Impossibile creare giocatore', error.message ?? String(error));
+        } finally {
+            setCreatingPlayer(false);
+        }
     }
 
     async function loadExistingSquadra() {
@@ -268,7 +406,14 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                 getStatisticheSquadra(squadraId, torneoId),
             ]);
 
-            setRoster(formazione ?? []);
+            const rosterRows = formazione ?? [];
+            const rosterPlayerIds = getRosterPlayerIds(rosterRows);
+            const idCapitano =
+                dati?.id_capitano && rosterPlayerIds.includes(dati.id_capitano)
+                    ? dati.id_capitano
+                    : null;
+
+            setRoster(rosterRows);
             setStatsRows(statistiche ?? []);
             setForm({
                 nome: dati?.nome ?? '',
@@ -276,9 +421,9 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                 linkStemma: dati?.link_stemma ?? '',
                 coloreSquadra: dati?.colore_squadra ?? '',
                 usernameIg: dati?.username_ig ?? '',
-                idCapitano: dati?.id_capitano ?? null,
+                idCapitano,
                 idTorneo: torneoId ?? null,
-                selectedPlayerIds: [],
+                selectedPlayerIds: rosterPlayerIds,
             });
         } catch (error: any) {
             errorMessage('Impossibile recuperare la squadra', error.message ?? String(error));
@@ -396,7 +541,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
     }, [playerSearch]);
 
     useEffect(() => {
-        if (!isCreate || !form.idTorneo) return;
+        if (readonly || !form.idTorneo) return;
 
         if (debouncedPlayerSearch.length < 2) {
             playerSearchRequestRef.current += 1;
@@ -409,7 +554,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
             setPlayersLoading(false);
             errorMessage('Impossibile recuperare i giocatori', error.message ?? String(error));
         });
-    }, [debouncedPlayerSearch, form.idTorneo, isCreate]);
+    }, [debouncedPlayerSearch, form.idTorneo, readonly]);
 
     if (loading) {
         return (
@@ -517,7 +662,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                         label="Giocatori da iscrivere"
                         players={availablePlayers}
                         selectedPlayers={selectedCreatePlayers}
-                        selectedIds={form.selectedPlayerIds}
+                        selectedIds={selectedPlayerIds}
                         search={playerSearch}
                         loading={playersLoading}
                         newPlayerOpen={newPlayerOpen}
@@ -531,7 +676,33 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                         onNewPlayerNameChange={setNewPlayerName}
                         onNewPlayerSurnameChange={setNewPlayerSurname}
                         onCreateNewPlayer={handleCreateInlinePlayer}
+                        selectedTitle="Selezionati"
                         emptyText="Nessun giocatore libero per questo torneo. Crea prima un giocatore o libera una iscrizione."
+                    />
+                )}
+
+                {!isCreate && !readonly && (
+                    <PlayerSearchPicker
+                        label="Rosa"
+                        players={availablePlayers}
+                        selectedPlayers={roster}
+                        selectedIds={selectedPlayerIds}
+                        search={playerSearch}
+                        loading={playersLoading}
+                        newPlayerOpen={newPlayerOpen}
+                        newPlayerName={newPlayerName}
+                        newPlayerSurname={newPlayerSurname}
+                        creatingPlayer={creatingPlayer}
+                        busyPlayerId={rosterMutationPlayerId}
+                        onSearchChange={setPlayerSearch}
+                        onAdd={handleAddRosterPlayer}
+                        onRemove={confirmRemoveRosterPlayer}
+                        onToggleNewPlayer={() => setNewPlayerOpen((value) => !value)}
+                        onNewPlayerNameChange={setNewPlayerName}
+                        onNewPlayerSurnameChange={setNewPlayerSurname}
+                        onCreateNewPlayer={handleCreateInlinePlayer}
+                        selectedTitle="Rosa attuale"
+                        emptyText="Nessun giocatore libero per questo torneo. Puoi creare un nuovo giocatore e aggiungerlo subito."
                     />
                 )}
 
@@ -543,7 +714,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                     onClear={() => setField('idCapitano', null)}
                 />
 
-                {!isCreate && (
+                {!isCreate && readonly && (
                     <RosterSection
                         roster={roster}
                         idCapitano={form.idCapitano}
@@ -693,6 +864,7 @@ function PlayerSearchPicker({
     newPlayerName,
     newPlayerSurname,
     creatingPlayer,
+    busyPlayerId,
     onSearchChange,
     onAdd,
     onRemove,
@@ -700,11 +872,12 @@ function PlayerSearchPicker({
     onNewPlayerNameChange,
     onNewPlayerSurnameChange,
     onCreateNewPlayer,
+    selectedTitle,
     emptyText,
 }: {
     label: string;
     players: giocatoriDisponibiliSquadraType[];
-    selectedPlayers: CreatePickerPlayer[];
+    selectedPlayers: PickerPlayer[];
     selectedIds: number[];
     search: string;
     loading: boolean;
@@ -712,13 +885,15 @@ function PlayerSearchPicker({
     newPlayerName: string;
     newPlayerSurname: string;
     creatingPlayer: boolean;
+    busyPlayerId?: number | null;
     onSearchChange: (value: string) => void;
-    onAdd: (player: CreatePickerPlayer) => void;
+    onAdd: (player: giocatoriDisponibiliSquadraType) => void;
     onRemove: (id: number) => void;
     onToggleNewPlayer: () => void;
     onNewPlayerNameChange: (value: string) => void;
     onNewPlayerSurnameChange: (value: string) => void;
     onCreateNewPlayer: () => void;
+    selectedTitle: string;
     emptyText: string;
 }) {
     const suggestions = players.filter((player) => !selectedIds.includes(player.id)).slice(0, 8);
@@ -751,57 +926,85 @@ function PlayerSearchPicker({
                 ) : suggestions.length === 0 ? (
                     <InterText style={styles.emptyOptions}>{emptyText}</InterText>
                 ) : (
-                    suggestions.map((player) => (
-                        <TouchableOpacity
-                            key={player.id}
-                            style={styles.suggestionRow}
-                            onPress={() => onAdd(player)}
-                            activeOpacity={0.85}>
-                            <PlayerAvatar player={player} />
-                            <View style={styles.playerContent}>
-                                <InterText style={styles.playerName} numberOfLines={1}>
-                                    {getPlayerName(player) || `Giocatore ${player.id}`}
-                                </InterText>
-                                <InterText style={styles.playerMeta} numberOfLines={1}>
-                                    {player.ruolo_principale ?? 'Ruolo non assegnato'}
-                                </InterText>
-                            </View>
-                            <View style={styles.addMiniButton}>
-                                <PlusIcon size={15} color="#ffffff" strokeWidth={2.8} />
-                            </View>
-                        </TouchableOpacity>
-                    ))
-                )}
-            </View>
+                    suggestions.map((player) => {
+                        const isBusy = busyPlayerId === player.id;
 
-            {selectedPlayers.length > 0 && (
-                <View style={styles.selectedPlayersBox}>
-                    <View style={styles.sectionHeader}>
-                        <InterText style={styles.sectionTitle}>Selezionati</InterText>
-                        <View style={styles.countBadge}>
-                            <InterText style={styles.countText}>{selectedPlayers.length}</InterText>
-                        </View>
-                    </View>
-                    <View style={styles.rosterList}>
-                        {selectedPlayers.map((player) => (
-                            <View key={player.id} style={styles.playerRow}>
+                        return (
+                            <TouchableOpacity
+                                key={player.id}
+                                style={[styles.suggestionRow, isBusy && { opacity: 0.6 }]}
+                                onPress={() => onAdd(player)}
+                                disabled={isBusy}
+                                activeOpacity={0.85}>
                                 <PlayerAvatar player={player} />
                                 <View style={styles.playerContent}>
                                     <InterText style={styles.playerName} numberOfLines={1}>
                                         {getPlayerName(player) || `Giocatore ${player.id}`}
                                     </InterText>
                                     <InterText style={styles.playerMeta} numberOfLines={1}>
-                                        {player.ruolo_principale ?? 'Ruolo non assegnato'}
+                                        {getPlayerRole(player) ?? 'Ruolo non assegnato'}
                                     </InterText>
                                 </View>
-                                <TouchableOpacity
-                                    style={styles.removeMiniButton}
-                                    onPress={() => onRemove(player.id)}
-                                    activeOpacity={0.85}>
-                                    <XIcon size={15} color="#7c3f3f" strokeWidth={2.7} />
-                                </TouchableOpacity>
-                            </View>
-                        ))}
+                                <View style={styles.addMiniButton}>
+                                    {isBusy ? (
+                                        <ActivityIndicator size="small" color="#ffffff" />
+                                    ) : (
+                                        <PlusIcon size={15} color="#ffffff" strokeWidth={2.8} />
+                                    )}
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    })
+                )}
+            </View>
+
+            {selectedPlayers.length > 0 && (
+                <View style={styles.selectedPlayersBox}>
+                    <View style={styles.sectionHeader}>
+                        <InterText style={styles.sectionTitle}>{selectedTitle}</InterText>
+                        <View style={styles.countBadge}>
+                            <InterText style={styles.countText}>{selectedPlayers.length}</InterText>
+                        </View>
+                    </View>
+                    <View style={styles.rosterList}>
+                        {selectedPlayers.map((player) => {
+                            const playerId = getPlayerId(player);
+                            const isBusy = playerId ? busyPlayerId === playerId : false;
+
+                            return (
+                                <View key={player.id} style={styles.playerRow}>
+                                    <PlayerAvatar player={player} />
+                                    <View style={styles.playerContent}>
+                                        <InterText style={styles.playerName} numberOfLines={1}>
+                                            {getPlayerName(player) || `Giocatore ${playerId}`}
+                                        </InterText>
+                                        <InterText style={styles.playerMeta} numberOfLines={1}>
+                                            {getPlayerRole(player) ?? 'Ruolo non assegnato'}
+                                        </InterText>
+                                    </View>
+                                    {playerId && (
+                                        <TouchableOpacity
+                                            style={[
+                                                styles.removeMiniButton,
+                                                isBusy && { opacity: 0.6 },
+                                            ]}
+                                            onPress={() => onRemove(playerId)}
+                                            disabled={isBusy}
+                                            activeOpacity={0.85}>
+                                            {isBusy ? (
+                                                <ActivityIndicator size="small" color="#7c3f3f" />
+                                            ) : (
+                                                <XIcon
+                                                    size={15}
+                                                    color="#7c3f3f"
+                                                    strokeWidth={2.7}
+                                                />
+                                            )}
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
+                            );
+                        })}
                     </View>
                 </View>
             )}
@@ -854,18 +1057,21 @@ function PlayerSearchPicker({
     );
 }
 
-function PlayerAvatar({ player }: { player: CreatePickerPlayer }) {
+function PlayerAvatar({ player }: { player: PickerPlayer }) {
+    const photo = getPlayerPhoto(player);
+    const name = getPlayerName(player);
+
     return (
         <View style={styles.playerAvatar}>
-            {player.link_foto ? (
+            {photo ? (
                 <Image
-                    source={{ uri: player.link_foto }}
+                    source={{ uri: photo }}
                     style={styles.playerImage}
                     resizeMode="cover"
                 />
             ) : (
                 <InterText style={styles.playerInitials}>
-                    {(player.nome?.[0] ?? 'G').toUpperCase()}
+                    {(name[0] ?? 'G').toUpperCase()}
                 </InterText>
             )}
         </View>

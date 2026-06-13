@@ -209,8 +209,8 @@ export default function HomeScreen() {
                                             categoria={partita.categoria_nome}
                                             girone={partita.girone}
                                             fischioInizio={partita.fischio_inizio}
-                                            squadraCasa={partita.squadra_casa}
-                                            squadraOspite={partita.squadra_ospite}
+                                            squadraCasa={partita.squadra_casa_nome}
+                                            squadraOspite={partita.squadra_ospite_nome}
                                             goalCasa={partita.goal_casa}
                                             goalOspite={partita.goal_ospite}
                                         />
