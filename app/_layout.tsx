@@ -14,7 +14,6 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { SplashScreenController } from '@/components/splash-screen-controller';
 import { useAuthContext } from '@/hooks/use-auth-context';
-import { canAccessAdminArea } from '@/lib/auth-guards';
 import AuthProvider from '@/providers/auth-provider';
 
 export {
@@ -52,9 +51,7 @@ export default function Root() {
 // Create a new component that can access the AuthProvider context
 function RootNavigator() {
     const auth = useAuthContext();
-    const canAccessAdmin = canAccessAdminArea(auth);
     const shouldShowLogin = !auth.isLoading && !auth.isLoggedIn;
-    const shouldShowDenied = !auth.isLoading && auth.isLoggedIn && !canAccessAdmin;
 
     if (auth.isLoading) {
         return null;
@@ -62,16 +59,12 @@ function RootNavigator() {
 
     return (
         <Stack>
-            <Stack.Protected guard={canAccessAdmin}>
+            <Stack.Protected guard={auth.isLoggedIn}>
                 <Stack.Screen name="(app)" options={{ headerShown: false }} />
             </Stack.Protected>
 
             <Stack.Protected guard={shouldShowLogin}>
                 <Stack.Screen name="login" options={{ headerShown: false }} />
-            </Stack.Protected>
-
-            <Stack.Protected guard={shouldShowDenied}>
-                <Stack.Screen name="access-denied" options={{ headerShown: false }} />
             </Stack.Protected>
         </Stack>
     );
