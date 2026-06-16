@@ -25,6 +25,7 @@ import TextInputField from '@/components/input/TextInputField';
 import errorMessage from '@/components/ErrorMessage';
 import { insertGiocatore } from '@/data/giocatori';
 import {
+    createSquadraConRoster,
     deleteIscrizioneSquadra,
     formazioneSquadraType,
     getDatiSquadra,
@@ -33,7 +34,6 @@ import {
     getStatisticheSquadra,
     giocatoriDisponibiliSquadraType,
     insertIscrizioneSquadra,
-    insertSquadra,
     statisticheSquadraType,
     updateSquadra,
 } from '@/data/squadre';
@@ -463,46 +463,32 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
 
         try {
             if (isCreate) {
-                const squadra = await insertSquadra({
-                    nome,
-                    acronimo,
-                    link_stemma: emptyToNull(form.linkStemma),
-                    colore_squadra: emptyToNull(form.coloreSquadra),
-                    username_ig: emptyToNull(form.usernameIg),
-                    id_capitano: form.idCapitano && form.idCapitano > 0 ? form.idCapitano : null,
-                });
-
-                const resolvedPlayerIds: number[] = [];
-                let resolvedCaptainId =
-                    form.idCapitano && form.idCapitano > 0 ? form.idCapitano : null;
-
-                for (const player of selectedCreatePlayers) {
-                    if ('isPending' in player) {
-                        const createdPlayer = await insertGiocatore({
-                            nome: player.nome,
-                            cognome: player.cognome,
-                        });
-                        resolvedPlayerIds.push(createdPlayer.id);
-
-                        if (form.idCapitano === player.id) {
-                            resolvedCaptainId = createdPlayer.id;
+                await createSquadraConRoster({
+                    squadra: {
+                        nome,
+                        acronimo,
+                        link_stemma: emptyToNull(form.linkStemma),
+                        colore_squadra: emptyToNull(form.coloreSquadra),
+                        username_ig: emptyToNull(form.usernameIg),
+                        id_capitano:
+                            form.idCapitano && form.idCapitano > 0 ? form.idCapitano : null,
+                    },
+                    id_torneo: form.idTorneo as number,
+                    id_capitano: form.idCapitano,
+                    roster: selectedCreatePlayers.map((player) => {
+                        if ('isPending' in player) {
+                            return {
+                                client_id: player.id,
+                                giocatore: {
+                                    nome: player.nome,
+                                    cognome: player.cognome,
+                                },
+                            };
                         }
-                    } else {
-                        resolvedPlayerIds.push(player.id);
-                    }
-                }
 
-                for (const idGiocatore of resolvedPlayerIds) {
-                    await insertIscrizioneSquadra({
-                        id_giocatore: idGiocatore,
-                        id_squadra: squadra.id,
-                        id_torneo: form.idTorneo as number,
-                    });
-                }
-
-                if (resolvedCaptainId !== squadra.id_capitano) {
-                    await updateSquadra(squadra.id, { id_capitano: resolvedCaptainId });
-                }
+                        return { id_giocatore: player.id };
+                    }),
+                });
             } else if (squadraId) {
                 await updateSquadra(squadraId, {
                     nome,

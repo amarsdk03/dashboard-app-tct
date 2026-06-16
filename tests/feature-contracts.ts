@@ -21,6 +21,12 @@ import {
     insertPartitaPayload,
     listaPartiteType,
     partiteOggiType,
+    getGiocatoriPartita,
+    giocatoriPartitaType,
+    getCampiPartita,
+    campiPartitaType,
+    getArbitriPartita,
+    arbitriPartitaType,
     updateAzionePartita,
     updateAzionePartitaPayload,
     updatePartita,
@@ -42,11 +48,31 @@ import {
 import {
     createTorneoCompleto,
     createTorneoCompletoPayload,
+    getSetupTorneo,
+    setupTorneoType,
     getListaSquadreTorneoSetup,
     insertCategoriaTorneo,
     insertCategoriaTorneoPayload,
+    updateCategoriaTorneo,
+    updateCategoriaTorneoPayload,
+    upsertCalendarioTorneo,
+    upsertCalendarioTorneoPayload,
     listaSquadreTorneoSetupType,
 } from '@/data/tornei';
+import {
+    getClassificheTorneo,
+    classificheTorneoType,
+    getCategorieGestioneTorneo,
+    categorieGestioneTorneoType,
+} from '@/data/classifiche';
+import {
+    createGiocatoreConIscrizione,
+    createGiocatoreConIscrizionePayload,
+} from '@/data/giocatori';
+import {
+    createSquadraConRoster,
+    createSquadraConRosterPayload,
+} from '@/data/squadre';
 import {
     canAccessAdminArea,
     getDeniedAccessReason,
@@ -126,6 +152,18 @@ async function assertPartitaDetailContract() {
     return { partita, azioni, firstActionType };
 }
 
+async function assertPartitaAdminContract() {
+    const giocatori: giocatoriPartitaType = await getGiocatoriPartita(1);
+    const campi: campiPartitaType = await getCampiPartita();
+    const arbitri: arbitriPartitaType = await getArbitriPartita();
+
+    const firstPlayerId: number | null = giocatori[0]?.id ?? null;
+    const firstCampoId: number | null = campi[0]?.id ?? null;
+    const firstArbitroId: number | null = arbitri[0]?.id ?? null;
+
+    return { firstPlayerId, firstCampoId, firstArbitroId };
+}
+
 async function assertTorneoCompletoContracts(payload: createTorneoCompletoPayload) {
     const squadre: listaSquadreTorneoSetupType = await getListaSquadreTorneoSetup('Aquila');
     const categoriaPayload: insertCategoriaTorneoPayload = {
@@ -146,6 +184,25 @@ async function assertTorneoCompletoContracts(payload: createTorneoCompletoPayloa
     return { firstSquadraId, categoriaId, torneoId, categorieCount, partiteCount };
 }
 
+async function assertTorneoAdminContracts(
+    categoriaUpdate: updateCategoriaTorneoPayload,
+    calendarioPayload: upsertCalendarioTorneoPayload
+) {
+    const setup: setupTorneoType = await getSetupTorneo(1);
+    const categoria = await updateCategoriaTorneo(1, categoriaUpdate);
+    const calendario = await upsertCalendarioTorneo(1, calendarioPayload);
+    const classifiche: classificheTorneoType = await getClassificheTorneo(1);
+    const categorie: categorieGestioneTorneoType = await getCategorieGestioneTorneo(1);
+
+    return {
+        setupTorneoId: setup.torneo?.id ?? null,
+        categoriaId: categoria.id,
+        calendarioCount: calendario.length,
+        classificheCount: classifiche.length,
+        categorieCount: categorie.length,
+    };
+}
+
 async function assertSquadraWriteContracts(
     squadraPayload: insertSquadraPayload,
     squadraUpdate: updateSquadraPayload,
@@ -164,6 +221,21 @@ async function assertSquadraWriteContracts(
     const deletedIscrizioneId: number = deletedIscrizione.id;
 
     return { createdId, updatedName, iscrizioneId, deletedIscrizioneId };
+}
+
+async function assertAtomicWriteContracts(
+    giocatorePayload: createGiocatoreConIscrizionePayload,
+    squadraPayload: createSquadraConRosterPayload
+) {
+    const giocatore = await createGiocatoreConIscrizione(giocatorePayload);
+    const squadra = await createSquadraConRoster(squadraPayload);
+
+    return {
+        giocatoreId: giocatore.giocatore.id,
+        iscrizioneId: giocatore.iscrizione.id,
+        squadraId: squadra.squadra.id,
+        rosterCount: squadra.iscrizioni.length,
+    };
 }
 
 async function assertSquadraAvailablePlayersContract() {
@@ -221,8 +293,11 @@ void assertPartitaCreateContract;
 void assertPartitaUpdateContract;
 void assertAzionePartitaWriteContracts;
 void assertPartitaDetailContract;
+void assertPartitaAdminContract;
 void assertTorneoCompletoContracts;
+void assertTorneoAdminContracts;
 void assertSquadraWriteContracts;
+void assertAtomicWriteContracts;
 void assertSquadraAvailablePlayersContract;
 void assertAuthGuardContract;
 void assertEnvContract;

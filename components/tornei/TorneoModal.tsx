@@ -10,6 +10,7 @@ import {
 import {
     ArrowLeftIcon,
     ArrowRightIcon,
+    ListOrderedIcon,
     PlusIcon,
     SaveIcon,
     SquarePenIcon,
@@ -20,8 +21,16 @@ import {
     createTorneoSetup,
     datiTorneoType,
     getDatiTorneo,
-    updateTorneo,
+    getSetupTorneo,
+    setupTorneoType,
+    updateTorneoSetup,
 } from '@/data/tornei';
+import {
+    categorieGestioneTorneoType,
+    classificheTorneoType,
+    getCategorieGestioneTorneo,
+    getClassificheTorneo,
+} from '@/data/classifiche';
 import { getListaGiocatori } from '@/data/giocatori';
 import { getConteggioPartiteTorneo } from '@/data/partite';
 import { getListaSquadre } from '@/data/squadre';
@@ -87,6 +96,30 @@ type CategoriaNormalizzata = {
     squadre: string[];
 };
 
+type EditCategoriaDraft = {
+    id: number;
+    nome: string;
+    numGironi: string;
+    durataPartita: string;
+    fasiPartite: string;
+    numQualificate: string;
+    numPlayoff: string;
+    numEliminate: string;
+};
+
+type EditPartitaDraft = {
+    draftId: string;
+    id: number | null;
+    idCategoria: string;
+    idSquadraCasa: string;
+    idSquadraOspite: string;
+    girone: string;
+    fase: string;
+    giornata: string;
+    dataPartita: Date | null;
+    oraPartita: string;
+};
+
 const CREATE_STEPS = ['Dati', 'Categorie', 'Partite'];
 const DEFAULT_FASES = 'Gironi';
 const GIRONE_LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -128,9 +161,12 @@ function uniqueValues(values: string[]) {
     return result;
 }
 
-function parsePositiveInteger(value: string, fallback = 1) {
-    const parsed = Number.parseInt(value.trim(), 10);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+function parsePositiveInteger(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) return Number.NaN;
+
+    const parsed = Number(trimmed);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : Number.NaN;
 }
 
 function parseOptionalPositiveInteger(value: string) {
@@ -139,6 +175,32 @@ function parseOptionalPositiveInteger(value: string) {
 
     const parsed = Number.parseInt(trimmed, 10);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : Number.NaN;
+}
+
+function parseNonNegativeInteger(value: string, fallback = 0) {
+    const trimmed = value.trim();
+    if (!trimmed) return fallback;
+
+    const parsed = Number.parseInt(trimmed, 10);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : Number.NaN;
+}
+
+function splitKickoff(isoValue: string | null | undefined) {
+    if (!isoValue) {
+        return {
+            dataPartita: null,
+            oraPartita: '',
+        };
+    }
+
+    const date = new Date(isoValue);
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return {
+        dataPartita: date,
+        oraPartita: `${hours}:${minutes}`,
+    };
 }
 
 function makeAcronimo(nome: string) {
@@ -213,6 +275,12 @@ export default function TorneoModal(props: Props) {
         createCategoriaDraft(),
     ]);
     const [partiteDraft, setPartiteDraft] = useState<PartitaDraft[]>([]);
+    const [editSetupLoading, setEditSetupLoading] = useState(false);
+    const [editCategorieDraft, setEditCategorieDraft] = useState<EditCategoriaDraft[]>([]);
+    const [editPartiteDraft, setEditPartiteDraft] = useState<EditPartitaDraft[]>([]);
+    const [editSquadre, setEditSquadre] = useState<setupTorneoType['squadreAssociate']>([]);
+    const [classifiche, setClassifiche] = useState<classificheTorneoType>([]);
+    const [categorieGestione, setCategorieGestione] = useState<categorieGestioneTorneoType>([]);
 
     const [form, setForm] = useState<datiTorneo>({
         id: props.mode !== 'create' ? props.torneoId ?? null : null,
@@ -229,6 +297,9 @@ export default function TorneoModal(props: Props) {
         () => normalizzaCategorie(categorieDraft),
         [categorieDraft]
     );
+    const editCategorieById = useMemo(() => {
+        return new Map(editCategorieDraft.map((categoria) => [categoria.id, categoria]));
+    }, [editCategorieDraft]);
 
     const handleClose = () => {
         props.onClose();
@@ -294,6 +365,81 @@ export default function TorneoModal(props: Props) {
             })
             .finally(() => {
                 setSummaryLoading(false);
+            });
+    }, [props.mode, props.torneoId]);
+
+    useEffect(() => {
+        if (props.mode === 'create' || !props.torneoId) {
+            setEditCategorieDraft([]);
+            setEditPartiteDraft([]);
+            setEditSquadre([]);
+            setClassifiche([]);
+            setCategorieGestione([]);
+            return;
+        }
+
+        setEditSetupLoading(true);
+
+        Promise.all([
+            getSetupTorneo(props.torneoId),
+            getClassificheTorneo(props.torneoId),
+            getCategorieGestioneTorneo(props.torneoId),
+        ])
+            .then(([setup, classificheTorneo, categorieGestioneTorneo]) => {
+                if (props.mode === 'edit') {
+                    setEditCategorieDraft(
+                        setup.categorie.map((categoria) => ({
+                            id: categoria.id,
+                            nome: categoria.nome,
+                            numGironi: String(categoria.num_gironi),
+                            durataPartita:
+                                categoria.durata_partita == null
+                                    ? ''
+                                    : String(categoria.durata_partita),
+                            fasiPartite: categoria.fasi_partite.join(', '),
+                            numQualificate: String(categoria.num_qualificate),
+                            numPlayoff: String(categoria.num_playoff),
+                            numEliminate: String(categoria.num_eliminate),
+                        }))
+                    );
+
+                    setEditPartiteDraft(
+                        setup.calendario.map((partita) => {
+                            const kickoff = splitKickoff(partita.fischio_inizio);
+
+                            return {
+                                draftId: createDraftId(),
+                                id: partita.id_partita,
+                                idCategoria: partita.categoria_id
+                                    ? String(partita.categoria_id)
+                                    : '',
+                                idSquadraCasa: partita.squadra_casa_id
+                                    ? String(partita.squadra_casa_id)
+                                    : '',
+                                idSquadraOspite: partita.squadra_ospite_id
+                                    ? String(partita.squadra_ospite_id)
+                                    : '',
+                                girone: partita.girone ?? 'A',
+                                fase: partita.fase ?? 'Gironi',
+                                giornata:
+                                    partita.giornata == null ? '' : String(partita.giornata),
+                                dataPartita: kickoff.dataPartita,
+                                oraPartita: kickoff.oraPartita,
+                            };
+                        })
+                    );
+
+                    setEditSquadre(setup.squadreAssociate);
+                }
+
+                setClassifiche(classificheTorneo);
+                setCategorieGestione(categorieGestioneTorneo);
+            })
+            .catch((error) => {
+                errorMessage('Impossibile recuperare categorie e calendario', error);
+            })
+            .finally(() => {
+                setEditSetupLoading(false);
             });
     }, [props.mode, props.torneoId]);
 
@@ -373,6 +519,56 @@ export default function TorneoModal(props: Props) {
 
     const removePartita = (draftId: string) => {
         setPartiteDraft((current) => current.filter((partita) => partita.draftId !== draftId));
+    };
+
+    const setEditCategoriaField = (
+        idCategoria: number,
+        key: keyof Omit<EditCategoriaDraft, 'id'>,
+        value: string
+    ) => {
+        setEditCategorieDraft((current) =>
+            current.map((categoria) =>
+                categoria.id === idCategoria ? { ...categoria, [key]: value } : categoria
+            )
+        );
+    };
+
+    const setEditPartitaField = (
+        draftId: string,
+        key: keyof Omit<EditPartitaDraft, 'draftId' | 'id'>,
+        value: string | Date | null
+    ) => {
+        setEditPartiteDraft((current) =>
+            current.map((partita) =>
+                partita.draftId === draftId ? { ...partita, [key]: value } : partita
+            )
+        );
+    };
+
+    const addEditPartita = () => {
+        const categoria = editCategorieDraft[0];
+        const squadraCasa = editSquadre[0];
+        const squadraOspite = editSquadre[1];
+
+        setEditPartiteDraft((current) => [
+            ...current,
+            {
+                draftId: createDraftId(),
+                id: null,
+                idCategoria: categoria ? String(categoria.id) : '',
+                idSquadraCasa: squadraCasa ? String(squadraCasa.id) : '',
+                idSquadraOspite: squadraOspite ? String(squadraOspite.id) : '',
+                girone: 'A',
+                fase: 'Gironi',
+                giornata: '',
+                dataPartita: form.dataInizio,
+                oraPartita: '',
+            },
+        ]);
+    };
+
+    const removeEditPartita = (draftId: string) => {
+        setEditPartiteDraft((current) => current.filter((partita) => partita.draftId !== draftId));
     };
 
     const selectPartitaCategoria = (partitaId: string, categoria: CategoriaNormalizzata) => {
@@ -468,6 +664,14 @@ export default function TorneoModal(props: Props) {
                 return false;
             }
 
+            if (Number.isNaN(categoria.numGironi)) {
+                errorMessage(
+                    'Gironi non validi',
+                    `Controlla il numero gironi per ${categoria.nome}.`
+                );
+                return false;
+            }
+
             if (categoria.squadre.length === 1) {
                 errorMessage(
                     'Squadre insufficienti',
@@ -498,6 +702,96 @@ export default function TorneoModal(props: Props) {
         data_fine: form.dataFine ? form.dataFine.toISOString() : null,
         logo_torneo: form.urlLogo?.trim() ? form.urlLogo.trim() : null,
     });
+
+    const buildEditCategoriePayload = () => {
+        return editCategorieDraft.map((categoria) => {
+            const numGironi = parsePositiveInteger(categoria.numGironi);
+            const durataPartita = parseOptionalPositiveInteger(categoria.durataPartita);
+            const numQualificate = parseNonNegativeInteger(categoria.numQualificate);
+            const numPlayoff = parseNonNegativeInteger(categoria.numPlayoff);
+            const numEliminate = parseNonNegativeInteger(categoria.numEliminate);
+
+            if (!categoria.nome.trim()) {
+                throw new Error('Ogni categoria deve avere un nome.');
+            }
+
+            if (
+                Number.isNaN(numGironi) ||
+                Number.isNaN(durataPartita) ||
+                Number.isNaN(numQualificate) ||
+                Number.isNaN(numPlayoff) ||
+                Number.isNaN(numEliminate)
+            ) {
+                throw new Error(`Controlla i numeri della categoria ${categoria.nome}.`);
+            }
+
+            return {
+                id: categoria.id,
+                payload: {
+                    nome: categoria.nome.trim(),
+                    num_gironi: numGironi,
+                    durata_partita: durataPartita,
+                    fasi_partite: splitList(categoria.fasiPartite).length
+                        ? splitList(categoria.fasiPartite)
+                        : ['Gironi'],
+                    num_qualificate: numQualificate,
+                    num_playoff: numPlayoff,
+                    num_eliminate: numEliminate,
+                },
+            };
+        });
+    };
+
+    const buildEditCalendarioPayload = () => {
+        return editPartiteDraft.map((partita) => {
+            const idCategoria = Number.parseInt(partita.idCategoria, 10);
+            const idSquadraCasa = Number.parseInt(partita.idSquadraCasa, 10);
+            const idSquadraOspite = Number.parseInt(partita.idSquadraOspite, 10);
+            const giornata = parseOptionalPositiveInteger(partita.giornata);
+
+            if (!idCategoria || !editCategorieById.has(idCategoria)) {
+                throw new Error('Ogni partita deve avere una categoria valida.');
+            }
+
+            if (!idSquadraCasa || !idSquadraOspite) {
+                throw new Error('Ogni partita deve avere due squadre valide.');
+            }
+
+            if (idSquadraCasa === idSquadraOspite) {
+                throw new Error('Le due squadre della stessa partita devono essere diverse.');
+            }
+
+            if (!partita.fase.trim()) {
+                throw new Error('Ogni partita deve avere una fase.');
+            }
+
+            if (Number.isNaN(giornata)) {
+                throw new Error('La giornata deve essere un numero intero positivo.');
+            }
+
+            if (
+                partita.oraPartita.trim() &&
+                !/^([01]\d|2[0-3]):([0-5]\d)$/.test(partita.oraPartita.trim())
+            ) {
+                throw new Error("Inserisci l'orario partita nel formato HH:mm.");
+            }
+
+            if (partita.oraPartita.trim() && !partita.dataPartita) {
+                throw new Error("Se inserisci l'orario, seleziona anche la data.");
+            }
+
+            return {
+                id: partita.id ?? undefined,
+                id_categoria: idCategoria,
+                id_squadra_casa: idSquadraCasa,
+                id_squadra_ospite: idSquadraOspite,
+                fase: partita.fase.trim(),
+                girone: partita.girone.trim() || 'A',
+                giornata: giornata || null,
+                fischio_inizio: buildKickoffIso(partita.dataPartita, partita.oraPartita),
+            };
+        });
+    };
 
     const handleSubmit = async () => {
         if (!validateTournamentFields()) return;
@@ -600,7 +894,14 @@ export default function TorneoModal(props: Props) {
                     errorMessage('Errore', 'ID torneo mancante');
                     return;
                 }
-                await updateTorneo(form.id, payload);
+                const categoriePayload = buildEditCategoriePayload();
+                const calendarioPayload = buildEditCalendarioPayload();
+
+                await updateTorneoSetup(form.id, {
+                    torneo: payload,
+                    categorie: categoriePayload,
+                    calendario: calendarioPayload,
+                });
             } else {
                 errorMessage(
                     'handleSubmit(): modalità non supportata',
@@ -676,6 +977,28 @@ export default function TorneoModal(props: Props) {
                     />
                 )}
 
+                {props.mode === 'edit' && (
+                    editSetupLoading ? (
+                        <View style={styles.emptyState}>
+                            <ActivityIndicator />
+                            <InterText style={styles.emptyStateText}>
+                                Caricamento gestione categorie e calendario...
+                            </InterText>
+                        </View>
+                    ) : (
+                        <EditTournamentManagement
+                            categorie={editCategorieDraft}
+                            partite={editPartiteDraft}
+                            squadre={editSquadre}
+                            classifiche={classifiche}
+                            onCategoriaFieldChange={setEditCategoriaField}
+                            onPartitaFieldChange={setEditPartitaField}
+                            onAddPartita={addEditPartita}
+                            onRemovePartita={removeEditPartita}
+                        />
+                    )
+                )}
+
                 {readonly && form.id && (
                     <TorneoLinkedDataSummary
                         torneoId={form.id}
@@ -684,6 +1007,22 @@ export default function TorneoModal(props: Props) {
                         giocatoriCount={summary.giocatoriCount}
                         partiteCount={summary.partiteCount}
                     />
+                )}
+
+                {readonly && form.id && (
+                    editSetupLoading ? (
+                        <View style={styles.emptyState}>
+                            <ActivityIndicator />
+                            <InterText style={styles.emptyStateText}>
+                                Caricamento categorie e classifiche...
+                            </InterText>
+                        </View>
+                    ) : (
+                        <ReadonlyTournamentManagement
+                            categorie={categorieGestione}
+                            classifiche={classifiche}
+                        />
+                    )
                 )}
 
                 <View style={[styles.dynamicRow, { marginTop: 12 }]}>
@@ -1103,6 +1442,443 @@ function CreateFixturesStep({
     );
 }
 
+function EditTournamentManagement({
+    categorie,
+    partite,
+    squadre,
+    classifiche,
+    onCategoriaFieldChange,
+    onPartitaFieldChange,
+    onAddPartita,
+    onRemovePartita,
+}: {
+    categorie: EditCategoriaDraft[];
+    partite: EditPartitaDraft[];
+    squadre: setupTorneoType['squadreAssociate'];
+    classifiche: classificheTorneoType;
+    onCategoriaFieldChange: (
+        idCategoria: number,
+        key: keyof Omit<EditCategoriaDraft, 'id'>,
+        value: string
+    ) => void;
+    onPartitaFieldChange: (
+        draftId: string,
+        key: keyof Omit<EditPartitaDraft, 'draftId' | 'id'>,
+        value: string | Date | null
+    ) => void;
+    onAddPartita: () => void;
+    onRemovePartita: (draftId: string) => void;
+}) {
+    return (
+        <View style={styles.section}>
+            <View style={styles.sectionHeaderRow}>
+                <InterText style={styles.sectionTitle}>Gestione torneo</InterText>
+                <ListOrderedIcon size={18} color="#0f172a" />
+            </View>
+            <InterText style={styles.helperText}>
+                Le squadre associate sono derivate in modo pragmatico da iscrizioni e calendario:
+                non esiste una tabella squadra-torneo dedicata.
+            </InterText>
+
+            {categorie.map((categoria) => (
+                <View key={categoria.id} style={styles.subCard}>
+                    <View style={styles.subCardHeader}>
+                        <InterText style={styles.subCardTitle}>{categoria.nome}</InterText>
+                    </View>
+
+                    <TextInputField
+                        label="Nome categoria"
+                        value={categoria.nome}
+                        onChange={(value) =>
+                            onCategoriaFieldChange(categoria.id, 'nome', value)
+                        }
+                        placeholder="Open"
+                    />
+
+                    <View style={styles.row}>
+                        <View style={styles.flexChild}>
+                            <TextInputField
+                                label="Gironi"
+                                value={categoria.numGironi}
+                                onChange={(value) =>
+                                    onCategoriaFieldChange(categoria.id, 'numGironi', value)
+                                }
+                                placeholder="1"
+                            />
+                        </View>
+                        <View style={styles.flexChild}>
+                            <TextInputField
+                                label="Durata"
+                                value={categoria.durataPartita}
+                                onChange={(value) =>
+                                    onCategoriaFieldChange(categoria.id, 'durataPartita', value)
+                                }
+                                placeholder="25"
+                            />
+                        </View>
+                    </View>
+
+                    <TextInputField
+                        label="Fasi categoria"
+                        value={categoria.fasiPartite}
+                        onChange={(value) =>
+                            onCategoriaFieldChange(categoria.id, 'fasiPartite', value)
+                        }
+                        placeholder="Gironi, Semifinale, Finale"
+                    />
+
+                    <View style={styles.row}>
+                        <View style={styles.flexChild}>
+                            <TextInputField
+                                label="Qualificate"
+                                value={categoria.numQualificate}
+                                onChange={(value) =>
+                                    onCategoriaFieldChange(categoria.id, 'numQualificate', value)
+                                }
+                                placeholder="0"
+                            />
+                        </View>
+                        <View style={styles.flexChild}>
+                            <TextInputField
+                                label="Playoff"
+                                value={categoria.numPlayoff}
+                                onChange={(value) =>
+                                    onCategoriaFieldChange(categoria.id, 'numPlayoff', value)
+                                }
+                                placeholder="0"
+                            />
+                        </View>
+                        <View style={styles.flexChild}>
+                            <TextInputField
+                                label="Eliminate"
+                                value={categoria.numEliminate}
+                                onChange={(value) =>
+                                    onCategoriaFieldChange(categoria.id, 'numEliminate', value)
+                                }
+                                placeholder="0"
+                            />
+                        </View>
+                    </View>
+                </View>
+            ))}
+
+            <View style={styles.subCard}>
+                <View style={styles.subCardHeader}>
+                    <InterText style={styles.subCardTitle}>Calendario</InterText>
+                    <TouchableOpacity
+                        style={[styles.iconButton, squadre.length < 2 && { opacity: 0.5 }]}
+                        onPress={onAddPartita}
+                        disabled={squadre.length < 2}
+                        activeOpacity={0.8}>
+                        <PlusIcon size={16} color="#0f172a" />
+                    </TouchableOpacity>
+                </View>
+                <InterText style={styles.helperText}>
+                    Il salvataggio aggiorna partite esistenti e inserisce nuove partite. La
+                    cancellazione di partite esistenti resta fuori da questa azione.
+                </InterText>
+
+                {squadre.length < 2 && (
+                    <View style={styles.emptyState}>
+                        <InterText style={styles.emptyStateText}>
+                            Servono almeno due squadre associate per aggiungere nuove partite.
+                            Aggiungile da iscrizioni o da partite esistenti.
+                        </InterText>
+                    </View>
+                )}
+
+                {partite.length === 0 ? (
+                    <View style={styles.emptyState}>
+                        <InterText style={styles.emptyStateText}>
+                            Nessuna partita nel calendario del torneo.
+                        </InterText>
+                    </View>
+                ) : (
+                    partite.map((partita, index) => (
+                        <View key={partita.draftId} style={styles.nestedCard}>
+                            <View style={styles.subCardHeader}>
+                                <InterText style={styles.subCardTitle}>
+                                    Partita {index + 1}
+                                </InterText>
+                                {partita.id === null && (
+                                    <TouchableOpacity
+                                        style={styles.iconButton}
+                                        onPress={() => onRemovePartita(partita.draftId)}
+                                        activeOpacity={0.8}>
+                                        <Trash2Icon size={16} color="#7c3f3f" />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+
+                            <IdChipPicker
+                                label="Categoria"
+                                options={categorie.map((categoria) => ({
+                                    id: categoria.id,
+                                    label: categoria.nome,
+                                }))}
+                                selectedId={partita.idCategoria}
+                                onSelect={(id) =>
+                                    onPartitaFieldChange(partita.draftId, 'idCategoria', id)
+                                }
+                            />
+
+                            <IdChipPicker
+                                label="Squadra casa"
+                                options={squadre.map((squadra) => ({
+                                    id: squadra.id,
+                                    label: squadra.nome,
+                                }))}
+                                selectedId={partita.idSquadraCasa}
+                                onSelect={(id) =>
+                                    onPartitaFieldChange(partita.draftId, 'idSquadraCasa', id)
+                                }
+                            />
+
+                            <IdChipPicker
+                                label="Squadra ospite"
+                                options={squadre.map((squadra) => ({
+                                    id: squadra.id,
+                                    label: squadra.nome,
+                                }))}
+                                selectedId={partita.idSquadraOspite}
+                                onSelect={(id) =>
+                                    onPartitaFieldChange(partita.draftId, 'idSquadraOspite', id)
+                                }
+                            />
+
+                            <View style={styles.row}>
+                                <View style={styles.flexChild}>
+                                    <TextInputField
+                                        label="Girone"
+                                        value={partita.girone}
+                                        onChange={(value) =>
+                                            onPartitaFieldChange(partita.draftId, 'girone', value)
+                                        }
+                                        placeholder="A"
+                                    />
+                                </View>
+                                <View style={styles.flexChild}>
+                                    <TextInputField
+                                        label="Fase"
+                                        value={partita.fase}
+                                        onChange={(value) =>
+                                            onPartitaFieldChange(partita.draftId, 'fase', value)
+                                        }
+                                        placeholder="Gironi"
+                                    />
+                                </View>
+                            </View>
+
+                            <View style={styles.row}>
+                                <View style={styles.flexChild}>
+                                    <TextInputField
+                                        label="Giornata"
+                                        value={partita.giornata}
+                                        onChange={(value) =>
+                                            onPartitaFieldChange(
+                                                partita.draftId,
+                                                'giornata',
+                                                value
+                                            )
+                                        }
+                                        placeholder="1"
+                                    />
+                                </View>
+                                <View style={styles.flexChild}>
+                                    <TextInputField
+                                        label="Ora"
+                                        value={partita.oraPartita}
+                                        onChange={(value) =>
+                                            onPartitaFieldChange(
+                                                partita.draftId,
+                                                'oraPartita',
+                                                value
+                                            )
+                                        }
+                                        placeholder="20:30"
+                                    />
+                                </View>
+                            </View>
+
+                            <DateTimePickerField
+                                mode="date"
+                                label="Data partita"
+                                value={partita.dataPartita}
+                                onChange={(value) =>
+                                    onPartitaFieldChange(partita.draftId, 'dataPartita', value)
+                                }
+                                placeholder="Opzionale"
+                            />
+                        </View>
+                    ))
+                )}
+            </View>
+
+            <ClassifichePreview classifiche={classifiche} />
+        </View>
+    );
+}
+
+function ReadonlyTournamentManagement({
+    categorie,
+    classifiche,
+}: {
+    categorie: categorieGestioneTorneoType;
+    classifiche: classificheTorneoType;
+}) {
+    return (
+        <View style={styles.section}>
+            <View style={styles.sectionHeaderRow}>
+                <InterText style={styles.sectionTitle}>Categorie e classifiche</InterText>
+                <ListOrderedIcon size={18} color="#0f172a" />
+            </View>
+
+            {categorie.length === 0 ? (
+                <View style={styles.emptyState}>
+                    <InterText style={styles.emptyStateText}>
+                        Nessuna categoria configurata per questo torneo.
+                    </InterText>
+                </View>
+            ) : (
+                categorie.map((categoria) => (
+                    <View key={categoria.id} style={styles.subCard}>
+                        <View style={styles.subCardHeader}>
+                            <InterText style={styles.subCardTitle}>{categoria.nome}</InterText>
+                            <InterText style={styles.tableStat}>
+                                {categoria.partite_count} partite
+                            </InterText>
+                        </View>
+                        <View style={styles.detailGrid}>
+                            <ReadonlyStat
+                                label="Gironi previsti"
+                                value={String(categoria.num_gironi)}
+                            />
+                            <ReadonlyStat
+                                label="Gironi calendario"
+                                value={
+                                    categoria.gironi_calendario.length
+                                        ? categoria.gironi_calendario.join(', ')
+                                        : '-'
+                                }
+                            />
+                            <ReadonlyStat
+                                label="Squadre"
+                                value={String(categoria.squadre_count)}
+                            />
+                            <ReadonlyStat
+                                label="Fasi"
+                                value={
+                                    categoria.fasi_partite?.length
+                                        ? categoria.fasi_partite.join(', ')
+                                        : 'Gironi'
+                                }
+                            />
+                            <ReadonlyStat
+                                label="Qualificate"
+                                value={String(categoria.num_qualificate)}
+                            />
+                            <ReadonlyStat
+                                label="Playoff"
+                                value={String(categoria.num_playoff)}
+                            />
+                            <ReadonlyStat
+                                label="Eliminate"
+                                value={String(categoria.num_eliminate)}
+                            />
+                        </View>
+                    </View>
+                ))
+            )}
+
+            <ClassifichePreview classifiche={classifiche} />
+        </View>
+    );
+}
+
+function ReadonlyStat({ label, value }: { label: string; value: string }) {
+    return (
+        <View style={styles.detailItem}>
+            <InterText style={styles.detailLabel}>{label}</InterText>
+            <InterText style={styles.detailValue} numberOfLines={2}>
+                {value}
+            </InterText>
+        </View>
+    );
+}
+
+function IdChipPicker({
+    label,
+    options,
+    selectedId,
+    onSelect,
+}: {
+    label: string;
+    options: { id: number; label: string }[];
+    selectedId: string;
+    onSelect: (id: string) => void;
+}) {
+    return (
+        <View style={styles.inputGroup}>
+            <InterText style={styles.label}>{label}</InterText>
+            <View style={styles.chipRow}>
+                {options.map((option) => {
+                    const active = selectedId === String(option.id);
+                    return (
+                        <TouchableOpacity
+                            key={option.id}
+                            style={[styles.chip, active && styles.chipActive]}
+                            onPress={() => onSelect(String(option.id))}
+                            activeOpacity={0.85}>
+                            <InterText
+                                style={[styles.chipText, active && styles.chipTextActive]}
+                                numberOfLines={1}>
+                                {option.label}
+                            </InterText>
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
+        </View>
+    );
+}
+
+function ClassifichePreview({ classifiche }: { classifiche: classificheTorneoType }) {
+    return (
+        <View style={styles.subCard}>
+            <InterText style={styles.subCardTitle}>Classifiche</InterText>
+            {classifiche.length === 0 ? (
+                <View style={[styles.emptyState, { marginTop: 12 }]}>
+                    <InterText style={styles.emptyStateText}>
+                        Nessun risultato con gol disponibile per calcolare la classifica.
+                    </InterText>
+                </View>
+            ) : (
+                <View style={styles.table}>
+                    {classifiche.map((row) => (
+                        <View
+                            key={`${row.categoria_id}-${row.girone}-${row.squadra_id}`}
+                            style={styles.tableRow}>
+                            <View style={styles.tableTeam}>
+                                <InterText style={styles.tableTitle} numberOfLines={1}>
+                                    {row.posizione}. {row.squadra_nome}
+                                </InterText>
+                                <InterText style={styles.tableMeta} numberOfLines={1}>
+                                    {row.categoria_nome ?? 'Categoria'} · Girone{' '}
+                                    {row.girone ?? '-'}
+                                </InterText>
+                            </View>
+                            <InterText style={styles.tableStat}>{row.punti} pt</InterText>
+                            <InterText style={styles.tableStat}>
+                                {row.goal_fatti}:{row.goal_subiti}
+                            </InterText>
+                        </View>
+                    ))}
+                </View>
+            )}
+        </View>
+    );
+}
+
 function CategoriaChipPicker({
     categorie,
     selectedDraftId,
@@ -1220,6 +1996,12 @@ const styles = StyleSheet.create({
     section: {
         gap: 14,
     },
+    sectionHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 8,
+    },
     sectionTitle: {
         color: '#0f172a',
         fontSize: 18,
@@ -1238,6 +2020,14 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         padding: 14,
     },
+    nestedCard: {
+        backgroundColor: '#f8fafc',
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        borderRadius: 16,
+        padding: 12,
+        marginTop: 12,
+    },
     subCardHeader: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -1249,6 +2039,34 @@ const styles = StyleSheet.create({
         color: '#0f172a',
         fontSize: 15,
         fontWeight: '700',
+    },
+    detailGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+    },
+    detailItem: {
+        flexBasis: '47%',
+        flexGrow: 1,
+        minWidth: 132,
+        backgroundColor: '#f8fafc',
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+        borderRadius: 12,
+        padding: 10,
+    },
+    detailLabel: {
+        color: '#64748b',
+        fontSize: 11,
+        fontWeight: '600',
+        marginBottom: 4,
+        textTransform: 'uppercase',
+    },
+    detailValue: {
+        color: '#0f172a',
+        fontSize: 13,
+        fontWeight: '700',
+        lineHeight: 18,
     },
     iconButton: {
         width: 34,
@@ -1307,6 +2125,41 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '400',
         lineHeight: 19,
+    },
+    table: {
+        marginTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: '#f1f5f9',
+    },
+    tableRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f5f9',
+    },
+    tableTeam: {
+        flex: 1,
+        minWidth: 0,
+    },
+    tableTitle: {
+        color: '#0f172a',
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    tableMeta: {
+        color: '#64748b',
+        fontSize: 12,
+        fontWeight: '400',
+        marginTop: 2,
+    },
+    tableStat: {
+        color: '#0f172a',
+        fontSize: 13,
+        fontWeight: '700',
+        minWidth: 42,
+        textAlign: 'right',
     },
     button: {
         flex: 1,

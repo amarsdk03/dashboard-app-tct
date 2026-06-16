@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { TablesInsert, TablesUpdate } from '@/types/database.types';
+import { Tables, TablesInsert, TablesUpdate } from '@/types/database.types';
 
 function dedupeSquadre<
     T extends { s_id: number | null; t_id: number | null; s_nome: string | null },
@@ -248,6 +248,142 @@ export async function insertIscrizioneSquadra(payload: TablesInsert<'iscrizione'
 }
 
 export type insertIscrizioneSquadraPayload = Parameters<typeof insertIscrizioneSquadra>[0];
+
+type RosterExistingPlayerInput = {
+    id_giocatore: number;
+    dettagli?: string | null;
+};
+
+type RosterNewPlayerInput = {
+    giocatore: TablesInsert<'giocatore'>;
+    client_id?: number | string | null;
+    dettagli?: string | null;
+};
+
+type CreateSquadraConRosterInput = {
+    squadra: TablesInsert<'squadra'>;
+    id_torneo: number;
+    id_capitano?: number | string | null;
+    roster: Array<RosterExistingPlayerInput | RosterNewPlayerInput>;
+};
+
+function removeUndefined<T>(value: T): T {
+    if (Array.isArray(value)) {
+        return value.map((item) => removeUndefined(item)) as T;
+    }
+
+    if (value && typeof value === 'object') {
+        return Object.fromEntries(
+            Object.entries(value)
+                .filter(([, item]) => item !== undefined)
+                .map(([key, item]) => [key, removeUndefined(item)])
+        ) as T;
+    }
+
+    return value;
+}
+
+function isMissingRpcError(error: unknown) {
+    const rpcError = error as { code?: string; message?: string; details?: string };
+    const message = `${rpcError.message ?? ''} ${rpcError.details ?? ''}`;
+
+    return (
+        rpcError.code === 'PGRST202' ||
+        rpcError.code === '42883' ||
+        /could not find the function|function .* does not exist|schema cache/i.test(message)
+    );
+}
+
+function isExistingRosterPlayer(
+    player: RosterExistingPlayerInput | RosterNewPlayerInput
+): player is RosterExistingPlayerInput {
+    return 'id_giocatore' in player;
+}
+
+export async function createSquadraConRoster(payload: CreateSquadraConRosterInput) {
+    const requestedCaptainId = payload.id_capitano ?? payload.squadra.id_capitano ?? null;
+    const normalizedPayload = removeUndefined({
+        ...payload,
+        id_capitano: requestedCaptainId,
+        squadra: {
+            ...payload.squadra,
+            id_capitano:
+                typeof payload.squadra.id_capitano === 'number' && payload.squadra.id_capitano > 0
+                    ? payload.squadra.id_capitano
+                    : null,
+        },
+    });
+
+    const { data, error } = await (supabase as any).rpc('create_squadra_con_roster', {
+        payload: normalizedPayload,
+    });
+
+    if (error) {
+        if (!isMissingRpcError(error)) throw error;
+    } else if (data?.squadra && Array.isArray(data?.iscrizioni)) {
+        return data as {
+            squadra: Tables<'squadra'>;
+            iscrizioni: Tables<'iscrizione'>[];
+        };
+    } else {
+        throw new Error('Risposta RPC create_squadra_con_roster non valida.');
+    }
+
+    // Fallback RPC assente: questa sequenza client-side non e' atomica.
+    // Se una insert fallisce dopo squadra o alcune iscrizioni, il DB puo restare parziale.
+    let squadra = await insertSquadra(normalizedPayload.squadra);
+    const iscrizioni: Tables<'iscrizione'>[] = [];
+    let resolvedCaptainId = squadra.id_capitano;
+
+    for (const rosterPlayer of normalizedPayload.roster) {
+        let idGiocatore: number;
+
+        if (isExistingRosterPlayer(rosterPlayer)) {
+            idGiocatore = rosterPlayer.id_giocatore;
+        } else {
+            const { data: giocatore, error: giocatoreError } = await supabase
+                .from('giocatore')
+                .insert(rosterPlayer.giocatore)
+                .select()
+                .single();
+
+            if (giocatoreError) throw giocatoreError;
+
+            idGiocatore = giocatore.id;
+
+            if (
+                requestedCaptainId !== null &&
+                requestedCaptainId !== undefined &&
+                String(requestedCaptainId) === String(rosterPlayer.client_id)
+            ) {
+                resolvedCaptainId = idGiocatore;
+            }
+        }
+
+        if (String(requestedCaptainId) === String(idGiocatore)) {
+            resolvedCaptainId = idGiocatore;
+        }
+
+        const iscrizione = await insertIscrizioneSquadra({
+            id_giocatore: idGiocatore,
+            id_squadra: squadra.id,
+            id_torneo: normalizedPayload.id_torneo,
+            dettagli: rosterPlayer.dettagli ?? null,
+        });
+
+        iscrizioni.push(iscrizione);
+    }
+
+    if (resolvedCaptainId !== squadra.id_capitano) {
+        squadra = await updateSquadra(squadra.id, { id_capitano: resolvedCaptainId });
+    }
+
+    return { squadra, iscrizioni };
+}
+
+export type createSquadraConRosterPayload = Parameters<typeof createSquadraConRoster>[0];
+
+export type createSquadraConRosterType = Awaited<ReturnType<typeof createSquadraConRoster>>;
 
 export async function deleteIscrizioneSquadra(idIscrizione: number) {
     const { data, error } = await supabase

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Link, type Href, useLocalSearchParams } from 'expo-router';
+import { Link, type Href, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { PlusIcon, SearchIcon, SlidersHorizontal, UserRound } from 'lucide-react-native';
 import { InterText } from '@/components/InterText';
 import errorMessage from '@/components/ErrorMessage';
@@ -37,6 +37,7 @@ const RUOLI: Enums<'ruolo_giocatore'>[] = [
 
 export default function GiocatoriScreen() {
     const params = useLocalSearchParams<{ torneoId?: string }>();
+    const router = useRouter();
     const [tornei, setTornei] = useState<listaTorneiType[]>([]);
     const [selectedTorneo, setSelectedTorneo] = useState<listaTorneiType | null>(null);
     const [squadre, setSquadre] = useState<listaSquadreType[]>([]);
@@ -46,10 +47,15 @@ export default function GiocatoriScreen() {
     const [giocatori, setGiocatori] = useState<listaGiocatoriType[]>([]);
     const [count, setCount] = useState<number | null>(null);
     const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [activeTab, setActiveTab] = useState<TabKey>('tutti');
     const [filterOpen, setFilterOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const requestSeqRef = useRef(0);
 
     const createHref = useMemo<Href>(() => {
         if (!selectedTorneo?.id) return '/giocatori/modal?mode=create' as Href;
@@ -59,6 +65,25 @@ export default function GiocatoriScreen() {
         const value = Number(params.torneoId);
         return Number.isFinite(value) && value > 0 ? value : null;
     }, [params.torneoId]);
+    const queryKey = useMemo(
+        () =>
+            JSON.stringify({
+                torneoId: selectedTorneo?.id ?? null,
+                squadraId: selectedSquadra?.s_id ?? null,
+                ruolo: selectedRole,
+                capitani: activeTab === 'capitani' || captainFilter,
+                search: debouncedSearch,
+            }),
+        [
+            selectedTorneo?.id,
+            selectedSquadra?.s_id,
+            selectedRole,
+            activeTab,
+            captainFilter,
+            debouncedSearch,
+        ]
+    );
+    const latestQueryKeyRef = useRef(queryKey);
 
     async function loadTornei() {
         try {
@@ -89,22 +114,31 @@ export default function GiocatoriScreen() {
         }
     }
 
-    async function loadGiocatori(isRefresh = false) {
+    async function loadGiocatori(page = 1, isRefresh = false) {
+        const requestId = requestSeqRef.current + 1;
+        requestSeqRef.current = requestId;
+        const requestQueryKey = queryKey;
+        const isCurrentRequest = () =>
+            requestSeqRef.current === requestId && latestQueryKeyRef.current === requestQueryKey;
+
         if (!selectedTorneo?.id) {
             setGiocatori([]);
             setCount(0);
+            setCurrentPage(1);
+            setHasMore(false);
             setLoading(false);
             return;
         }
 
-        if (isRefresh) setRefreshing(true);
+        if (page > 1) setLoadingMore(true);
+        else if (isRefresh) setRefreshing(true);
         else setLoading(true);
 
         try {
             const data = await getListaGiocatori(
-                search,
+                debouncedSearch,
                 selectedTorneo.id,
-                1,
+                page,
                 RESULTS_PER_PAGE,
                 {
                     idSquadra: selectedSquadra?.s_id,
@@ -113,13 +147,40 @@ export default function GiocatoriScreen() {
                     soloCapitani: activeTab === 'capitani' || captainFilter,
                 },
             );
-            setGiocatori(data.result ?? []);
-            setCount(data.count ?? 0);
+            const nextGiocatori = data.result ?? [];
+            const totalCount = data.count ?? 0;
+
+            if (!isCurrentRequest()) return;
+
+            setGiocatori((current) => {
+                if (page === 1) return nextGiocatori;
+
+                const seenIds = new Set(
+                    current
+                        .map((giocatore) => giocatore.g_id)
+                        .filter((id): id is number => typeof id === 'number'),
+                );
+                const uniqueNext = nextGiocatori.filter((giocatore) => {
+                    if (typeof giocatore.g_id !== 'number') return true;
+                    if (seenIds.has(giocatore.g_id)) return false;
+                    seenIds.add(giocatore.g_id);
+                    return true;
+                });
+
+                return [...current, ...uniqueNext];
+            });
+            setCount(totalCount);
+            setCurrentPage(page);
+            setHasMore(page * RESULTS_PER_PAGE < totalCount && nextGiocatori.length > 0);
         } catch (error: any) {
+            if (!isCurrentRequest()) return;
             errorMessage('Impossibile recuperare i giocatori', error.message ?? String(error));
         } finally {
-            setLoading(false);
-            setRefreshing(false);
+            if (isCurrentRequest()) {
+                setLoading(false);
+                setRefreshing(false);
+                setLoadingMore(false);
+            }
         }
     }
 
@@ -143,8 +204,20 @@ export default function GiocatoriScreen() {
         setSelectedSquadra(null);
         setSelectedRole(null);
         setCaptainFilter(false);
+        setSearch('');
+        setDebouncedSearch('');
         setActiveTab('tutti');
+        setFilterOpen(false);
     }
+
+    function handleLoadMore() {
+        if (loading || refreshing || loadingMore || !hasMore) return;
+        loadGiocatori(currentPage + 1).then(() => null);
+    }
+
+    useEffect(() => {
+        latestQueryKeyRef.current = queryKey;
+    }, [queryKey]);
 
     useEffect(() => {
         loadTornei().then(() => null);
@@ -169,16 +242,23 @@ export default function GiocatoriScreen() {
         }
     }, [selectedTorneo?.id]);
 
+    useFocusEffect(
+        useCallback(() => {
+            loadGiocatori(1).then(() => null);
+        }, [
+            selectedTorneo?.id,
+            selectedSquadra?.s_id,
+            selectedRole,
+            captainFilter,
+            debouncedSearch,
+            activeTab,
+        ])
+    );
+
     useEffect(() => {
-        loadGiocatori().then(() => null);
-    }, [
-        selectedTorneo?.id,
-        selectedSquadra?.s_id,
-        selectedRole,
-        captainFilter,
-        search,
-        activeTab,
-    ]);
+        const timeout = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+        return () => clearTimeout(timeout);
+    }, [search]);
 
     return (
         <View className="bg-background flex-1">
@@ -367,9 +447,18 @@ export default function GiocatoriScreen() {
                     data={giocatori}
                     keyExtractor={(item, index) => String(item.g_id ?? index)}
                     contentContainerClassName="px-5 pb-28 gap-3 pt-1"
-                    onRefresh={() => loadGiocatori(true)}
+                    onRefresh={() => loadGiocatori(1, true)}
                     refreshing={refreshing}
+                    onEndReached={handleLoadMore}
+                    onEndReachedThreshold={0.35}
                     showsVerticalScrollIndicator={false}
+                    ListFooterComponent={
+                        loadingMore ? (
+                            <View style={styles.footerLoader}>
+                                <ActivityIndicator size="small" />
+                            </View>
+                        ) : null
+                    }
                     ListEmptyComponent={
                         <View className="mt-16 items-center gap-3">
                             <View className="bg-muted rounded-full p-5">
@@ -381,27 +470,30 @@ export default function GiocatoriScreen() {
                         </View>
                     }
                     renderItem={({ item }) => {
-                        const href = (
+                        const detailsHref = (
                             item.g_id && selectedTorneo?.id
                                 ? `/giocatori/modal?mode=view&giocatoreId=${item.g_id}&torneoId=${selectedTorneo.id}`
                                 : '/giocatori/modal?mode=create'
                         ) as Href;
+                        const editHref = (
+                            item.g_id && selectedTorneo?.id
+                                ? `/giocatori/modal?mode=edit&giocatoreId=${item.g_id}&torneoId=${selectedTorneo.id}`
+                                : '/giocatori/modal?mode=create'
+                        ) as Href;
 
                         return (
-                            <Link href={href} asChild>
-                                <TouchableOpacity activeOpacity={0.85}>
-                                    <GiocatoreCard
-                                        id={item.g_id ?? ''}
-                                        nome={item.g_nome}
-                                        cognome={item.g_cognome}
-                                        linkFoto={item.g_link_foto}
-                                        nomeSquadra={item.s_nome}
-                                        acronimoSquadra={item.s_acronimo}
-                                        coloreSquadra={item.s_colore_squadra}
-                                        isCapitano={item.g_is_capitano}
-                                    />
-                                </TouchableOpacity>
-                            </Link>
+                            <GiocatoreCard
+                                id={item.g_id ?? ''}
+                                nome={item.g_nome}
+                                cognome={item.g_cognome}
+                                linkFoto={item.g_link_foto}
+                                nomeSquadra={item.s_nome}
+                                acronimoSquadra={item.s_acronimo}
+                                coloreSquadra={item.s_colore_squadra}
+                                isCapitano={item.g_is_capitano}
+                                onOpen={() => router.push(detailsHref)}
+                                onEdit={() => router.push(editHref)}
+                            />
                         );
                     }}
                 />
@@ -619,5 +711,10 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontFamily: 'Inter',
         marginTop: 8,
+    },
+    footerLoader: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 16,
     },
 });

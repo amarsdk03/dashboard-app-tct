@@ -15,8 +15,8 @@ import NationalityAutocompleteField from '@/components/input/NationalityAutocomp
 import TextInputField from '@/components/input/TextInputField';
 import errorMessage from '@/components/ErrorMessage';
 import {
+    createGiocatoreConIscrizione,
     getDatiGiocatoreConIscrizione,
-    insertGiocatore,
     insertIscrizione,
     updateGiocatore,
     updateIscrizione,
@@ -227,25 +227,25 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
 
         setSubmitting(true);
         try {
-            const nuovoGiocatore = await insertGiocatore({
-                nome: form.nome.trim(),
-                cognome: form.cognome.trim(),
-                link_foto: emptyToNull(form.linkFoto),
-                nazionalita: emptyToNull(form.nazionalita),
-                data_nascita: dateToIso(form.dataNascita),
-                ruolo_principale: form.ruoloPrincipale,
-                piede_principale: form.piedePrincipale,
-                nome_maglia: emptyToNull(form.nomeMaglia),
-                numero_maglia: emptyToNull(form.numeroMaglia),
-                username_ig: emptyToNull(form.usernameIg),
-                is_capitano: form.isCapitano,
-            });
-
-            await insertIscrizione({
-                id_giocatore: nuovoGiocatore.id,
-                id_torneo: form.idTorneo!,
-                id_squadra: form.idSquadra!,
-                dettagli: emptyToNull(form.dettagli),
+            await createGiocatoreConIscrizione({
+                giocatore: {
+                    nome: form.nome.trim(),
+                    cognome: form.cognome.trim(),
+                    link_foto: emptyToNull(form.linkFoto),
+                    nazionalita: emptyToNull(form.nazionalita),
+                    data_nascita: dateToIso(form.dataNascita),
+                    ruolo_principale: form.ruoloPrincipale,
+                    piede_principale: form.piedePrincipale,
+                    nome_maglia: emptyToNull(form.nomeMaglia),
+                    numero_maglia: emptyToNull(form.numeroMaglia),
+                    username_ig: emptyToNull(form.usernameIg),
+                    is_capitano: form.isCapitano,
+                },
+                iscrizione: {
+                    id_torneo: form.idTorneo!,
+                    id_squadra: form.idSquadra!,
+                    dettagli: emptyToNull(form.dettagli),
+                },
             });
 
             onClose();

@@ -280,7 +280,21 @@ export async function getDatiPartita(idPartita: number) {
 
     if (error) throw error;
 
-    return data ?? null;
+    if (!data) return null;
+
+    const { data: partitaData, error: partitaError } = await supabase
+        .from('partita')
+        .select('highlights_yt, link_post_ig')
+        .eq('id', idPartita)
+        .maybeSingle();
+
+    if (partitaError) throw partitaError;
+
+    return {
+        ...data,
+        highlights_yt: partitaData?.highlights_yt ?? null,
+        link_post_ig: partitaData?.link_post_ig ?? null,
+    };
 }
 
 export type datiPartitaType = Awaited<ReturnType<typeof getDatiPartita>>;
@@ -294,10 +308,155 @@ export async function getAzioniPartita(idPartita: number) {
 
     if (error) throw error;
 
-    return data ?? [];
+    const { data: azioniData, error: azioniError } = await supabase
+        .from('azione')
+        .select('id, minuto, dettagli')
+        .eq('id_partita', idPartita)
+        .abortSignal(AbortSignal.timeout(20000));
+
+    if (azioniError) throw azioniError;
+
+    const azioniById = new Map((azioniData ?? []).map((azione) => [azione.id, azione]));
+
+    return (data ?? []).map((azione) => {
+        const dettaglio = azione.a_id ? azioniById.get(azione.a_id) : null;
+
+        return {
+            ...azione,
+            a_minuto: dettaglio?.minuto ?? null,
+            a_dettagli: dettaglio?.dettagli ?? null,
+        };
+    });
 }
 
 export type azioniPartitaType = Awaited<ReturnType<typeof getAzioniPartita>>;
+
+async function getGiocatoriPartitaBySquadre(idTorneo: number, teamIds: number[]) {
+    if (teamIds.length === 0) return [];
+
+    const { data: iscrizioniData, error: iscrizioniError } = await supabase
+        .from('iscrizione')
+        .select('id_giocatore, id_squadra')
+        .eq('id_torneo', idTorneo)
+        .in('id_squadra', teamIds)
+        .abortSignal(AbortSignal.timeout(20000));
+
+    if (iscrizioniError) throw iscrizioniError;
+
+    const playerIds = Array.from(
+        new Set((iscrizioniData ?? []).map((iscrizione) => iscrizione.id_giocatore))
+    );
+
+    if (playerIds.length === 0) return [];
+
+    const { data: giocatoriData, error: giocatoriError } = await supabase
+        .from('giocatore')
+        .select('id, nome, cognome, numero_maglia, ruolo_principale, is_capitano, link_foto')
+        .in('id', playerIds)
+        .abortSignal(AbortSignal.timeout(20000));
+
+    if (giocatoriError) throw giocatoriError;
+
+    const { data: squadreData, error: squadreError } = await supabase
+        .from('squadra')
+        .select('id, nome, acronimo, colore_squadra, link_stemma')
+        .in('id', teamIds)
+        .abortSignal(AbortSignal.timeout(20000));
+
+    if (squadreError) throw squadreError;
+
+    const giocatoriById = new Map(
+        (giocatoriData ?? []).map((giocatore) => [giocatore.id, giocatore])
+    );
+    const squadreById = new Map((squadreData ?? []).map((squadra) => [squadra.id, squadra]));
+
+    return (iscrizioniData ?? [])
+        .map((iscrizione) => {
+            const giocatore = giocatoriById.get(iscrizione.id_giocatore);
+            const squadra = squadreById.get(iscrizione.id_squadra);
+            if (!giocatore) return null;
+
+            return {
+                id: giocatore.id,
+                nome: giocatore.nome,
+                cognome: giocatore.cognome,
+                numero_maglia: giocatore.numero_maglia,
+                ruolo_principale: giocatore.ruolo_principale,
+                is_capitano: giocatore.is_capitano,
+                link_foto: giocatore.link_foto,
+                id_squadra: iscrizione.id_squadra,
+                squadra_nome: squadra?.nome ?? null,
+                squadra_acronimo: squadra?.acronimo ?? null,
+                squadra_colore: squadra?.colore_squadra ?? null,
+                squadra_stemma: squadra?.link_stemma ?? null,
+            };
+        })
+        .filter((giocatore): giocatore is NonNullable<typeof giocatore> => giocatore !== null)
+        .sort((a, b) => {
+            if (a.id_squadra !== b.id_squadra) return a.id_squadra - b.id_squadra;
+            const surnameCompare = a.cognome.localeCompare(b.cognome, 'it');
+            if (surnameCompare !== 0) return surnameCompare;
+            return a.nome.localeCompare(b.nome, 'it');
+        });
+}
+
+export async function getGiocatoriPartita(idPartita: number) {
+    const { data: partitaData, error: partitaError } = await supabase
+        .from('risultati_partite')
+        .select('torneo_id, squadra_casa_id, squadra_ospite_id')
+        .eq('id_partita', idPartita)
+        .maybeSingle();
+
+    if (partitaError) throw partitaError;
+    if (!partitaData?.torneo_id) return [];
+
+    const teamIds = [partitaData.squadra_casa_id, partitaData.squadra_ospite_id].filter(
+        (id): id is number => typeof id === 'number'
+    );
+
+    return getGiocatoriPartitaBySquadre(partitaData.torneo_id, teamIds);
+}
+
+export type giocatoriPartitaType = Awaited<ReturnType<typeof getGiocatoriPartita>>;
+
+export async function getGiocatoriSquadrePartita(
+    idTorneo: number,
+    idSquadraCasa: number,
+    idSquadraOspite: number
+) {
+    return getGiocatoriPartitaBySquadre(idTorneo, [idSquadraCasa, idSquadraOspite]);
+}
+
+export type giocatoriSquadrePartitaType = Awaited<ReturnType<typeof getGiocatoriSquadrePartita>>;
+
+export async function getCampiPartita() {
+    const { data, error } = await supabase
+        .from('campo')
+        .select('id, nome, indirizzo, dettagli, link_google_maps')
+        .order('nome', { ascending: true })
+        .abortSignal(AbortSignal.timeout(20000));
+
+    if (error) throw error;
+
+    return data ?? [];
+}
+
+export type campiPartitaType = Awaited<ReturnType<typeof getCampiPartita>>;
+
+export async function getArbitriPartita() {
+    const { data, error } = await supabase
+        .from('staff')
+        .select('id, nominativo, ruolo, link_foto')
+        .ilike('ruolo', '%arbitr%')
+        .order('nominativo', { ascending: true })
+        .abortSignal(AbortSignal.timeout(20000));
+
+    if (error) throw error;
+
+    return data ?? [];
+}
+
+export type arbitriPartitaType = Awaited<ReturnType<typeof getArbitriPartita>>;
 
 export async function getDatiCampo(idCampo: number) {
     const { data, error } = await supabase.from('campo').select(`*`).eq('id', idCampo);

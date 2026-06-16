@@ -19,9 +19,17 @@ import {
     getListaCategorie,
     insertPartita,
     deleteAzionePartita,
+    updateAzionePartita,
     updatePartita,
+    getGiocatoriPartita,
+    getGiocatoriSquadrePartita,
+    getCampiPartita,
+    getArbitriPartita,
     azioniPartitaType,
+    arbitriPartitaType,
+    campiPartitaType,
     datiPartitaType,
+    giocatoriPartitaType,
     listaCategorieType,
 } from '@/data/partite';
 import { getListaSquadre, listaSquadreType } from '@/data/squadre';
@@ -47,6 +55,12 @@ type FormState = {
     giornata: string;
     dataPartita: Date | null;
     oraPartita: string;
+    campoSvolgimento: number | null;
+    idArbitro: number | null;
+    mvpPartita: number | null;
+    vintaATavolino: VittoriaTavolino;
+    highlightsYt: string;
+    linkPostIg: string;
 };
 
 type CategoriaOption = {
@@ -56,10 +70,12 @@ type CategoriaOption = {
 
 type TipoAzione = Enums<'tipo_azione'>;
 type AssegnamentoAzione = Enums<'assegnamento_azione'>;
+type VittoriaTavolino = Enums<'vittoria_tavolino'>;
 
 type ReportFormState = {
     tipo: TipoAzione;
     assegnamento: AssegnamentoAzione;
+    idGiocatore: number | null;
     minuto: string;
     dettagli: string;
 };
@@ -78,6 +94,7 @@ const TIPI_AZIONE: TipoAzione[] = [
     'Infortunio',
 ];
 const ASSEGNAMENTI_AZIONE: AssegnamentoAzione[] = ['Casa', 'Ospiti'];
+const VITTORIE_TAVOLINO: VittoriaTavolino[] = ['No', 'Casa', 'Ospiti'];
 
 function parsePositiveNumber(value: string) {
     const trimmed = value.trim();
@@ -152,6 +169,12 @@ function buildFormFromPartita(partita: NonNullable<datiPartitaType>): FormState 
         giornata: partita.giornata ? String(partita.giornata) : '',
         dataPartita: getDatePart(partita.fischio_inizio),
         oraPartita: getTimePart(partita.fischio_inizio),
+        campoSvolgimento: partita.campo_svolgimento,
+        idArbitro: partita.id_arbitro,
+        mvpPartita: partita.mvp_partita,
+        vintaATavolino: partita.vinta_a_tavolino ?? 'No',
+        highlightsYt: partita.highlights_yt ?? '',
+        linkPostIg: partita.link_post_ig ?? '',
     };
 }
 
@@ -177,17 +200,38 @@ function isCardAction(action: azioniPartitaType[number]) {
     return action.a_tipo === 'Cartellino giallo' || action.a_tipo === 'Cartellino rosso';
 }
 
+function actionRequiresPlayer(tipo: TipoAzione) {
+    return (
+        tipo === 'Goal' ||
+        tipo === 'Goal su rigore' ||
+        tipo === 'Autogoal' ||
+        tipo === 'Cartellino giallo' ||
+        tipo === 'Cartellino rosso' ||
+        tipo === 'Calcio di rigore segnato' ||
+        tipo === 'Calcio di rigore sbagliato'
+    );
+}
+
+function emptyToNull(value: string) {
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+}
+
 export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Props) {
     const [activeMode, setActiveMode] = useState<PartitaModalMode>(mode);
     const [tornei, setTornei] = useState<listaTorneiType[]>([]);
     const [categorie, setCategorie] = useState<listaCategorieType>([]);
     const [squadre, setSquadre] = useState<listaSquadreType[]>([]);
+    const [campi, setCampi] = useState<campiPartitaType>([]);
+    const [arbitri, setArbitri] = useState<arbitriPartitaType>([]);
+    const [giocatori, setGiocatori] = useState<giocatoriPartitaType>([]);
     const [partita, setPartita] = useState<datiPartitaType>(null);
     const [azioni, setAzioni] = useState<azioniPartitaType>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [reportSubmitting, setReportSubmitting] = useState(false);
     const [deletingActionId, setDeletingActionId] = useState<number | null>(null);
+    const [selectedActionId, setSelectedActionId] = useState<number | null>(null);
     const [form, setForm] = useState<FormState>({
         idTorneo: torneoId ?? null,
         idCategoria: null,
@@ -198,10 +242,17 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         giornata: '',
         dataPartita: null,
         oraPartita: '',
+        campoSvolgimento: null,
+        idArbitro: null,
+        mvpPartita: null,
+        vintaATavolino: 'No',
+        highlightsYt: '',
+        linkPostIg: '',
     });
     const [reportForm, setReportForm] = useState<ReportFormState>({
         tipo: 'Goal',
         assegnamento: 'Casa',
+        idGiocatore: null,
         minuto: '',
         dettagli: '',
     });
@@ -209,6 +260,13 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
     const readonly = activeMode === 'view';
     const isCreate = activeMode === 'create';
     const isEdit = activeMode === 'edit';
+    const campoPartita = campi.find((campo) => campo.id === partita?.campo_svolgimento) ?? null;
+    const arbitroPartita = arbitri.find((arbitro) => arbitro.id === partita?.id_arbitro) ?? null;
+    const mvpPartita = giocatori.find((giocatore) => giocatore.id === partita?.mvp_partita) ?? null;
+    const reportTeamsMatchSavedPartita =
+        !partita ||
+        (partita.squadra_casa_id === form.idSquadraCasa &&
+            partita.squadra_ospite_id === form.idSquadraOspite);
 
     const categorieTorneo = useMemo<CategoriaOption[]>(() => {
         const result: CategoriaOption[] = [];
@@ -239,6 +297,18 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         return Array.from(result).sort((a, b) => a.localeCompare(b, 'it'));
     }, [categorie, form.idCategoria]);
 
+    const giocatoriCasa = useMemo(
+        () => giocatori.filter((giocatore) => giocatore.id_squadra === partita?.squadra_casa_id),
+        [giocatori, partita?.squadra_casa_id]
+    );
+
+    const giocatoriOspiti = useMemo(
+        () => giocatori.filter((giocatore) => giocatore.id_squadra === partita?.squadra_ospite_id),
+        [giocatori, partita?.squadra_ospite_id]
+    );
+
+    const giocatoriReport = reportForm.assegnamento === 'Casa' ? giocatoriCasa : giocatoriOspiti;
+
     function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
         setForm((current) => ({ ...current, [key]: value }));
     }
@@ -255,6 +325,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
             girone: null,
             idSquadraCasa: null,
             idSquadraOspite: null,
+            mvpPartita: null,
         }));
     }
 
@@ -270,29 +341,36 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         setLoading(true);
 
         try {
-            const [torneiData, categorieData] = await Promise.all([
+            const [torneiData, categorieData, campiData, arbitriData] = await Promise.all([
                 getListaTornei(null),
                 getListaCategorie(),
+                getCampiPartita(),
+                getArbitriPartita(),
             ]);
             const torneiList = torneiData ?? [];
 
             setTornei(torneiList);
             setCategorie(categorieData ?? []);
+            setCampi(campiData ?? []);
+            setArbitri(arbitriData ?? []);
 
             if (!isCreate) {
                 if (!partitaId) {
                     setPartita(null);
                     setAzioni([]);
+                    setGiocatori([]);
                     return;
                 }
 
-                const [partitaData, azioniData] = await Promise.all([
+                const [partitaData, azioniData, giocatoriData] = await Promise.all([
                     getDatiPartita(partitaId),
                     getAzioniPartita(partitaId),
+                    getGiocatoriPartita(partitaId),
                 ]);
 
                 setPartita(partitaData);
                 setAzioni(azioniData ?? []);
+                setGiocatori(giocatoriData ?? []);
                 if (partitaData) {
                     setForm(buildFormFromPartita(partitaData));
                 }
@@ -319,6 +397,29 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
             setSquadre(data ?? []);
         } catch (error: any) {
             errorMessage('Impossibile recuperare le squadre', error.message ?? String(error));
+        }
+    }
+
+    async function loadGiocatoriSquadre(
+        idTorneo: number,
+        idSquadraCasa: number,
+        idSquadraOspite: number
+    ) {
+        try {
+            const data = await getGiocatoriSquadrePartita(idTorneo, idSquadraCasa, idSquadraOspite);
+            setGiocatori(data ?? []);
+            setForm((current) => {
+                if (
+                    !current.mvpPartita ||
+                    data.some((giocatore) => giocatore.id === current.mvpPartita)
+                ) {
+                    return current;
+                }
+
+                return { ...current, mvpPartita: null };
+            });
+        } catch (error: any) {
+            errorMessage('Impossibile recuperare i giocatori', error.message ?? String(error));
         }
     }
 
@@ -366,6 +467,12 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                 girone: form.girone ?? '',
                 giornata: giornata || null,
                 fischio_inizio: buildKickoffIso(form.dataPartita, form.oraPartita),
+                campo_svolgimento: form.campoSvolgimento,
+                id_arbitro: form.idArbitro,
+                mvp_partita: form.mvpPartita,
+                vinta_a_tavolino: form.vintaATavolino,
+                highlights_yt: emptyToNull(form.highlightsYt),
+                link_post_ig: emptyToNull(form.linkPostIg),
             };
 
             if (isCreate) {
@@ -380,12 +487,14 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
             }
 
             await updatePartita(partitaId, payload);
-            const [partitaData, azioniData] = await Promise.all([
+            const [partitaData, azioniData, giocatoriData] = await Promise.all([
                 getDatiPartita(partitaId),
                 getAzioniPartita(partitaId),
+                getGiocatoriPartita(partitaId),
             ]);
             setPartita(partitaData);
             setAzioni(azioniData ?? []);
+            setGiocatori(giocatoriData ?? []);
             if (partitaData) setForm(buildFormFromPartita(partitaData));
             setActiveMode('view');
         } catch (error: any) {
@@ -401,39 +510,115 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
     async function refreshPartitaDetails() {
         if (!partitaId) return;
 
-        const [partitaData, azioniData] = await Promise.all([
+        const [partitaData, azioniData, giocatoriData] = await Promise.all([
             getDatiPartita(partitaId),
             getAzioniPartita(partitaId),
+            getGiocatoriPartita(partitaId),
         ]);
         setPartita(partitaData);
         setAzioni(azioniData ?? []);
+        setGiocatori(giocatoriData ?? []);
         if (partitaData) setForm(buildFormFromPartita(partitaData));
     }
 
-    async function handleAddAction(overrides: Partial<ReportFormState> = {}) {
+    function resetReportForm() {
+        setSelectedActionId(null);
+        setReportForm({
+            tipo: 'Goal',
+            assegnamento: 'Casa',
+            idGiocatore: null,
+            minuto: '',
+            dettagli: '',
+        });
+    }
+
+    function prepareQuickAction(tipo: TipoAzione, assegnamento: AssegnamentoAzione) {
+        const players = assegnamento === 'Casa' ? giocatoriCasa : giocatoriOspiti;
+
+        setSelectedActionId(null);
+        setReportForm((current) => ({
+            ...current,
+            tipo,
+            assegnamento,
+            idGiocatore:
+                current.idGiocatore &&
+                players.some((giocatore) => giocatore.id === current.idGiocatore)
+                    ? current.idGiocatore
+                    : (players[0]?.id ?? null),
+        }));
+    }
+
+    function selectActionForEdit(action: azioniPartitaType[number]) {
+        if (!action.a_id || !action.a_tipo) return;
+
+        setSelectedActionId(action.a_id);
+        setReportForm({
+            tipo: action.a_tipo,
+            assegnamento: action.a_assegnamento ?? 'Casa',
+            idGiocatore: action.a_id_giocatore ?? null,
+            minuto: action.a_minuto !== null ? String(action.a_minuto) : '',
+            dettagli: action.a_dettagli ?? '',
+        });
+    }
+
+    async function handleSaveAction() {
         if (!partitaId) {
             errorMessage('Dati mancanti', 'Identificativo partita non disponibile.');
             return;
         }
 
-        const nextAction = { ...reportForm, ...overrides };
-        const minute = parseMinute(nextAction.minuto);
+        if (!reportTeamsMatchSavedPartita) {
+            errorMessage(
+                'Salva prima la partita',
+                'Hai cambiato le squadre: salva la partita prima di aggiornare il referto.'
+            );
+            return;
+        }
+
+        const minute = parseMinute(reportForm.minuto);
         if (Number.isNaN(minute)) {
             errorMessage('Dati non validi', 'Il minuto deve essere un numero tra 0 e 130.');
+            return;
+        }
+
+        const selectedPlayers =
+            reportForm.assegnamento === 'Casa' ? giocatoriCasa : giocatoriOspiti;
+        const selectedPlayerIsValid =
+            reportForm.idGiocatore === null ||
+            selectedPlayers.some((giocatore) => giocatore.id === reportForm.idGiocatore);
+
+        if (!selectedPlayerIsValid) {
+            errorMessage(
+                'Dati non validi',
+                'Il giocatore selezionato non appartiene alla squadra.'
+            );
+            return;
+        }
+
+        if (actionRequiresPlayer(reportForm.tipo) && !reportForm.idGiocatore) {
+            errorMessage('Dati mancanti', 'Seleziona un giocatore per questa azione.');
             return;
         }
 
         setReportSubmitting(true);
 
         try {
-            await insertAzionePartita({
+            const payload = {
                 id_partita: partitaId,
-                tipo: nextAction.tipo,
-                assegnamento: nextAction.assegnamento,
+                tipo: reportForm.tipo,
+                assegnamento: reportForm.assegnamento,
+                id_giocatore: reportForm.idGiocatore,
                 minuto: minute,
-                dettagli: nextAction.dettagli.trim() || null,
-            });
-            setReportForm((current) => ({ ...current, minuto: '', dettagli: '' }));
+                dettagli: reportForm.dettagli.trim() || null,
+            };
+
+            if (selectedActionId) {
+                await updateAzionePartita(selectedActionId, payload);
+            } else {
+                await insertAzionePartita(payload);
+            }
+
+            resetReportForm();
             await refreshPartitaDetails();
         } catch (error: any) {
             errorMessage('Impossibile salvare il referto', error.message ?? String(error));
@@ -447,6 +632,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
 
         try {
             await deleteAzionePartita(idAzione);
+            if (selectedActionId === idAzione) resetReportForm();
             await refreshPartitaDetails();
         } catch (error: any) {
             errorMessage('Impossibile rimuovere azione', error.message ?? String(error));
@@ -479,6 +665,16 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
             setSquadre([]);
         }
     }, [form.idTorneo, readonly]);
+
+    useEffect(() => {
+        if (!readonly && form.idTorneo && form.idSquadraCasa && form.idSquadraOspite) {
+            loadGiocatoriSquadre(form.idTorneo, form.idSquadraCasa, form.idSquadraOspite).then(
+                () => null
+            );
+        } else if (isCreate) {
+            setGiocatori([]);
+        }
+    }, [form.idTorneo, form.idSquadraCasa, form.idSquadraOspite, isCreate, readonly]);
 
     if (loading) {
         return (
@@ -531,6 +727,28 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                                     label="Giornata"
                                     value={partita.giornata ? String(partita.giornata) : null}
                                 />
+                                <DetailItem label="Campo" value={campoPartita?.nome ?? null} />
+                                <DetailItem
+                                    label="Arbitro"
+                                    value={arbitroPartita?.nominativo ?? null}
+                                />
+                                <DetailItem
+                                    label="MVP"
+                                    value={
+                                        mvpPartita
+                                            ? `${mvpPartita.nome} ${mvpPartita.cognome}`
+                                            : null
+                                    }
+                                />
+                                <DetailItem
+                                    label="Tavolino"
+                                    value={partita.vinta_a_tavolino ?? 'No'}
+                                />
+                                <DetailItem
+                                    label="Highlights"
+                                    value={partita.highlights_yt ?? null}
+                                />
+                                <DetailItem label="Post IG" value={partita.link_post_ig ?? null} />
                             </View>
 
                             <ActionSection
@@ -688,7 +906,14 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                             selectedId={form.idSquadraCasa}
                             getId={(squadra) => squadra.s_id}
                             getLabel={(squadra) => squadra.s_nome ?? 'Squadra senza nome'}
-                            onSelect={(squadra) => setField('idSquadraCasa', squadra.s_id)}
+                            onSelect={(squadra) => {
+                                resetReportForm();
+                                setForm((current) => ({
+                                    ...current,
+                                    idSquadraCasa: squadra.s_id,
+                                    mvpPartita: null,
+                                }));
+                            }}
                             emptyText="Nessuna squadra disponibile"
                         />
                     </View>
@@ -700,23 +925,123 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                             selectedId={form.idSquadraOspite}
                             getId={(squadra) => squadra.s_id}
                             getLabel={(squadra) => squadra.s_nome ?? 'Squadra senza nome'}
-                            onSelect={(squadra) => setField('idSquadraOspite', squadra.s_id)}
+                            onSelect={(squadra) => {
+                                resetReportForm();
+                                setForm((current) => ({
+                                    ...current,
+                                    idSquadraOspite: squadra.s_id,
+                                    mvpPartita: null,
+                                }));
+                            }}
                             emptyText="Nessuna squadra disponibile"
                         />
                     </View>
                 </View>
 
-                {isEdit && partita && (
+                <View style={styles.row}>
+                    <View style={styles.flexChild}>
+                        <SelectSection
+                            label="Campo"
+                            readonly={readonly}
+                            options={campi}
+                            selectedId={form.campoSvolgimento}
+                            getId={(campo) => campo.id}
+                            getLabel={(campo) => campo.nome}
+                            onSelect={(campo) => setField('campoSvolgimento', campo.id)}
+                            emptyText="Nessun campo disponibile"
+                        />
+                    </View>
+                    <View style={styles.flexChild}>
+                        <SelectSection
+                            label="Arbitro"
+                            readonly={readonly}
+                            options={arbitri}
+                            selectedId={form.idArbitro}
+                            getId={(arbitro) => arbitro.id}
+                            getLabel={(arbitro) =>
+                                arbitro.ruolo
+                                    ? `${arbitro.nominativo} - ${arbitro.ruolo}`
+                                    : arbitro.nominativo
+                            }
+                            onSelect={(arbitro) => setField('idArbitro', arbitro.id)}
+                            emptyText="Nessun arbitro disponibile"
+                        />
+                    </View>
+                </View>
+
+                <EnumChipSection
+                    label="Vittoria a tavolino"
+                    options={VITTORIE_TAVOLINO}
+                    selected={form.vintaATavolino}
+                    getLabel={(value) =>
+                        value === 'No' ? 'No' : value === 'Casa' ? 'Casa' : 'Ospiti'
+                    }
+                    onSelect={(value) => setField('vintaATavolino', value as VittoriaTavolino)}
+                />
+
+                <SelectSection
+                    label="MVP partita"
+                    readonly={readonly}
+                    options={giocatori}
+                    selectedId={form.mvpPartita}
+                    getId={(giocatore) => giocatore.id}
+                    getLabel={(giocatore) =>
+                        `${giocatore.nome} ${giocatore.cognome}${
+                            giocatore.squadra_nome ? ` - ${giocatore.squadra_nome}` : ''
+                        }`
+                    }
+                    onSelect={(giocatore) => setField('mvpPartita', giocatore.id)}
+                    emptyText={
+                        isCreate
+                            ? 'Disponibile dopo il primo salvataggio della partita'
+                            : 'Nessun giocatore disponibile'
+                    }
+                />
+
+                <TextInputField
+                    label="Highlights YouTube"
+                    readonly={readonly}
+                    value={form.highlightsYt}
+                    onChange={(value) => setField('highlightsYt', value)}
+                    placeholder="https://youtube.com/..."
+                />
+
+                <TextInputField
+                    label="Post Instagram"
+                    readonly={readonly}
+                    value={form.linkPostIg}
+                    onChange={(value) => setField('linkPostIg', value)}
+                    placeholder="https://instagram.com/..."
+                />
+
+                {isEdit && partita && reportTeamsMatchSavedPartita && (
                     <ReportEditor
                         partita={partita}
                         azioni={azioni}
+                        giocatori={giocatoriReport}
                         reportForm={reportForm}
                         reportSubmitting={reportSubmitting}
                         deletingActionId={deletingActionId}
+                        selectedActionId={selectedActionId}
                         onReportFieldChange={setReportField}
-                        onAddAction={handleAddAction}
+                        onPrepareQuickAction={prepareQuickAction}
+                        onSaveAction={handleSaveAction}
+                        onCancelEdit={resetReportForm}
+                        onSelectAction={selectActionForEdit}
                         onDeleteAction={confirmDeleteAction}
                     />
+                )}
+
+                {isEdit && partita && !reportTeamsMatchSavedPartita && (
+                    <View style={styles.emptyDetailBox}>
+                        <InterText style={styles.emptyDetailTitle}>
+                            Referto bloccato
+                        </InterText>
+                        <InterText style={styles.emptyDetailText}>
+                            Le squadre della partita sono state cambiate. Salva la partita prima
+                            di aggiungere goal, cartellini o rigori.
+                        </InterText>
+                    </View>
                 )}
 
                 <View style={styles.dynamicRow}>
@@ -809,6 +1134,8 @@ function ActionSection({
     emptyText,
     editable = false,
     deletingActionId = null,
+    selectedActionId = null,
+    onSelectAction,
     onDeleteAction,
 }: {
     title: string;
@@ -818,6 +1145,8 @@ function ActionSection({
     emptyText: string;
     editable?: boolean;
     deletingActionId?: number | null;
+    selectedActionId?: number | null;
+    onSelectAction?: (action: azioniPartitaType[number]) => void;
     onDeleteAction?: (idAzione: number | null) => void;
 }) {
     return (
@@ -834,9 +1163,15 @@ function ActionSection({
             ) : (
                 <View style={styles.actionList}>
                     {actions.map((action, index) => (
-                        <View
+                        <TouchableOpacity
                             key={`${action.a_id ?? action.a_tipo ?? 'azione'}-${index}`}
-                            style={styles.actionRow}>
+                            style={[
+                                styles.actionRow,
+                                selectedActionId === action.a_id && styles.actionRowSelected,
+                            ]}
+                            disabled={!editable || !action.a_id}
+                            onPress={() => onSelectAction?.(action)}
+                            activeOpacity={0.86}>
                             <View
                                 style={[
                                     styles.actionMarker,
@@ -845,11 +1180,14 @@ function ActionSection({
                             />
                             <View style={styles.actionContent}>
                                 <InterText style={styles.actionTitle} numberOfLines={1}>
-                                    {action.a_tipo ?? 'Azione'}
+                                    {action.a_minuto !== null
+                                        ? `${action.a_minuto}' - ${action.a_tipo ?? 'Azione'}`
+                                        : (action.a_tipo ?? 'Azione')}
                                 </InterText>
                                 <InterText style={styles.actionMeta} numberOfLines={2}>
                                     {actionPlayerLabel(action)} -{' '}
                                     {actionTeamLabel(action, homeTeam, awayTeam)}
+                                    {action.a_dettagli ? ` - ${action.a_dettagli}` : ''}
                                 </InterText>
                             </View>
                             {editable && (
@@ -864,7 +1202,7 @@ function ActionSection({
                                     <Trash2Icon size={16} color="#7c3f3f" />
                                 </TouchableOpacity>
                             )}
-                        </View>
+                        </TouchableOpacity>
                     ))}
                 </View>
             )}
@@ -875,23 +1213,33 @@ function ActionSection({
 function ReportEditor({
     partita,
     azioni,
+    giocatori,
     reportForm,
     reportSubmitting,
     deletingActionId,
+    selectedActionId,
     onReportFieldChange,
-    onAddAction,
+    onPrepareQuickAction,
+    onSaveAction,
+    onCancelEdit,
+    onSelectAction,
     onDeleteAction,
 }: {
     partita: NonNullable<datiPartitaType>;
     azioni: azioniPartitaType;
+    giocatori: giocatoriPartitaType;
     reportForm: ReportFormState;
     reportSubmitting: boolean;
     deletingActionId: number | null;
+    selectedActionId: number | null;
     onReportFieldChange: <K extends keyof ReportFormState>(
         key: K,
         value: ReportFormState[K]
     ) => void;
-    onAddAction: (overrides?: Partial<ReportFormState>) => void;
+    onPrepareQuickAction: (tipo: TipoAzione, assegnamento: AssegnamentoAzione) => void;
+    onSaveAction: () => void;
+    onCancelEdit: () => void;
+    onSelectAction: (action: azioniPartitaType[number]) => void;
     onDeleteAction: (idAzione: number | null) => void;
 }) {
     const goalActions = azioni.filter(isGoalAction);
@@ -913,51 +1261,51 @@ function ReportEditor({
             <View style={styles.quickGrid}>
                 <QuickActionButton
                     label="Goal casa"
+                    tone="home"
                     disabled={reportSubmitting}
-                    onPress={() => onAddAction({ tipo: 'Goal', assegnamento: 'Casa' })}
+                    onPress={() => onPrepareQuickAction('Goal', 'Casa')}
                 />
                 <QuickActionButton
                     label="Goal ospiti"
+                    tone="away"
                     disabled={reportSubmitting}
-                    onPress={() => onAddAction({ tipo: 'Goal', assegnamento: 'Ospiti' })}
+                    onPress={() => onPrepareQuickAction('Goal', 'Ospiti')}
                 />
                 <QuickActionButton
                     label="Rigore casa"
+                    tone="home"
                     disabled={reportSubmitting}
-                    onPress={() =>
-                        onAddAction({ tipo: 'Calcio di rigore segnato', assegnamento: 'Casa' })
-                    }
+                    onPress={() => onPrepareQuickAction('Calcio di rigore segnato', 'Casa')}
                 />
                 <QuickActionButton
                     label="Rigore ospiti"
+                    tone="away"
                     disabled={reportSubmitting}
-                    onPress={() =>
-                        onAddAction({ tipo: 'Calcio di rigore segnato', assegnamento: 'Ospiti' })
-                    }
+                    onPress={() => onPrepareQuickAction('Calcio di rigore segnato', 'Ospiti')}
                 />
                 <QuickActionButton
                     label="Giallo casa"
+                    tone="home"
                     disabled={reportSubmitting}
-                    onPress={() => onAddAction({ tipo: 'Cartellino giallo', assegnamento: 'Casa' })}
+                    onPress={() => onPrepareQuickAction('Cartellino giallo', 'Casa')}
                 />
                 <QuickActionButton
                     label="Giallo ospiti"
+                    tone="away"
                     disabled={reportSubmitting}
-                    onPress={() =>
-                        onAddAction({ tipo: 'Cartellino giallo', assegnamento: 'Ospiti' })
-                    }
+                    onPress={() => onPrepareQuickAction('Cartellino giallo', 'Ospiti')}
                 />
                 <QuickActionButton
                     label="Rosso casa"
+                    tone="home"
                     disabled={reportSubmitting}
-                    onPress={() => onAddAction({ tipo: 'Cartellino rosso', assegnamento: 'Casa' })}
+                    onPress={() => onPrepareQuickAction('Cartellino rosso', 'Casa')}
                 />
                 <QuickActionButton
                     label="Rosso ospiti"
+                    tone="away"
                     disabled={reportSubmitting}
-                    onPress={() =>
-                        onAddAction({ tipo: 'Cartellino rosso', assegnamento: 'Ospiti' })
-                    }
+                    onPress={() => onPrepareQuickAction('Cartellino rosso', 'Ospiti')}
                 />
             </View>
 
@@ -976,9 +1324,25 @@ function ReportEditor({
                         ? (partita.squadra_casa_nome ?? 'Casa')
                         : (partita.squadra_ospite_nome ?? 'Ospiti')
                 }
-                onSelect={(value) =>
-                    onReportFieldChange('assegnamento', value as AssegnamentoAzione)
+                onSelect={(value) => {
+                    onReportFieldChange('assegnamento', value as AssegnamentoAzione);
+                    onReportFieldChange('idGiocatore', null);
+                }}
+            />
+
+            <SelectSection
+                label="Giocatore"
+                readonly={false}
+                options={giocatori}
+                selectedId={reportForm.idGiocatore}
+                getId={(giocatore) => giocatore.id}
+                getLabel={(giocatore) =>
+                    `${giocatore.nome} ${giocatore.cognome}${
+                        giocatore.numero_maglia ? ` #${giocatore.numero_maglia}` : ''
+                    }`
                 }
+                onSelect={(giocatore) => onReportFieldChange('idGiocatore', giocatore.id)}
+                emptyText="Nessun giocatore disponibile per questa squadra"
             />
 
             <View style={styles.row}>
@@ -1006,14 +1370,33 @@ function ReportEditor({
                     styles.reportSubmitButton,
                     reportSubmitting && { opacity: 0.6 },
                 ]}
-                onPress={() => onAddAction()}
+                onPress={onSaveAction}
                 disabled={reportSubmitting}
                 activeOpacity={0.8}>
-                <PlusIcon size={16} color="#fff" />
+                {selectedActionId ? (
+                    <SaveIcon size={16} color="#fff" />
+                ) : (
+                    <PlusIcon size={16} color="#fff" />
+                )}
                 <InterText style={styles.buttonText}>
-                    {reportSubmitting ? 'Salvataggio...' : 'Aggiungi azione'}
+                    {reportSubmitting
+                        ? 'Salvataggio...'
+                        : selectedActionId
+                          ? 'Aggiorna azione'
+                          : 'Aggiungi azione'}
                 </InterText>
             </TouchableOpacity>
+            {selectedActionId && (
+                <TouchableOpacity
+                    style={[styles.button, styles.buttonSecondary, styles.reportCancelButton]}
+                    onPress={onCancelEdit}
+                    activeOpacity={0.8}>
+                    <ArrowLeftIcon size={16} color="#6b7280" />
+                    <InterText style={[styles.buttonText, styles.buttonSecondaryText]}>
+                        Annulla modifica
+                    </InterText>
+                </TouchableOpacity>
+            )}
 
             <ActionSection
                 title="Goal e rigori"
@@ -1023,6 +1406,8 @@ function ReportEditor({
                 emptyText="Nessun goal o rigore registrato"
                 editable
                 deletingActionId={deletingActionId}
+                selectedActionId={selectedActionId}
+                onSelectAction={onSelectAction}
                 onDeleteAction={onDeleteAction}
             />
             <ActionSection
@@ -1033,6 +1418,8 @@ function ReportEditor({
                 emptyText="Nessun cartellino registrato"
                 editable
                 deletingActionId={deletingActionId}
+                selectedActionId={selectedActionId}
+                onSelectAction={onSelectAction}
                 onDeleteAction={onDeleteAction}
             />
             <ActionSection
@@ -1043,6 +1430,8 @@ function ReportEditor({
                 emptyText="Nessuna altra azione registrata"
                 editable
                 deletingActionId={deletingActionId}
+                selectedActionId={selectedActionId}
+                onSelectAction={onSelectAction}
                 onDeleteAction={onDeleteAction}
             />
         </View>
@@ -1051,20 +1440,26 @@ function ReportEditor({
 
 function QuickActionButton({
     label,
+    tone,
     disabled,
     onPress,
 }: {
     label: string;
+    tone: 'home' | 'away';
     disabled: boolean;
     onPress: () => void;
 }) {
     return (
         <TouchableOpacity
-            style={[styles.quickButton, disabled && { opacity: 0.6 }]}
+            style={[
+                styles.quickButton,
+                tone === 'home' ? styles.quickButtonHome : styles.quickButtonAway,
+                disabled && { opacity: 0.6 },
+            ]}
             disabled={disabled}
             onPress={onPress}
             activeOpacity={0.85}>
-            <PlusIcon size={14} color="#0f172a" />
+            <PlusIcon size={14} color={tone === 'home' ? '#0f172a' : '#7c3f3f'} />
             <InterText style={styles.quickButtonText} numberOfLines={1}>
                 {label}
             </InterText>
@@ -1332,13 +1727,15 @@ const styles = StyleSheet.create({
         maxWidth: 112,
         minHeight: 48,
         borderRadius: 12,
-        backgroundColor: '#0f172a',
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 10,
     },
     summaryScore: {
-        color: '#ffffff',
+        color: '#0f172a',
         fontFamily: 'Inter-Bold',
         fontSize: 18,
         fontWeight: '700',
@@ -1421,6 +1818,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#e2e8f0',
         padding: 10,
+    },
+    actionRowSelected: {
+        borderColor: '#0f172a',
+        backgroundColor: '#f1f5f9',
     },
     actionMarker: {
         width: 10,
@@ -1518,11 +1919,17 @@ const styles = StyleSheet.create({
         gap: 6,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#e2e8f0',
-        backgroundColor: '#ffffff',
         paddingHorizontal: 10,
         paddingVertical: 9,
         maxWidth: '48%',
+    },
+    quickButtonHome: {
+        borderColor: '#bfdbfe',
+        backgroundColor: '#eff6ff',
+    },
+    quickButtonAway: {
+        borderColor: '#fecaca',
+        backgroundColor: '#fef2f2',
     },
     quickButtonText: {
         color: '#0f172a',
@@ -1599,6 +2006,10 @@ const styles = StyleSheet.create({
         marginTop: 12,
     },
     reportSubmitButton: {
+        alignSelf: 'flex-start',
+        marginBottom: 12,
+    },
+    reportCancelButton: {
         alignSelf: 'flex-start',
         marginBottom: 12,
     },

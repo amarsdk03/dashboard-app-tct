@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { Enums, TablesInsert, TablesUpdate } from '@/types/database.types';
+import { Enums, Tables, TablesInsert, TablesUpdate } from '@/types/database.types';
 
 
 export type filtroGiocatoriType = {
@@ -133,6 +133,78 @@ export async function insertGiocatore(payload: TablesInsert<'giocatore'>) {
 }
 
 export type insertGiocatorePayload = Parameters<typeof insertGiocatore>[0];
+
+type CreateGiocatoreConIscrizioneInput = {
+    giocatore: TablesInsert<'giocatore'>;
+    iscrizione: Omit<TablesInsert<'iscrizione'>, 'id_giocatore'> & {
+        id_giocatore?: number;
+    };
+};
+
+function removeUndefined<T>(value: T): T {
+    if (Array.isArray(value)) {
+        return value.map((item) => removeUndefined(item)) as T;
+    }
+
+    if (value && typeof value === 'object') {
+        return Object.fromEntries(
+            Object.entries(value)
+                .filter(([, item]) => item !== undefined)
+                .map(([key, item]) => [key, removeUndefined(item)])
+        ) as T;
+    }
+
+    return value;
+}
+
+function isMissingRpcError(error: unknown) {
+    const rpcError = error as { code?: string; message?: string; details?: string };
+    const message = `${rpcError.message ?? ''} ${rpcError.details ?? ''}`;
+
+    return (
+        rpcError.code === 'PGRST202' ||
+        rpcError.code === '42883' ||
+        /could not find the function|function .* does not exist|schema cache/i.test(message)
+    );
+}
+
+export async function createGiocatoreConIscrizione(
+    payload: CreateGiocatoreConIscrizioneInput
+) {
+    const normalizedPayload = removeUndefined(payload);
+    const { data, error } = await (supabase as any).rpc('create_giocatore_con_iscrizione', {
+        payload: normalizedPayload,
+    });
+
+    if (error) {
+        if (!isMissingRpcError(error)) throw error;
+    } else if (data?.giocatore && data?.iscrizione) {
+        return data as {
+            giocatore: Tables<'giocatore'>;
+            iscrizione: Tables<'iscrizione'>;
+        };
+    } else {
+        throw new Error('Risposta RPC create_giocatore_con_iscrizione non valida.');
+    }
+
+    // Fallback RPC assente: questa sequenza client-side non e' atomica.
+    // Se l'iscrizione fallisce dopo la creazione del giocatore, il DB puo restare parziale.
+    const giocatore = await insertGiocatore(normalizedPayload.giocatore);
+    const iscrizione = await insertIscrizione({
+        ...normalizedPayload.iscrizione,
+        id_giocatore: giocatore.id,
+    });
+
+    return { giocatore, iscrizione };
+}
+
+export type createGiocatoreConIscrizionePayload = Parameters<
+    typeof createGiocatoreConIscrizione
+>[0];
+
+export type createGiocatoreConIscrizioneType = Awaited<
+    ReturnType<typeof createGiocatoreConIscrizione>
+>;
 
 
 export async function updateGiocatore(

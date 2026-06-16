@@ -1,6 +1,6 @@
-import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
-import { MoreVertical, UsersRound } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { MoreVertical, SquarePen, UsersRound } from 'lucide-react-native';
 import { InterText } from '@/components/InterText';
 
 type Props = {
@@ -12,6 +12,8 @@ type Props = {
     acronimoSquadra?: string | null;
     coloreSquadra?: string | null;
     isCapitano?: boolean | null;
+    onOpen?: () => void;
+    onEdit?: () => void;
 };
 
 function getInitials(nome: string | null, cognome: string | null, fallback?: string | null) {
@@ -52,7 +54,10 @@ export default function GiocatoreCard({
     acronimoSquadra,
     coloreSquadra,
     isCapitano,
+    onOpen,
+    onEdit,
 }: Props) {
+    const [actionsOpen, setActionsOpen] = useState(false);
     const displayName = `${nome ?? ''} ${cognome ?? ''}`.trim() || 'Giocatore senza nome';
     const initials = getInitials(nome, cognome, acronimoSquadra);
     const avatarBg = normalizeHexColor(coloreSquadra) ?? COLORS.avatarBg;
@@ -62,39 +67,70 @@ export default function GiocatoreCard({
 
     return (
         <View style={styles.card}>
-            <View style={styles.main}>
-                {linkFoto ? (
-                    <Image source={{ uri: linkFoto }} style={styles.avatar} resizeMode="cover" />
-                ) : (
-                    <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
-                        <InterText style={[styles.avatarText, { color: avatarText }]}>
-                            {initials}
-                        </InterText>
-                    </View>
-                )}
+            <View style={styles.cardTop}>
+                <TouchableOpacity
+                    style={styles.main}
+                    onPress={onOpen}
+                    activeOpacity={0.85}
+                    disabled={!onOpen}>
+                    {linkFoto ? (
+                        <Image source={{ uri: linkFoto }} style={styles.avatar} resizeMode="cover" />
+                    ) : (
+                        <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
+                            <InterText style={[styles.avatarText, { color: avatarText }]}>
+                                {initials}
+                            </InterText>
+                        </View>
+                    )}
 
-                <View style={styles.content}>
-                    <View style={styles.nameRow}>
-                        <InterText style={styles.name} numberOfLines={1}>
-                            {displayName}
-                        </InterText>
-                        {isCapitano && (
-                            <View style={styles.captainPill}>
-                                <InterText style={styles.captainText}>C</InterText>
-                            </View>
-                        )}
-                    </View>
+                    <View style={styles.content}>
+                        <View style={styles.nameRow}>
+                            <InterText style={styles.name} numberOfLines={1}>
+                                {displayName}
+                            </InterText>
+                            {isCapitano && (
+                                <View style={styles.captainPill}>
+                                    <InterText style={styles.captainText}>C</InterText>
+                                </View>
+                            )}
+                        </View>
 
-                    <View style={styles.teamRow}>
-                        <UsersRound size={13} color={COLORS.icon} strokeWidth={2} />
-                        <InterText style={styles.teamText} numberOfLines={1}>
-                            {nomeSquadra ?? acronimoSquadra ?? 'Squadra non assegnata'}
-                        </InterText>
+                        <View style={styles.teamRow}>
+                            <UsersRound size={13} color={COLORS.icon} strokeWidth={2} />
+                            <InterText style={styles.teamText} numberOfLines={1}>
+                                {nomeSquadra ?? acronimoSquadra ?? 'Squadra non assegnata'}
+                            </InterText>
+                        </View>
                     </View>
-                </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.moreButton}
+                    onPress={() => setActionsOpen((value) => !value)}
+                    activeOpacity={0.75}>
+                    <MoreVertical size={20} color={COLORS.iconStrong} strokeWidth={2.25} />
+                </TouchableOpacity>
             </View>
 
-            <MoreVertical size={20} color={COLORS.iconStrong} strokeWidth={2.25} />
+            {actionsOpen && (
+                <View style={styles.actionsRow}>
+                    <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={onOpen}
+                        activeOpacity={0.85}
+                        disabled={!onOpen}>
+                        <InterText style={styles.actionText}>Apri dettagli</InterText>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.actionButton, styles.editButton]}
+                        onPress={onEdit}
+                        activeOpacity={0.85}
+                        disabled={!onEdit}>
+                        <SquarePen size={14} color="#ffffff" strokeWidth={2.25} />
+                        <InterText style={[styles.actionText, styles.editText]}>Modifica</InterText>
+                    </TouchableOpacity>
+                </View>
+            )}
         </View>
     );
 }
@@ -114,10 +150,6 @@ const COLORS = {
 
 const styles = StyleSheet.create({
     card: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 12,
         backgroundColor: COLORS.surface,
         borderRadius: 16,
         padding: 14,
@@ -129,12 +161,26 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 2,
     },
+    cardTop: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12,
+    },
     main: {
         flex: 1,
         minWidth: 0,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 14,
+    },
+    moreButton: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f8fafc',
     },
     avatar: {
         width: 54,
@@ -187,5 +233,36 @@ const styles = StyleSheet.create({
         color: COLORS.meta,
         fontSize: 14,
         fontFamily: 'Inter',
+    },
+    actionsRow: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        gap: 8,
+        marginTop: 12,
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.border,
+    },
+    actionButton: {
+        minHeight: 36,
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f1f5f9',
+    },
+    editButton: {
+        flexDirection: 'row',
+        gap: 6,
+        backgroundColor: '#0f172a',
+    },
+    actionText: {
+        color: '#334155',
+        fontSize: 12,
+        fontWeight: '600',
+        fontFamily: 'Inter-SemiBold',
+    },
+    editText: {
+        color: '#ffffff',
     },
 });
