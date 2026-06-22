@@ -18,11 +18,11 @@ import {
     TrophyIcon,
     UsersRoundIcon,
 } from 'lucide-react-native';
-import errorMessage from '@/components/ErrorMessage';
+import errorMessage from '@/components/generic/ErrorMessage';
 import HomeMatchCard from '@/components/home/HomeMatchCard';
 import HomeQuickAction from '@/components/home/HomeQuickAction';
 import HomeStatCard from '@/components/home/HomeStatCard';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 import { useAuthContext } from '@/hooks/use-auth-context';
 import { getListaGiocatori } from '@/data/giocatori';
 import {

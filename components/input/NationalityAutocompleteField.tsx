@@ -6,7 +6,7 @@ import {
     View,
 } from 'react-native';
 import { ChevronDownIcon, SearchIcon } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 import {
     filterNationalities,
     findNationality,

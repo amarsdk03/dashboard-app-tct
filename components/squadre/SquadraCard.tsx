@@ -1,7 +1,7 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { ShieldIcon } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 
 type Props = {
     nome: string | null;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 
 type Tone = 'red' | 'gold' | 'green' | 'blue';
 

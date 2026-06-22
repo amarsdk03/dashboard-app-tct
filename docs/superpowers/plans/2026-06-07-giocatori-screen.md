@@ -21,7 +21,7 @@
 
 Reference only:
 - `components/tornei/TorneoCard.tsx`
-- `components/tornei/TorneoModal.tsx`
+- `components/tornei/TorneoModalForm.tsx`
 - `app/(app)/(tabs)/tornei/index.tsx`
 - `app/(app)/(tabs)/tornei/modal.tsx`
 - `data/tornei.ts`

@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Link, type Href } from 'expo-router';
 import { ChevronRightIcon } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 
 type Props = {
     label: string;

@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     FlatList,
     ActivityIndicator,
     TouchableOpacity,
     StyleSheet,
-    TextInput,
+    SectionList,
 } from 'react-native';
 import { Link } from 'expo-router';
 import {
@@ -13,32 +13,33 @@ import {
     listaTorneiStatusFilter,
     listaTorneiType,
 } from '@/data/tornei';
-import { PlusIcon, SearchIcon, SlidersHorizontal, TrophyIcon } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { TrophyIcon } from 'lucide-react-native';
+import { InterText } from '@/components/generic/InterText';
 import TorneoCard from '@/components/tornei/TorneoCard';
-import errorMessage from '@/components/ErrorMessage';
+import errorMessage from '@/components/generic/ErrorMessage';
 
-const STATUS_FILTERS: { key: listaTorneiStatusFilter; label: string }[] = [
-    { key: 'tutti', label: 'Tutti' },
-    { key: 'in_corso', label: 'In corso' },
-    { key: 'futuri', label: 'Futuri' },
-    { key: 'conclusi', label: 'Conclusi' },
-];
+function raggruppaTornei(items: listaTorneiType[]) {
+    const groups: { [key: string]: listaTorneiType[] } = {};
+
+    items.forEach((item) => {
+        const year = item.data_fine ? new Date(item.data_fine).getFullYear().toString() : 'N/A';
+        if (!groups[year]) groups[year] = [];
+        groups[year].push(item);
+    });
+
+    return Object.keys(groups)
+        .sort((a, b) => parseInt(b) - parseInt(a))
+        .map((year) => ({
+            title: year != 'N/A' ? "Fino al " + year : "Nessuna data specificata",
+            data: groups[year],
+        }));
+}
 
 export default function TorneiScreen() {
     const [tornei, setTornei] = useState<listaTorneiType[]>([]);
-    const [search, setSearch] = useState('');
-    const [debouncedSearch, setDebouncedSearch] = useState('');
-    const [activeStatus, setActiveStatus] = useState<listaTorneiStatusFilter>('tutti');
-    const [filterOpen, setFilterOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [loadError, setLoadError] = useState<string | null>(null);
-
-    const filterActive = useMemo(
-        () => filterOpen || activeStatus !== 'tutti',
-        [activeStatus, filterOpen]
-    );
 
     async function loadTornei(isRefresh = false) {
         if (isRefresh) setRefreshing(true);
@@ -46,7 +47,7 @@ export default function TorneiScreen() {
         setLoadError(null);
 
         try {
-            const data = await getListaTornei(debouncedSearch, { status: activeStatus });
+            const data = await getListaTornei(null, {});
             setTornei(data ?? []);
         } catch (error: any) {
             const message = error?.message ?? String(error);
@@ -58,107 +59,13 @@ export default function TorneiScreen() {
         }
     }
 
-    function handleResetFilters() {
-        setSearch('');
-        setDebouncedSearch('');
-        setActiveStatus('tutti');
-        setFilterOpen(false);
-    }
-
+    // Caricamento iniziale dei dati al montaggio del componente
     useEffect(() => {
         loadTornei().then(r => null);
-    }, [debouncedSearch, activeStatus]);
-
-    useEffect(() => {
-        const timeout = setTimeout(() => setDebouncedSearch(search.trim()), 350);
-        return () => clearTimeout(timeout);
-    }, [search]);
+    }, []);
 
     return (
         <View className="bg-background flex-1">
-            {/* ── Header ── */}
-            <View className="bg-background p-6 pb-4">
-                <View style={styles.headerRow}>
-                    <InterText style={styles.title}>Lista tornei</InterText>
-                    <Link href="/tornei/modal?mode=create" asChild>
-                        <TouchableOpacity style={styles.button} activeOpacity={0.85}>
-                            <PlusIcon size={16} color="#fff" />
-                            <InterText style={styles.buttonText}>Crea nuovo</InterText>
-                        </TouchableOpacity>
-                    </Link>
-                </View>
-
-                <View style={styles.searchRow}>
-                    <View style={styles.searchBox}>
-                        <SearchIcon size={18} color="#6b7280" />
-                        <TextInput
-                            value={search}
-                            onChangeText={setSearch}
-                            placeholder="Cerca per nome torneo..."
-                            placeholderTextColor="#9ca3af"
-                            style={styles.searchInput}
-                        />
-                    </View>
-                    <TouchableOpacity
-                        style={[styles.filterButton, filterActive && styles.filterButtonActive]}
-                        onPress={() => setFilterOpen((value) => !value)}
-                        activeOpacity={0.85}>
-                        <SlidersHorizontal
-                            size={20}
-                            color={filterActive ? '#ffffff' : '#0f6096'}
-                            strokeWidth={2.5}
-                        />
-                    </TouchableOpacity>
-                </View>
-
-                {filterOpen && (
-                    <View style={styles.filterPanel}>
-                        <View style={styles.filterSection}>
-                            <InterText style={styles.filterLabel}>Stato torneo</InterText>
-                            <View style={styles.chipRow}>
-                                {STATUS_FILTERS.map((filter) => {
-                                    const active = activeStatus === filter.key;
-                                    return (
-                                        <TouchableOpacity
-                                            key={filter.key}
-                                            style={[styles.chip, active && styles.chipActive]}
-                                            onPress={() => setActiveStatus(filter.key)}
-                                            activeOpacity={0.85}>
-                                            <InterText
-                                                style={[
-                                                    styles.chipText,
-                                                    active && styles.chipTextActive,
-                                                ]}>
-                                                {filter.label}
-                                            </InterText>
-                                        </TouchableOpacity>
-                                    );
-                                })}
-                            </View>
-                        </View>
-
-                        <View style={styles.filterActions}>
-                            <TouchableOpacity
-                                style={styles.resetButton}
-                                onPress={handleResetFilters}
-                                activeOpacity={0.85}>
-                                <InterText style={styles.resetText}>Reset</InterText>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.applyButton}
-                                onPress={() => setFilterOpen(false)}
-                                activeOpacity={0.85}>
-                                <InterText style={styles.applyText}>Applica</InterText>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                )}
-
-                <View style={styles.resultsRow}>
-                    <InterText style={styles.totalText}>{tornei.length} risultati totali</InterText>
-                </View>
-            </View>
-
             {/* ── List ── */}
             {loading ? (
                 <View className="flex-1 items-center justify-center gap-3">
@@ -166,17 +73,19 @@ export default function TorneiScreen() {
                     <InterText className="text-muted-foreground">Caricamento tornei...</InterText>
                 </View>
             ) : (
-                <FlatList
-                    data={tornei}
+                <SectionList
+                    sections={raggruppaTornei(tornei)}
                     keyExtractor={(item) => String(item.id)}
-                    contentContainerClassName="px-5 pb-28 gap-3 pt-1"
+                    contentContainerClassName="px-5 pb-28 pt-1"
                     onRefresh={() => loadTornei(true)}
                     refreshing={refreshing}
-                    showsVerticalScrollIndicator={false}
+                    showsVerticalScrollIndicator={true}
+                    stickySectionHeadersEnabled={false}
+                    ItemSeparatorComponent={<View className="my-1"></View>}
                     ListEmptyComponent={
                         <View className="mt-16 items-center gap-3">
                             <View className="bg-muted rounded-full p-5">
-                                <TrophyIcon size={36} color="hsl(var(--muted-foreground))" />
+                                <TrophyIcon size={36} color="#737373" />
                             </View>
                             <InterText className="text-foreground text-lg font-semibold">
                                 {loadError ? 'Errore nel caricamento' : 'Nessun torneo trovato'}
@@ -209,6 +118,11 @@ export default function TorneiScreen() {
                             </TouchableOpacity>
                         </Link>
                     )}
+                    renderSectionHeader={({ section: { title } }) => (
+                        <View style={styles.sectionHeaderContainer}>
+                            <InterText style={styles.sectionHeaderTitle}>{title}</InterText>
+                        </View>
+                    )}
                 />
             )}
         </View>
@@ -216,6 +130,21 @@ export default function TorneiScreen() {
 }
 
 const styles = StyleSheet.create({
+    cardWrapper: {
+        marginBottom: 12,
+    },
+    sectionHeaderContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 20,
+        marginBottom: 12,
+        gap: 12,
+    },
+    sectionHeaderTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#0f172a',
+    },
     headerRow: {
         flexDirection: 'row',
         alignItems: 'center',

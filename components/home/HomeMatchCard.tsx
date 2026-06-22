@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { CalendarDaysIcon } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 
 type Props = {
     fase: string | null;

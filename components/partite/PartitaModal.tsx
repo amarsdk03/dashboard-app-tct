@@ -8,10 +8,10 @@ import {
     View,
 } from 'react-native';
 import { ArrowLeftIcon, PencilIcon, PlusIcon, SaveIcon, Trash2Icon } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 import DateTimePickerField from '@/components/input/DateTimePickerField';
 import TextInputField from '@/components/input/TextInputField';
-import errorMessage from '@/components/ErrorMessage';
+import errorMessage from '@/components/generic/ErrorMessage';
 import {
     getAzioniPartita,
     getDatiPartita,

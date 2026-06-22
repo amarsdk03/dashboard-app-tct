@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { Link, type Href, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { PlusIcon, SearchIcon, SlidersHorizontal, UserRound } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
-import errorMessage from '@/components/ErrorMessage';
+import { InterText } from '@/components/generic/InterText';
+import errorMessage from '@/components/generic/ErrorMessage';
 import GiocatoreCard from '@/components/giocatori/GiocatoreCard';
 import { getListaGiocatori, listaGiocatoriType } from '@/data/giocatori';
 import { getListaSquadre, listaSquadreType } from '@/data/squadre';
@@ -305,7 +305,10 @@ export default function GiocatoriScreen() {
                                             onPress={() => handleSelectTorneo(torneo)}
                                             activeOpacity={0.85}>
                                             <InterText
-                                                style={[styles.chipText, active && styles.chipTextActive]}
+                                                style={[
+                                                    styles.chipText,
+                                                    active && styles.chipTextActive,
+                                                ]}
                                                 numberOfLines={1}>
                                                 {torneo.nome}
                                             </InterText>
@@ -323,7 +326,10 @@ export default function GiocatoriScreen() {
                                     onPress={() => setSelectedSquadra(null)}
                                     activeOpacity={0.85}>
                                     <InterText
-                                        style={[styles.chipText, !selectedSquadra && styles.chipTextActive]}>
+                                        style={[
+                                            styles.chipText,
+                                            !selectedSquadra && styles.chipTextActive,
+                                        ]}>
                                         Tutte
                                     </InterText>
                                 </TouchableOpacity>
@@ -336,7 +342,10 @@ export default function GiocatoriScreen() {
                                             onPress={() => setSelectedSquadra(squadra)}
                                             activeOpacity={0.85}>
                                             <InterText
-                                                style={[styles.chipText, active && styles.chipTextActive]}
+                                                style={[
+                                                    styles.chipText,
+                                                    active && styles.chipTextActive,
+                                                ]}
                                                 numberOfLines={1}>
                                                 {squadra.s_nome}
                                             </InterText>
@@ -354,7 +363,10 @@ export default function GiocatoriScreen() {
                                     onPress={() => setSelectedRole(null)}
                                     activeOpacity={0.85}>
                                     <InterText
-                                        style={[styles.chipText, !selectedRole && styles.chipTextActive]}>
+                                        style={[
+                                            styles.chipText,
+                                            !selectedRole && styles.chipTextActive,
+                                        ]}>
                                         Tutti
                                     </InterText>
                                 </TouchableOpacity>
@@ -367,7 +379,10 @@ export default function GiocatoriScreen() {
                                             onPress={() => setSelectedRole(ruolo)}
                                             activeOpacity={0.85}>
                                             <InterText
-                                                style={[styles.chipText, active && styles.chipTextActive]}>
+                                                style={[
+                                                    styles.chipText,
+                                                    active && styles.chipTextActive,
+                                                ]}>
                                                 {ruolo}
                                             </InterText>
                                         </TouchableOpacity>
@@ -378,7 +393,10 @@ export default function GiocatoriScreen() {
 
                         <View style={styles.filterActions}>
                             <TouchableOpacity
-                                style={[styles.actionChip, captainFilter && styles.actionChipActive]}
+                                style={[
+                                    styles.actionChip,
+                                    captainFilter && styles.actionChipActive,
+                                ]}
                                 onPress={() => setCaptainFilter((value) => !value)}
                                 activeOpacity={0.85}>
                                 <InterText
@@ -415,7 +433,8 @@ export default function GiocatoriScreen() {
                                     style={styles.tabButton}
                                     onPress={() => handleTabPress(tab.key)}
                                     activeOpacity={0.85}>
-                                    <InterText style={[styles.tabText, active && styles.tabTextActive]}>
+                                    <InterText
+                                        style={[styles.tabText, active && styles.tabTextActive]}>
                                         {tab.label}
                                     </InterText>
                                     {active && <View style={styles.tabIndicator} />}
@@ -423,9 +442,7 @@ export default function GiocatoriScreen() {
                             );
                         })}
                     </View>
-                    <InterText style={styles.countText}>
-                        {count ?? 0} risultati totali
-                    </InterText>
+                    <InterText style={styles.countText}>{count ?? 0} risultati totali</InterText>
                 </View>
 
                 {selectedTorneo && (
@@ -462,7 +479,7 @@ export default function GiocatoriScreen() {
                     ListEmptyComponent={
                         <View className="mt-16 items-center gap-3">
                             <View className="bg-muted rounded-full p-5">
-                                <UserRound size={36} color="hsl(var(--muted-foreground))" />
+                                <UserRound size={36} color="#737373" />
                             </View>
                             <InterText className="text-foreground text-lg font-semibold">
                                 Nessun giocatore trovato

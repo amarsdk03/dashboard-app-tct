@@ -1,7 +1,7 @@
 import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ShieldAlertIcon } from 'lucide-react-native';
 
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 import { useAuthContext } from '@/hooks/use-auth-context';
 import { getDeniedAccessReason } from '@/lib/auth-guards';
 import { supabase } from '@/lib/supabase';

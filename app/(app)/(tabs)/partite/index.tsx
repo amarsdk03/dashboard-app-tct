@@ -9,9 +9,9 @@ import {
 } from 'react-native';
 import { Link, type Href, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { CalendarDaysIcon, PlusIcon, SearchIcon, SlidersHorizontal } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 import PartitaCard from '@/components/partite/PartitaCard';
-import errorMessage from '@/components/ErrorMessage';
+import errorMessage from '@/components/generic/ErrorMessage';
 import {
     getListaCategorie,
     getListaPartite,
@@ -194,23 +194,14 @@ export default function PartiteScreen() {
     return (
         <View className="bg-background flex-1">
             <View className="bg-background p-6 pb-4">
-                <View style={styles.headerRow}>
-                    <InterText style={styles.title}>Lista partite</InterText>
-                    <Link href={createHref} asChild>
-                        <TouchableOpacity style={styles.roundButton} activeOpacity={0.85}>
-                            <PlusIcon size={22} color="#ffffff" strokeWidth={3} />
-                        </TouchableOpacity>
-                    </Link>
-                </View>
-
                 <View style={styles.searchRow}>
                     <View style={styles.searchBox}>
-                        <SearchIcon size={18} color="#6b7280" />
+                        <SearchIcon size={18} color="#b3b3b3" />
                         <TextInput
                             value={search}
                             onChangeText={setSearch}
-                            placeholder="Cerca per squadre, categorie..."
-                            placeholderTextColor="#9ca3af"
+                            placeholder="Cerca per squadre, girone..."
+                            placeholderTextColor="#dadada"
                             style={styles.searchInput}
                         />
                     </View>
@@ -220,7 +211,7 @@ export default function PartiteScreen() {
                         activeOpacity={0.85}>
                         <SlidersHorizontal
                             size={20}
-                            color={filterOpen ? '#ffffff' : '#0f6096'}
+                            color={filterOpen ? '#ffffff' : '#b98e6b'}
                             strokeWidth={2.5}
                         />
                     </TouchableOpacity>
@@ -394,11 +385,11 @@ export default function PartiteScreen() {
                     refreshing={refreshing}
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
-                        <View className="mt-16 items-center gap-3">
-                            <View className="bg-muted rounded-full p-5">
-                                <CalendarDaysIcon size={36} color="hsl(var(--muted-foreground))" />
+                        <View className="mt-32 items-center gap-3">
+                            <View className="bg-muted rounded-full p-2">
+                                <CalendarDaysIcon size={48} color="#737373" />
                             </View>
-                            <InterText className="text-foreground text-lg font-semibold">
+                            <InterText className="text-lg font-semibold text-gray-500">
                                 Nessuna partita trovata
                             </InterText>
                         </View>
@@ -440,33 +431,6 @@ export default function PartiteScreen() {
 }
 
 const styles = StyleSheet.create({
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 12,
-        marginBottom: 18,
-    },
-    title: {
-        flex: 1,
-        color: '#0f172a',
-        fontFamily: 'Inter-Bold',
-        fontSize: 30,
-        fontWeight: '700',
-    },
-    roundButton: {
-        width: 42,
-        height: 42,
-        borderRadius: 21,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#b98e6b',
-        shadowColor: '#0f172a',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 3,
-    },
     searchRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -477,9 +441,9 @@ const styles = StyleSheet.create({
         flex: 1,
         minHeight: 50,
         borderRadius: 16,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: '#ffffff',
+        borderColor: '#d9d9d9',
         borderWidth: 1,
-        borderColor: '#e2e8f0',
         flexDirection: 'row',
         alignItems: 'center',
         gap: 10,
@@ -487,25 +451,23 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        color: '#0f172a',
+        color: '#0d0703',
         fontFamily: 'Inter',
-        fontSize: 15,
-        minWidth: 0,
-        paddingVertical: 0,
+        fontSize: 13,
     },
     filterButton: {
         width: 50,
         height: 50,
         borderRadius: 16,
-        backgroundColor: '#eef6fb',
+        backgroundColor: '#e8d1be',
+        borderColor: '#e6cab8',
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: '#dbeafe',
     },
     filterButtonActive: {
-        backgroundColor: '#0f6096',
-        borderColor: '#0f6096',
+        backgroundColor: '#b98e6b',
+        borderColor: '#b98e6b',
     },
     filterPanel: {
         backgroundColor: '#ffffff',
@@ -515,7 +477,7 @@ const styles = StyleSheet.create({
         padding: 14,
         marginBottom: 16,
         gap: 2,
-        shadowColor: '#0f172a',
+        shadowColor: '#808080',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.03,
         shadowRadius: 12,

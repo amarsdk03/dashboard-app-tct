@@ -17,8 +17,8 @@
 - Create `components/input/NationalityAutocompleteField.tsx`: field UI for nationality suggestions.
 - Modify `components/giocatori/GiocatoreModal.tsx`: remove visible hint chips and use the autocomplete field.
 - Modify `data/partite.ts`: add match count helper and abort signals on list queries.
-- Create `components/tornei/TorneoLinkedDataSummary.tsx`: count cards plus navigation actions.
-- Modify `components/tornei/TorneoModal.tsx`: load linked summary in view mode and render the summary component.
+- Create `components/tornei/TorneoLinkedData.tsx`: count cards plus navigation actions.
+- Modify `components/tornei/TorneoModalForm.tsx`: load linked summary in view mode and render the summary component.
 - Modify `app/(app)/(tabs)/giocatori/index.tsx`: read `torneoId` query param and initialize selected tournament.
 - Create `components/squadre/SquadraCard.tsx`: compact squad row card.
 - Modify `app/(app)/(tabs)/squadre/index.tsx`: real filtered squad list.
@@ -203,8 +203,8 @@ git commit -m "feat: add nationality autocomplete field"
 ## Task 5: Tournament Linked Data Summary
 
 **Files:**
-- Create: `components/tornei/TorneoLinkedDataSummary.tsx`
-- Modify: `components/tornei/TorneoModal.tsx`
+- Create: `components/tornei/TorneoLinkedData.tsx`
+- Modify: `components/tornei/TorneoModalForm.tsx`
 
 - [ ] **Step 1: Create summary component**
 
@@ -240,7 +240,7 @@ Render three count tiles and three `Link` actions using the current tournament i
 </Link>
 ```
 
-- [ ] **Step 2: Load summary in `TorneoModal`**
+- [ ] **Step 2: Load summary in `TorneoModalForm`**
 
 In view mode, use `getListaSquadre(null, torneoId)`, `getListaGiocatori('', torneoId, 1, 1)`, and `getConteggioPartiteTorneo(torneoId)`. Keep failures non-blocking with `errorMessage`.
 
@@ -253,7 +253,7 @@ Expected: PASS.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add components/tornei/TorneoLinkedDataSummary.tsx components/tornei/TorneoModal.tsx
+git add components/tornei/TorneoLinkedData.tsx components/tornei/TorneoModalForm.tsx
 git commit -m "feat: add torneo linked data summary"
 ```
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Image, StyleSheet, Platform } from 'react-native';
 import { MapPin, Calendar } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 
 interface TorneoCardProps {
     id: string | number;
@@ -28,12 +28,18 @@ function buildDateRange(
 ): string | null {
     const start = formatDate(dataInizio);
     const end = formatDate(dataFine);
+
     if (!start && !end) return null;
-    if (start && end) return `${start} - ${end}`;
+
+    if (start && end) {
+        const dFine = typeof dataFine === 'string' ? new Date(dataFine) : dataFine;
+        const anno = dFine && !isNaN(dFine.getTime()) ? dFine.getFullYear() : '';
+
+        return `${start} - ${end} ${anno}`.trim();
+    }
+
     return start ?? end;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function TorneoCard({
     id,
@@ -89,8 +95,6 @@ export default function TorneoCard({
     );
 }
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-
 const COLORS = {
     surface: '#FFFFFF',
     border: '#E8EAF0',
@@ -102,9 +106,7 @@ const COLORS = {
     icon: '#9CA3AF',
     idBg: '#F3F4F6',
     idText: '#9CA3AF',
-};
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
+}
 
 const styles = StyleSheet.create({
     card: {

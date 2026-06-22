@@ -9,9 +9,9 @@ import {
 } from 'react-native';
 import { Link, type Href, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { PlusIcon, SearchIcon, ShieldIcon, SlidersHorizontal } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 import SquadraCard from '@/components/squadre/SquadraCard';
-import errorMessage from '@/components/ErrorMessage';
+import errorMessage from '@/components/generic/ErrorMessage';
 import { getListaSquadre, listaSquadreType } from '@/data/squadre';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
 
@@ -221,7 +221,7 @@ export default function SquadreScreen() {
                     ListEmptyComponent={
                         <View className="mt-16 items-center gap-3">
                             <View className="bg-muted rounded-full p-5">
-                                <ShieldIcon size={36} color="hsl(var(--muted-foreground))" />
+                                <ShieldIcon size={36} color="#737373" />
                             </View>
                             <InterText className="text-foreground text-lg font-semibold">
                                 Nessuna squadra trovata

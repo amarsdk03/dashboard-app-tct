@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View, ImageBackground, Image, Pressable, Alert } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { Text } from '@/components/ui/text';
+import { InterText } from '@/components/generic/InterText';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { Input } from '@/components/ui/input';
 
@@ -38,16 +38,16 @@ export default function LoginScreen() {
                 className="flex-1 items-center"
                 resizeMode="cover"
                 style={{ backgroundColor: '#8e8171' }}>
-                <View className="w-96 mt-24 justify-center px-8">
+                <View className="mt-24 w-96 justify-center px-8">
                     <View className="mb-10 items-center">
                         <Image
                             source={require('@/assets/images/logo.png')}
                             style={{ width: 180, height: 180 }}
                             resizeMode="contain"
                         />
-                        <Text className="text-3xl font-bold text-white">
+                        <InterText className="text-3xl font-bold text-white">
                             Dashboard Torneo
-                        </Text>
+                        </InterText>
                     </View>
 
                     <View className="gap-4">
@@ -59,7 +59,7 @@ export default function LoginScreen() {
                             autoCapitalize="none"
                             keyboardType="email-address"
                             style={[styles.input]}
-                            className="h-12 rounded-2xl border-white text-white bg-black/40"
+                            className="h-12 rounded-2xl border-white bg-black/40 text-white"
                         />
 
                         <View className="relative justify-center">
@@ -71,7 +71,7 @@ export default function LoginScreen() {
                                 placeholderTextColor="rgba(255, 255, 255, 0.8)"
                                 autoCapitalize="none"
                                 style={[styles.input]}
-                                className="h-12 rounded-2xl border-white text-white bg-black/40"
+                                className="h-12 rounded-2xl border-white bg-black/40 text-white"
                             />
                             <Pressable
                                 className="absolute right-2 p-1"
@@ -91,9 +91,9 @@ export default function LoginScreen() {
                             disabled={loading}
                             style={[styles.loginButton]}
                             className="h-12 rounded-2xl bg-[#b98e6b]">
-                            <Text className="text-lg font-bold text-white">
-                                { loading ? 'Accesso in corso...' : 'Accedi' }
-                            </Text>
+                            <InterText className="text-lg font-bold text-white">
+                                {loading ? 'Accesso in corso...' : 'Accedi'}
+                            </InterText>
                         </Button>
                     </View>
                 </View>

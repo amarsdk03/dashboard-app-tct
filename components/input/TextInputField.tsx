@@ -1,5 +1,5 @@
 import { StyleSheet, TextInput, View } from 'react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 import React from 'react';
 
 interface TextInputFieldProps {
@@ -9,14 +9,18 @@ interface TextInputFieldProps {
     onChange: (text: string) => void;
     placeholder?: string;
     multiline?: boolean;
+    required?: boolean;
 }
 
-export default function TextInputField({ label, value, readonly = false, onChange, placeholder, multiline }: TextInputFieldProps) {
+export default function TextInputField({ label, value, readonly = false, onChange, placeholder, multiline, required = false }: TextInputFieldProps) {
     const placeholderValue = readonly ? 'N/A' : placeholder;
 
     return (
         <View style={styles.inputContainer}>
-            <InterText style={styles.label}>{label}:</InterText>
+            <InterText style={styles.label}>
+                {required && <InterText style={styles.asterisk}>*</InterText>}
+                {label}:
+            </InterText>
             <TextInput
                 editable={!readonly}
                 style={[
@@ -26,7 +30,7 @@ export default function TextInputField({ label, value, readonly = false, onChang
                     { fontFamily: 'Inter' },
                 ]}
                 placeholder={placeholderValue}
-                placeholderTextColor={readonly ? '#737373' : 'rgb(0 0 0 / 0.4)'}
+                placeholderTextColor={'#808080'}
                 value={value || ''}
                 onChangeText={(text) => onChange(text)}
                 multiline={multiline}
@@ -39,32 +43,40 @@ export default function TextInputField({ label, value, readonly = false, onChang
 
 const styles = StyleSheet.create({
     inputContainer: {
-        marginBottom: 20,
+        marginBottom: 5,
     },
     label: {
         fontSize: 14,
         fontWeight: '500',
         color: '#111111',
-        marginBottom: 6,
+        marginBottom: 5,
+    },
+    asterisk: {
+        color: '#d93636',
+        fontWeight: '800',
+        letterSpacing: 2,
     },
     input: {
-        backgroundColor: '#faf6f2',
+        backgroundColor: '#ffffff',
+        borderColor: '#e6e6e6',
+        color: '#404040',
         borderWidth: 1,
-        borderColor: '#e0d3ca',
         borderRadius: 10,
         paddingHorizontal: 12,
         paddingVertical: 12,
         fontSize: 13,
-        color: '#402c20',
         transitionProperty: 'border-color', // Conceptually for web, handled via state on native
     },
     readonlyInput: {
-        backgroundColor: '#ffffff',
-        paddingHorizontal: 0,
-        paddingVertical: 0,
-        borderRadius: 0,
-        borderColor: '#ffffff00',
-        color: '#737373',
+        backgroundColor: '#f2f2f2',
+        borderColor: '#f0f0f0',
+        color: '#808080',
+        borderWidth: 1,
+        borderRadius: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+        fontSize: 13,
+        transitionProperty: 'border-color', // Conceptually for web, handled via state on native
     },
     textArea: {
         height: 80,

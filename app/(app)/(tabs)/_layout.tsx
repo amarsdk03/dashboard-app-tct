@@ -1,7 +1,9 @@
 import { Tabs } from 'expo-router';
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Image, StyleSheet, Platform, View } from 'react-native';
 import { Award, CalendarDays, ShieldUser, UsersRound } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
+import React from 'react';
+import CreateButton from '@/components/generic/CreateButton';
 
 /*
 Navbar principale dell'applicazione, basata sulle Tabs di Expo Router:
@@ -12,7 +14,7 @@ export default function BottomNavbar() {
         <Tabs
             screenOptions={{
                 headerShown: true,
-                tabBarActiveTintColor: '#b3642c',
+                tabBarActiveTintColor: '#bf7f4b',
                 tabBarInactiveTintColor: '#888888',
                 tabBarStyle: {
                     margin: 10,
@@ -22,30 +24,55 @@ export default function BottomNavbar() {
                     justifyContent: 'center',
                     alignSelf: 'center',
                     borderRadius: 50,
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    backgroundColor:
+                        Platform.OS !== 'android'
+                            ? 'rgba(255, 255, 255, 0.25)'
+                            : 'rgba(255, 255, 255, 0.8)',
                     borderTopWidth: 0,
-                    elevation: 0,
+                    elevation: 8,
                     shadowColor: '#000',
                     shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.1,
+                    shadowOpacity: 0.2,
                     shadowRadius: 12,
-                    overflow: 'hidden',
+                    overflow: Platform.OS === 'android' ? 'visible' : 'hidden',
                 },
                 tabBarLabelStyle: {
                     fontFamily: 'Inter',
                 },
                 tabBarBackground: () => (
-                    <BlurView intensity={25} tint="light" style={StyleSheet.absoluteFill} />
+                    <View
+                        style={{
+                            ...StyleSheet.absoluteFill,
+                            borderRadius: 50,
+                            overflow: 'hidden',
+                            backgroundColor: 'transparent',
+                        }}>
+                        <BlurView
+                            intensity={Platform.OS === 'web' ? 20 : 100}
+                            tint="light"
+                            style={StyleSheet.absoluteFill}
+                        />
+                    </View>
                 ),
             }}>
             <Tabs.Screen
                 name="tornei"
                 options={{
                     title: 'Tornei',
+                    headerTitle: 'Gestione tornei',
                     headerTitleStyle: {
+                        fontSize: 24,
                         fontFamily: 'Inter',
+                        fontWeight: '700',
+                    },
+                    headerLeftContainerStyle: {
+                        padding: 1.5,
+                    },
+                    headerRightContainerStyle: {
+                        padding: 18,
                     },
                     tabBarIcon: ({ color }) => <Award color={color} size={24} />,
+                    headerRight: () => <CreateButton link={'/tornei/modal?mode=create'} />,
                 }}
             />
 
@@ -53,10 +80,20 @@ export default function BottomNavbar() {
                 name="partite"
                 options={{
                     title: 'Partite',
+                    headerTitle: 'Gestione partite',
                     headerTitleStyle: {
+                        fontSize: 24,
                         fontFamily: 'Inter',
+                        fontWeight: '700',
+                    },
+                    headerLeftContainerStyle: {
+                        padding: 1.5,
+                    },
+                    headerRightContainerStyle: {
+                        padding: 18,
                     },
                     tabBarIcon: ({ color }) => <CalendarDays color={color} size={24} />,
+                    headerRight: () => <CreateButton link={'/partite/modal?mode=create'} />,
                 }}
             />
 
@@ -93,6 +130,7 @@ export default function BottomNavbar() {
                 name="squadre"
                 options={{
                     title: 'Squadre',
+                    headerTitle: 'Gestione squadre',
                     headerTitleStyle: {
                         fontFamily: 'Inter',
                     },
@@ -104,6 +142,7 @@ export default function BottomNavbar() {
                 name="giocatori"
                 options={{
                     title: 'Giocatori',
+                    headerTitle: 'Gestione giocatori',
                     headerTitleStyle: {
                         fontFamily: 'Inter',
                     },

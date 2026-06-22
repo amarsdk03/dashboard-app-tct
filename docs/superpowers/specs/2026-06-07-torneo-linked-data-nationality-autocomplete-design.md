@@ -28,7 +28,7 @@ This keeps the tournament modal light while making the relationship between tour
 
 ## Tournament Detail Behavior
 
-`components/tornei/TorneoModal.tsx` will load linked-data summary only in `view` mode and only when `torneoId` exists.
+`components/tornei/TorneoModalForm.tsx` will load linked-data summary only in `view` mode and only when `torneoId` exists.
 
 The summary should contain:
 
@@ -83,10 +83,10 @@ Create focused components instead of adding too much responsibility to existing 
   - uses `TextInput`, `TouchableOpacity`, `View`, `StyleSheet`, and `InterText`;
   - follows existing input colors and radii.
 
-- `components/tornei/TorneoLinkedDataSummary.tsx`
+- `components/tornei/TorneoLinkedData.tsx`
   - visual section for counters and navigation actions;
   - receives counts, loading state, and `torneoId`;
-  - does not fetch data directly; `TorneoModal` owns loading and error handling.
+  - does not fetch data directly; `TorneoModalForm` owns loading and error handling.
 
 - `components/squadre/SquadraCard.tsx`
   - compact card for squad list rows.

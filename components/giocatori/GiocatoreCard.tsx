@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { MoreVertical, SquarePen, UsersRound } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 
 type Props = {
     id: number | string;

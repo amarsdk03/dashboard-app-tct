@@ -1,30 +1,46 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import TorneoModal, { TorneoModalMode } from '@/components/tornei/TorneoModal';
+import TorneoModalSummary from '@/components/tornei/TorneoModalSummary';
+import TorneoModalForm from '@/components/tornei/TorneoModalForm';
 import { StyleSheet, View } from 'react-native';
+
+export type TorneoModalMode = 'view' | 'create' | 'edit';
 
 export default function TorneoModalRoute() {
     const params = useLocalSearchParams<{
-        mode?: TorneoModalMode;
+        mode: TorneoModalMode;
         torneoId?: string;
     }>();
 
     const mode: TorneoModalMode =
         params.mode === 'view' || params.mode === 'edit' ? params.mode : 'create';
-    const torneoId = params.torneoId ? Number(params.torneoId) : undefined;
+    const torneoId = params.torneoId ? Number(params.torneoId) : null;
 
     return (
         <View style={styles.container}>
-            <TorneoModal
-                mode={mode}
-                torneoId={torneoId}
-                onClose={() => {
-                    if (router.canGoBack()) {
-                        router.back();
-                    } else {
-                        router.replace('/tornei');
-                    }
-                }}
-            />
+            {mode === 'view' ? (
+                <TorneoModalSummary
+                    torneoId={torneoId}
+                    onClose={() => {
+                        if (router.canGoBack()) {
+                            router.back();
+                        } else {
+                            router.replace('/tornei');
+                        }
+                    }}
+                />
+            ) : (
+                <TorneoModalForm
+                    mode={mode}
+                    torneoId={torneoId}
+                    onClose={() => {
+                        if (router.canGoBack()) {
+                            router.back();
+                        } else {
+                            router.replace('/tornei');
+                        }
+                    }}
+                />
+            )}
         </View>
     );
 }

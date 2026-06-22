@@ -39,7 +39,7 @@ app/(app)/(tabs)/index.tsx   # Home tab
 app/(app)/(tabs)/tornei/     # Nested Stack for Tornei tab
   _layout.tsx                #   Stack with modal screen registered
   index.tsx                  #   List screen
-  modal.tsx                  #   Route that bridges URL params → TorneoModal component
+  modal.tsx                  #   Route that bridges URL params → TorneoModalForm component
 ```
 
 The modal pattern for every entity: a `modal.tsx` route receives `?mode=create|view|edit&<entity>Id=<n>` search params via `useLocalSearchParams`, then renders the shared `<EntityModal>` component. Navigate to modals with `<Link href="/tornei/modal?mode=create">`.

@@ -8,12 +8,12 @@ import {
 } from 'react-native';
 import { Link, type Href } from 'expo-router';
 import { ArrowLeftIcon, SaveIcon, SquarePenIcon } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 import DateTimePickerField from '@/components/input/DateTimePickerField';
 import ImageInputField from '@/components/input/ImageInputField';
 import NationalityAutocompleteField from '@/components/input/NationalityAutocompleteField';
 import TextInputField from '@/components/input/TextInputField';
-import errorMessage from '@/components/ErrorMessage';
+import errorMessage from '@/components/generic/ErrorMessage';
 import {
     createGiocatoreConIscrizione,
     getDatiGiocatoreConIscrizione,

@@ -22,7 +22,7 @@ import {
     ShieldCheckIcon,
     UserRoundIcon,
 } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 import { useAuthContext } from '@/hooks/use-auth-context';
 import { supabase } from '@/lib/supabase';
 

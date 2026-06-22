@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Image, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageIcon, LinkIcon, UploadIcon, XIcon } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 
 type Props = {
     label: string;

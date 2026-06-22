@@ -19,10 +19,10 @@ import {
     SquarePenIcon,
     XIcon,
 } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 import ImageInputField from '@/components/input/ImageInputField';
 import TextInputField from '@/components/input/TextInputField';
-import errorMessage from '@/components/ErrorMessage';
+import errorMessage from '@/components/generic/ErrorMessage';
 import { insertGiocatore } from '@/data/giocatori';
 import {
     createSquadraConRoster,
@@ -38,6 +38,7 @@ import {
     updateSquadra,
 } from '@/data/squadre';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
+import SelectableField from '@/components/input/SelectableField';
 
 export type SquadraModalMode = 'view' | 'create' | 'edit';
 
@@ -589,15 +590,14 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                 )}
 
                 {isCreate && (
-                    <SelectSection
+                    <SelectableField
                         label="Torneo"
                         readonly={readonly}
                         options={tornei}
-                        selectedId={form.idTorneo}
-                        getId={(torneo) => torneo.id}
-                        getLabel={(torneo) => torneo.nome ?? 'Torneo senza nome'}
+                        selectedId={form.idTorneo?.toString() || null}
+                        getId={(torneo) => torneo.id.toString()}
+                        getValue={(torneo) => torneo.nome}
                         onSelect={(torneo) => selectCreateTorneo(torneo.id)}
-                        emptyText="Nessun torneo disponibile"
                     />
                 )}
 
@@ -771,70 +771,6 @@ function StatTile({ label, value }: { label: string; value: number }) {
         <View style={styles.statTile}>
             <InterText style={styles.statValue}>{value}</InterText>
             <InterText style={styles.statLabel}>{label}</InterText>
-        </View>
-    );
-}
-
-type SelectSectionProps<T> = {
-    label: string;
-    readonly: boolean;
-    options: T[];
-    selectedId: number | null;
-    getId: (item: T) => number | null;
-    getLabel: (item: T) => string;
-    onSelect: (item: T) => void;
-    emptyText: string;
-};
-
-function SelectSection<T>({
-    label,
-    readonly,
-    options,
-    selectedId,
-    getId,
-    getLabel,
-    onSelect,
-    emptyText,
-}: SelectSectionProps<T>) {
-    const selected = options.find((option) => getId(option) === selectedId) ?? null;
-
-    if (readonly) {
-        return (
-            <View style={styles.inputGroup}>
-                <InterText style={styles.label}>{label}:</InterText>
-                <InterText style={styles.readonlyValue}>
-                    {selected ? getLabel(selected) : 'N/A'}
-                </InterText>
-            </View>
-        );
-    }
-
-    return (
-        <View style={styles.inputGroup}>
-            <InterText style={styles.label}>{label}:</InterText>
-            <View style={styles.chipRow}>
-                {options.length === 0 ? (
-                    <InterText style={styles.emptyOptions}>{emptyText}</InterText>
-                ) : (
-                    options.map((option) => {
-                        const id = getId(option);
-                        const active = id === selectedId;
-                        return (
-                            <TouchableOpacity
-                                key={String(id ?? getLabel(option))}
-                                style={[styles.chip, active && styles.chipActive]}
-                                onPress={() => onSelect(option)}
-                                activeOpacity={0.85}>
-                                <InterText
-                                    style={[styles.chipText, active && styles.chipTextActive]}
-                                    numberOfLines={1}>
-                                    {getLabel(option)}
-                                </InterText>
-                            </TouchableOpacity>
-                        );
-                    })
-                )}
-            </View>
         </View>
     );
 }

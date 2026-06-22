@@ -7,7 +7,7 @@ import {
     ShieldIcon,
     UsersRoundIcon,
 } from 'lucide-react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 
 type Props = {
     torneoId: number;
@@ -35,7 +35,7 @@ const ACTIONS = [
     },
 ] as const;
 
-export default function TorneoLinkedDataSummary({
+export default function TorneoLinkedData({
     torneoId,
     loading,
     squadreCount,
@@ -45,7 +45,7 @@ export default function TorneoLinkedDataSummary({
     return (
         <View style={styles.container}>
             <View style={styles.headerRow}>
-                <InterText style={styles.title}>Dati collegati</InterText>
+                <InterText style={styles.title}>Dati collegati al torneo:</InterText>
                 {loading && <ActivityIndicator size="small" />}
             </View>
 
@@ -87,26 +87,30 @@ function CountTile({ label, value }: { label: string; value: number }) {
 
 const styles = StyleSheet.create({
     container: {
-        borderWidth: 1,
-        borderColor: '#f1f5f9',
-        backgroundColor: '#ffffff',
-        borderRadius: 16,
-        padding: 14,
-        marginTop: 4,
-        marginBottom: 18,
+        borderTopColor: '#e2e8f0',
+        borderTopWidth: 1,
+        paddingTop: 25,
+        paddingBottom: 15,
     },
     headerRow: {
         minHeight: 24,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 12,
+        marginBottom: 16,
     },
     title: {
         color: '#111111',
         fontFamily: 'Inter-Bold',
         fontSize: 17,
         fontWeight: '700',
+    },
+    helperText: {
+        color: '#64748b',
+        fontSize: 13,
+        fontWeight: '400',
+        lineHeight: 19,
+        marginBottom: 20,
     },
     countGrid: {
         flexDirection: 'row',
@@ -116,26 +120,25 @@ const styles = StyleSheet.create({
     countTile: {
         flex: 1,
         minHeight: 72,
-        borderWidth: 1,
-        borderColor: '#e2e8f0',
-        backgroundColor: '#f8fafc',
+        borderWidth: 2,
+        borderColor: '#e6d4c3',
+        backgroundColor: '#f2e6da',
         borderRadius: 12,
         paddingHorizontal: 10,
         paddingVertical: 10,
         justifyContent: 'center',
     },
     countValue: {
-        color: '#0f172a',
+        color: '#997a4d',
         fontFamily: 'Inter-Bold',
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: '700',
     },
     countLabel: {
-        color: '#64748b',
+        color: '#806640',
         fontFamily: 'Inter-Medium',
         fontSize: 12,
         fontWeight: '500',
-        marginTop: 2,
     },
     actions: {
         gap: 8,

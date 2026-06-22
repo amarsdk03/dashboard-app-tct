@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
-import { InterText } from '@/components/InterText';
+import { InterText } from '@/components/generic/InterText';
 
 // Lazy-load the native picker only on native platforms
 let DateTimePicker: any = null;
@@ -40,7 +40,7 @@ export default function DateTimePickerField(
         readonly = false,
         value,
         onChange,
-        placeholder = 'Seleziona data...',
+        placeholder = 'Seleziona data',
     }: DateTimePickerFieldProps) {
     const [showPicker, setShowPicker] = useState(false);
     const webInputRef = useRef<any>(null);
@@ -70,7 +70,7 @@ export default function DateTimePickerField(
                     style={[
                         styles.inputText,
                         !value && styles.placeholder,
-                        readonly && styles.readonlyPlaceholder,
+                        readonly && styles.readonlyInputText,
                     ]}>
                     {value ? value.toLocaleDateString() : placeholderValue}
                 </Text>
@@ -128,20 +128,20 @@ export default function DateTimePickerField(
 
 const styles = StyleSheet.create({
     inputContainer: {
-        marginBottom: 20,
+        marginBottom: 5,
         width: '100%',
     },
     label: {
         fontSize: 14,
         fontWeight: '500',
         color: '#111111',
-        marginBottom: 6,
+        marginBottom: 5,
     },
     fieldBox: {
         position: 'relative',
-        backgroundColor: '#faf6f2',
+        backgroundColor: '#ffffff',
+        borderColor: '#e6e6e6',
         borderWidth: 1,
-        borderColor: '#e0d3ca',
         borderRadius: 10,
         paddingHorizontal: 12,
         paddingVertical: 12,
@@ -152,23 +152,28 @@ const styles = StyleSheet.create({
         minHeight: 44,
     },
     readonlyFieldBox: {
-        backgroundColor: '#ffffff',
-        paddingHorizontal: 0,
-        paddingVertical: 0,
-        borderRadius: 0,
-        minHeight: 0,
-        borderColor: '#ffffff00',
-        color: '#737373',
+        backgroundColor: '#f2f2f2',
+        borderColor: '#f0f0f0',
+        color: '#808080',
+        borderWidth: 1,
+        borderRadius: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: 44,
     },
     inputText: {
         fontSize: 13,
-        color: '#402c20',
+        color: '#404040',
+    },
+    readonlyInputText: {
+        color: '#808080',
     },
     placeholder: {
-        color: '#00000066',
-    },
-    readonlyPlaceholder: {
-        color: '#737373',
+        color: 'rgb(0 0 0 / 0.25)',
     },
     clearBtn: {
         position: 'absolute',
