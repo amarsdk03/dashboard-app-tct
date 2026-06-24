@@ -11,7 +11,7 @@ type Props = {
     icon: React.ReactNode;
 };
 
-const toneStyles: Record<Tone, { backgroundColor: string; borderColor: string }> = {
+const cardToneStyles: Record<Tone, { backgroundColor: string; borderColor: string }> = {
     red: {
         backgroundColor: '#fff1f2',
         borderColor: '#ffe4e6',
@@ -30,14 +30,29 @@ const toneStyles: Record<Tone, { backgroundColor: string; borderColor: string }>
     },
 };
 
+const textToneStyles: Record<Tone, { color: string }> = {
+    red: {
+        color: '#59161a',
+    },
+    gold: {
+        color: '#877109',
+    },
+    green: {
+        color: '#13732f',
+    },
+    blue: {
+        color: '#123a73',
+    },
+};
+
 export default function HomeStatCard({ label, value, tone, icon }: Props) {
     return (
-        <View style={[styles.card, toneStyles[tone]]}>
+        <View style={[styles.card, cardToneStyles[tone]]}>
             <View style={styles.topRow}>
                 <View style={styles.iconBox}>{icon}</View>
-                <InterText style={styles.value}>{value}</InterText>
+                <InterText style={[styles.value, textToneStyles[tone]]}>{value}</InterText>
             </View>
-            <InterText style={styles.label} numberOfLines={2}>
+            <InterText style={[styles.label, textToneStyles[tone]]} numberOfLines={2}>
                 {label}
             </InterText>
         </View>
@@ -48,35 +63,31 @@ const styles = StyleSheet.create({
     card: {
         flex: 1,
         minWidth: 0,
-        minHeight: 118,
-        borderRadius: 16,
-        borderWidth: 1,
-        padding: 14,
-        justifyContent: 'space-between',
-        shadowColor: '#0f172a',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.03,
-        shadowRadius: 12,
-        elevation: 2,
+        minHeight: 96,
+        borderRadius: 12,
+        borderWidth: 2,
+        paddingVertical: 8,
+        paddingHorizontal: 14,
+        justifyContent: 'center',
+        gap: 8,
     },
     topRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 10,
+        justifyContent: 'center',
+        gap: 16,
     },
     iconBox: {
-        width: 36,
-        height: 36,
+        width: 44,
+        height: 44,
         borderRadius: 12,
-        backgroundColor: '#ffffff',
+        backgroundColor: 'transparent',
         alignItems: 'center',
         justifyContent: 'center',
     },
     value: {
-        color: '#0f172a',
         fontFamily: 'Inter-Bold',
-        fontSize: 28,
+        fontSize: 44,
         fontWeight: '700',
     },
     label: {
@@ -85,5 +96,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
         lineHeight: 16,
+        textAlign: 'center',
     },
 });

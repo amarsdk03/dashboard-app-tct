@@ -2,13 +2,15 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
+    Platform,
     StyleSheet,
     TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { Link, type Href, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { CalendarDaysIcon, PlusIcon, SearchIcon, SlidersHorizontal } from 'lucide-react-native';
+import { CalendarDaysIcon, SearchIcon, SlidersHorizontal } from 'lucide-react-native';
 import { InterText } from '@/components/generic/InterText';
 import PartitaCard from '@/components/partite/PartitaCard';
 import errorMessage from '@/components/generic/ErrorMessage';
@@ -42,11 +44,6 @@ export default function PartiteScreen() {
     const [filterOpen, setFilterOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-
-    const createHref = useMemo<Href>(() => {
-        if (!selectedTorneo?.id) return '/partite/modal?mode=create' as Href;
-        return `/partite/modal?mode=create&torneoId=${selectedTorneo.id}` as Href;
-    }, [selectedTorneo?.id]);
 
     const routeTorneoId = useMemo(() => {
         const value = Number(params.torneoId);
@@ -221,26 +218,26 @@ export default function PartiteScreen() {
                     <View style={styles.filterPanel}>
                         <View style={styles.filterSection}>
                             <InterText style={styles.filterLabel}>Torneo</InterText>
-                            <View style={styles.chipRow}>
-                                {tornei.map((torneo) => {
-                                    const active = selectedTorneo?.id === torneo.id;
-                                    return (
-                                        <TouchableOpacity
+                            <View style={styles.pickerWrapper}>
+                                <Picker
+                                    selectedValue={selectedTorneo?.id ?? null}
+                                    onValueChange={(itemValue) => {
+                                        const torneo = tornei.find((t) => t.id === itemValue);
+                                        if (torneo) handleSelectTorneo(torneo);
+                                    }}
+                                    style={styles.picker}
+                                    dropdownIconColor="#b98e6b"
+                                    itemStyle={styles.pickerItem}>
+                                    {tornei.map((torneo) => (
+                                        <Picker.Item
                                             key={torneo.id}
-                                            style={[styles.chip, active && styles.chipActive]}
-                                            onPress={() => handleSelectTorneo(torneo)}
-                                            activeOpacity={0.85}>
-                                            <InterText
-                                                style={[
-                                                    styles.chipText,
-                                                    active && styles.chipTextActive,
-                                                ]}
-                                                numberOfLines={1}>
-                                                {torneo.nome}
-                                            </InterText>
-                                        </TouchableOpacity>
-                                    );
-                                })}
+                                            label={' ' + torneo.nome}
+                                            value={torneo.id}
+                                            color="#0f172a"
+                                            fontFamily="Inter"
+                                        />
+                                    ))}
+                                </Picker>
                             </View>
                         </View>
 
@@ -354,21 +351,23 @@ export default function PartiteScreen() {
                                         style={[styles.tabText, active && styles.tabTextActive]}>
                                         {tab.label}
                                     </InterText>
-                                    {active && <View style={styles.tabIndicator} />}
+                                    <View
+                                        style={[
+                                            styles.tabIndicator,
+                                            active && styles.tabIndicatorActive,
+                                        ]}
+                                    />
                                 </TouchableOpacity>
                             );
                         })}
                     </View>
+                </View>
+
+                <View style={styles.totalTextContainer}>
                     <InterText style={styles.totalText}>
                         {partite.length} risultati totali
                     </InterText>
                 </View>
-
-                {selectedTorneo && (
-                    <InterText style={styles.selectedTournament} numberOfLines={1}>
-                        {selectedTorneo.nome}
-                    </InterText>
-                )}
             </View>
 
             {loading ? (
@@ -494,6 +493,24 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         textTransform: 'uppercase',
     },
+    pickerWrapper: {
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        backgroundColor: '#ffffff',
+        overflow: 'hidden',
+        marginTop: 2,
+    },
+    picker: {
+        color: '#0f172a',
+        backgroundColor: 'transparent',
+        padding: Platform.OS === 'web' ? 10 : 0,
+    },
+    pickerItem: {
+        fontSize: 13,
+        fontFamily: 'Inter',
+        color: '#0f172a',
+    },
     chipRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -564,7 +581,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         gap: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#e2e8f0',
+        borderBottomColor: '#e6e6e6',
         marginBottom: 10,
     },
     tabs: {
@@ -586,26 +603,28 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     tabTextActive: {
-        color: '#0f6096',
+        color: '#b98e6b',
     },
     tabIndicator: {
         height: 3,
         width: '100%',
         minWidth: 34,
         borderRadius: 999,
-        backgroundColor: '#0f6096',
+    },
+    tabIndicatorActive: {
+        backgroundColor: '#b98e6b',
+    },
+    totalTextContainer: {
+        width: '100%',
+        textAlign: 'left',
+        marginTop: 2,
     },
     totalText: {
+        textAlign: 'left',
         color: '#64748b',
         fontFamily: 'Inter-Medium',
         fontSize: 13,
         fontWeight: '500',
         flexShrink: 0,
-    },
-    selectedTournament: {
-        color: '#64748b',
-        fontFamily: 'Inter-Medium',
-        fontSize: 13,
-        fontWeight: '500',
     },
 });

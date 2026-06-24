@@ -1,57 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="AutoImportSettings">
-    <option name="autoReloadType" value="SELECTIVE" />
+    <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="02039681-6d6f-43de-b84f-55cbb0bd0377" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/components/generic/CreateButton.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/input/SelectableField.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/tornei/TorneoModalSummary.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/campi.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AGENTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/AGENTS.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/_layout.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/giocatori/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/giocatori/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/partite/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/partite/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/squadre/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/squadre/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/tornei/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/tornei/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/tornei/modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/tornei/modal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(app)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/_layout.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(app)/impostazioni.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/impostazioni.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/access-denied.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/access-denied.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/login.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/ErrorMessage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/generic/ErrorMessage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/InterText.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/generic/InterText.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/giocatori/GiocatoreCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/giocatori/GiocatoreCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/giocatori/GiocatoreModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/giocatori/GiocatoreModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/home/HomeMatchCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/home/HomeMatchCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/generic/CreateButton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/generic/TabBarButton.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/home/HomeQuickAction.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/home/HomeQuickAction.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/home/HomeStatCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/home/HomeStatCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/input/DateTimePickerField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/DateTimePickerField.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/input/ImageInputField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/ImageInputField.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/input/NationalityAutocompleteField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/NationalityAutocompleteField.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/input/TextInputField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/TextInputField.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/partite/PartitaCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/partite/PartitaCard.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/partite/PartitaModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/partite/PartitaModal.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/squadre/SquadraCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/squadre/SquadraCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/squadre/SquadraModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/squadre/SquadraModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/tornei/TorneoCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/tornei/TorneoLinkedDataSummary.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoDataSummary.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/tornei/TorneoModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoModalForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/superpowers/plans/2026-06-07-giocatori-screen.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/superpowers/plans/2026-06-07-giocatori-screen.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/superpowers/plans/2026-06-07-torneo-linked-data-nationality-autocomplete.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/superpowers/plans/2026-06-07-torneo-linked-data-nationality-autocomplete.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/superpowers/specs/2026-06-07-torneo-linked-data-nationality-autocomplete-design.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/superpowers/specs/2026-06-07-torneo-linked-data-nationality-autocomplete-design.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/tornei/TorneoModalForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoModalForm.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="193" />
+    <option name="cachedIndexableFilesCount" value="198" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Dashboard Torneo CdT" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -81,61 +81,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0" />
-      <entry key="S5" value="1.000000000000001" />
-      <entry key="S10" value="1.0000000448360822" />
-      <entry key="S30" value="1.0074168306012514" />
-      <entry key="S60" value="1.2425160220182054" />
-      <entry key="M2" value="2.853290859389937" />
-      <entry key="M5" value="9.586940466650033" />
-      <entry key="M10" value="19.21555921087245" />
-      <entry key="M15" value="27.68037913076839" />
-      <entry key="M30" value="53.43286850510503" />
-      <entry key="H1" value="108.28093055818357" />
-      <entry key="H2" value="226.48801239233316" />
-      <entry key="H4" value="429.26405856651087" />
-      <entry key="D1" value="907.0104539088268" />
-      <entry key="W1" value="1053.6786875994646" />
+      <entry key="MS100" value="9.468879058941728E-141" />
+      <entry key="MS500" value="1.2334814052172666E-28" />
+      <entry key="S2" value="1.7558282672237145E-7" />
+      <entry key="S5" value="0.00363903193640118" />
+      <entry key="S10" value="0.1129680933368703" />
+      <entry key="S30" value="1.2516717555260242" />
+      <entry key="S60" value="2.7579309873303437" />
+      <entry key="M2" value="5.161717093617273" />
+      <entry key="M5" value="10.908749518472804" />
+      <entry key="M10" value="18.38423844599598" />
+      <entry key="M15" value="24.86688491481949" />
+      <entry key="M30" value="42.3783538548278" />
+      <entry key="H1" value="76.19366505017575" />
+      <entry key="H2" value="160.35374378316945" />
+      <entry key="H4" value="355.2391439475393" />
+      <entry key="D1" value="1079.3164690650926" />
+      <entry key="W1" value="1371.2316353906015" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="7.52796351047392E-208" />
-      <entry key="S2" value="2.386757331942689E-52" />
-      <entry key="S5" value="3.3484600972898276E-21" />
-      <entry key="S10" value="8.527429399402556E-11" />
-      <entry key="S30" value="0.0011307243746389686" />
-      <entry key="S60" value="0.08808913752465344" />
-      <entry key="M2" value="0.8551465386625994" />
-      <entry key="M5" value="3.951925748533534" />
-      <entry key="M10" value="7.565253845136586" />
-      <entry key="M15" value="10.058735774945127" />
-      <entry key="M30" value="15.268559979225344" />
-      <entry key="H1" value="22.508591238620603" />
-      <entry key="H2" value="36.561963880936865" />
-      <entry key="H4" value="61.69518409892625" />
-      <entry key="D1" value="121.4760270526705" />
-      <entry key="W1" value="139.63113522933497" />
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.000000024073147" />
+      <entry key="S5" value="1.0008966297568533" />
+      <entry key="S10" value="1.029943776596369" />
+      <entry key="S30" value="1.3105410789117735" />
+      <entry key="S60" value="1.5624204791707115" />
+      <entry key="M2" value="1.8686315836751564" />
+      <entry key="M5" value="2.900100653479188" />
+      <entry key="M10" value="4.4686791715765" />
+      <entry key="M15" value="5.877281919097904" />
+      <entry key="M30" value="10.032611863141568" />
+      <entry key="H1" value="18.794490528930837" />
+      <entry key="H2" value="36.49716225778951" />
+      <entry key="H4" value="68.30444739565482" />
+      <entry key="D1" value="169.57386813583605" />
+      <entry key="W1" value="208.38881408956013" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9592641193252643" />
-      <entry key="MS500" value="0.9917167307382933" />
-      <entry key="S2" value="0.9979227189990506" />
-      <entry key="S5" value="0.9991685692136079" />
-      <entry key="S10" value="0.9995842386899872" />
-      <entry key="S30" value="1.0080866856881383" />
-      <entry key="S60" value="1.3225660140116495" />
-      <entry key="M2" value="3.6736517471161445" />
-      <entry key="M5" value="13.478443761885101" />
-      <entry key="M10" value="26.722580019609087" />
-      <entry key="M15" value="37.68540388821085" />
-      <entry key="M30" value="68.6533769072073" />
-      <entry key="H1" value="130.7462747586442" />
-      <entry key="H2" value="263.01419291719816" />
-      <entry key="H4" value="490.93271864473337" />
-      <entry key="D1" value="1028.479380698735" />
-      <entry key="W1" value="1193.3087026445955" />
+      <entry key="MS100" value="7.462404038647881E-5" />
+      <entry key="MS500" value="0.1494774745970155" />
+      <entry key="S2" value="0.6217904461689236" />
+      <entry key="S5" value="0.8307160898594638" />
+      <entry key="S10" value="1.0368678520564476" />
+      <entry key="S30" value="2.462254713354567" />
+      <entry key="S60" value="4.22922356802582" />
+      <entry key="M2" value="6.9514238614553" />
+      <entry key="M5" value="13.737937529458291" />
+      <entry key="M10" value="22.79028557400623" />
+      <entry key="M15" value="30.68680082212682" />
+      <entry key="M30" value="52.36199530795424" />
+      <entry key="H1" value="94.94543484782061" />
+      <entry key="H2" value="196.81208089717057" />
+      <entry key="H4" value="423.509926284407" />
+      <entry key="D1" value="1248.8786191305505" />
+      <entry key="W1" value="1579.6184801285956" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -158,14 +158,21 @@
     &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;android.gradle.sync.needed&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;javascript.preferred.runtime.type.id&quot;: &quot;node&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/AmarSDK/OneDrive/Documenti/Projects/Torneo-CdT/dashboard-cdt/components/tornei&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/AmarSDK/OneDrive/Documenti/Projects/Torneo-CdT/dashboard-cdt/components/generic&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -174,17 +181,18 @@
     &quot;npm.dev.executor&quot;: &quot;Run&quot;,
     &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;C:\\Users\\AmarSDK\\OneDrive\\Documenti\\Projects\\Torneo-CdT\\dashboard-cdt\\node_modules\\prettier&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;ml.llm.LLMConfigurable&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;,
     &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\AmarSDK\\OneDrive\\Documenti\\Projects\\Torneo-CdT\\dashboard-cdt\\node_modules\\typescript\\lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\components\generic" />
       <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\components\tornei" />
       <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\data" />
       <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt" />
       <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\app\(app)\(tabs)\tornei" />
-      <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\components\input" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\AmarSDK\OneDrive\Documenti\Projects\Torneo-CdT\dashboard-cdt\components\generic" />
@@ -205,11 +213,6 @@
       <envs />
       <method v="2" />
     </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="npm.dev" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -242,6 +245,10 @@
       <workItem from="1781958622949" duration="1978000" />
       <workItem from="1782049298138" duration="11652000" />
       <workItem from="1782127118576" duration="44000" />
+      <workItem from="1782130826032" duration="8765000" />
+      <workItem from="1782142332651" duration="2535000" />
+      <workItem from="1782213781905" duration="14422000" />
+      <workItem from="1782301416747" duration="3988000" />
     </task>
     <servers />
   </component>

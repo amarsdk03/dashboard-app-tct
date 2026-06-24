@@ -31,7 +31,7 @@ export default function Root() {
 
     useEffect(() => {
         if (loaded || error) {
-            SplashScreen.hideAsync();
+            SplashScreen.hideAsync().then(_ => null);
         }
     }, [loaded, error]);
 
@@ -39,7 +39,7 @@ export default function Root() {
         return null;
     }
 
-    // Set up the auth context and render your layout inside of it.
+    // Set up the auth context and render your layout inside it.
     return (
         <AuthProvider>
             <SplashScreenController />

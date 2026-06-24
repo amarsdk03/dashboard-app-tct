@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { type ReactNode, useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
+    ActivityIndicator, Alert, Linking,
     RefreshControl,
     ScrollView,
     StyleSheet,
@@ -11,10 +11,12 @@ import { Link, type Href } from 'expo-router';
 import {
     AwardIcon,
     CalendarDaysIcon,
-    CircleDotIcon,
+    ChevronRightIcon,
+    InstagramIcon,
+    MailIcon,
     PlusIcon,
-    SettingsIcon,
     ShieldIcon,
+    TrendingUpIcon,
     TrophyIcon,
     UsersRoundIcon,
 } from 'lucide-react-native';
@@ -61,8 +63,14 @@ const emptyStats: homeTorneoStatsType = {
     goalsScored: 0,
 };
 
+type ContactRowProps = {
+    icon: ReactNode;
+    label: string;
+    value: string;
+    onPress: () => void;
+};
+
 export default function HomeScreen() {
-    const { claims, profile } = useAuthContext();
     const [torneo, setTorneo] = useState<listaTorneiType | null>(null);
     const [partiteOggi, setPartiteOggi] = useState<partiteOggiType[]>([]);
     const [stats, setStats] = useState<homeTorneoStatsType>(emptyStats);
@@ -71,16 +79,25 @@ export default function HomeScreen() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    const adminName = useMemo(() => {
-        const fullName = [profile?.nome, profile?.cognome].filter(Boolean).join(' ');
-        const email = typeof claims?.email === 'string' ? claims.email : null;
-        return profile?.full_name ?? profile?.name ?? (fullName || email?.split('@')[0] || 'Admin');
-    }, [claims?.email, profile]);
+    async function openExternalUrl(url: string) {
+        try {
+            const canOpen = await Linking.canOpenURL(url);
+            if (!canOpen) {
+                Alert.alert(
+                    'Link non disponibile',
+                    'Non riesco ad aprire questo contatto dal dispositivo.'
+                );
+                return;
+            }
 
-    const createHref = useMemo<Href>(() => {
-        if (!torneo?.id) return '/tornei/modal' as Href;
-        return `/giocatori/modal?mode=create&torneoId=${torneo.id}` as Href;
-    }, [torneo?.id]);
+            await Linking.openURL(url);
+        } catch {
+            Alert.alert(
+                'Link non disponibile',
+                'Non riesco ad aprire questo contatto dal dispositivo.'
+            );
+        }
+    }
 
     async function loadHome(isRefresh = false) {
         if (isRefresh) setRefreshing(true);
@@ -130,28 +147,6 @@ export default function HomeScreen() {
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={() => loadHome(true)} />
                 }>
-                <View style={styles.header}>
-                    <View style={styles.greetingBlock}>
-                        <InterText style={styles.eyebrow}>Bentornato,</InterText>
-                        <InterText style={styles.title} numberOfLines={1}>
-                            {adminName}
-                        </InterText>
-                    </View>
-
-                    <View style={styles.headerActions}>
-                        <Link href={createHref} asChild>
-                            <TouchableOpacity style={styles.roundButton} activeOpacity={0.85}>
-                                <PlusIcon size={22} color="#ffffff" strokeWidth={3} />
-                            </TouchableOpacity>
-                        </Link>
-                        <Link href="/impostazioni" asChild>
-                            <TouchableOpacity style={styles.secondaryRoundButton} activeOpacity={0.85}>
-                                <SettingsIcon size={20} color="#0f172a" />
-                            </TouchableOpacity>
-                        </Link>
-                    </View>
-                </View>
-
                 {loading ? (
                     <View style={styles.loadingState}>
                         <ActivityIndicator size="large" />
@@ -180,7 +175,7 @@ export default function HomeScreen() {
                                 <AwardIcon size={22} color="#b3642c" />
                             </View>
                             <View style={styles.torneoTextBlock}>
-                                <InterText style={styles.torneoLabel}>Torneo attivo</InterText>
+                                <InterText style={styles.torneoLabel}>Torneo in corso:</InterText>
                                 <InterText style={styles.torneoName} numberOfLines={1}>
                                     {torneo.nome}
                                 </InterText>
@@ -204,7 +199,10 @@ export default function HomeScreen() {
                                 <View style={styles.matchList}>
                                     {partiteOggi.map((partita, index) => (
                                         <HomeMatchCard
-                                            key={partita.id_partita ?? `${partita.fischio_inizio}-${index}`}
+                                            key={
+                                                partita.id_partita ??
+                                                `${partita.fischio_inizio}-${index}`
+                                            }
                                             fase={partita.fase}
                                             categoria={partita.categoria_nome}
                                             girone={partita.girone}
@@ -227,20 +225,20 @@ export default function HomeScreen() {
                         </View>
 
                         <View style={styles.section}>
-                            <InterText style={styles.sectionTitle}>Statistiche torneo</InterText>
+                            <InterText style={styles.sectionTitle}>Statistiche rapide</InterText>
                             <View style={styles.statsGrid}>
                                 <View style={styles.statsRow}>
                                     <HomeStatCard
                                         label="Partite in arrivo"
                                         value={stats.upcomingMatches}
                                         tone="red"
-                                        icon={<CalendarDaysIcon size={20} color="#be123c" />}
+                                        icon={<CalendarDaysIcon size={36} color="#be123c" />}
                                     />
                                     <HomeStatCard
                                         label="Goal segnati"
                                         value={stats.goalsScored}
                                         tone="gold"
-                                        icon={<CircleDotIcon size={20} color="#b45309" />}
+                                        icon={<TrendingUpIcon size={36} color="#b45309" />}
                                     />
                                 </View>
                                 <View style={styles.statsRow}>
@@ -248,13 +246,13 @@ export default function HomeScreen() {
                                         label="Squadre iscritte"
                                         value={squadreCount}
                                         tone="green"
-                                        icon={<ShieldIcon size={20} color="#15803d" />}
+                                        icon={<ShieldIcon size={36} color="#15803d" />}
                                     />
                                     <HomeStatCard
                                         label="Giocatori iscritti"
                                         value={giocatoriCount}
                                         tone="blue"
-                                        icon={<UsersRoundIcon size={20} color="#1d4ed8" />}
+                                        icon={<UsersRoundIcon size={36} color="#1d4ed8" />}
                                     />
                                 </View>
                             </View>
@@ -264,24 +262,51 @@ export default function HomeScreen() {
                             <InterText style={styles.sectionTitle}>Azioni rapide</InterText>
                             <View style={styles.actionsList}>
                                 <HomeQuickAction
-                                    label="Gestisci tornei"
-                                    href="/tornei"
-                                    icon={<TrophyIcon size={19} color="#b3642c" />}
-                                />
-                                <HomeQuickAction
-                                    label="Apri partite"
+                                    label="Apri partite recenti"
                                     href={buildTorneoHref('/partite', torneo.id)}
                                     icon={<CalendarDaysIcon size={19} color="#be123c" />}
                                 />
                                 <HomeQuickAction
-                                    label="Apri squadre"
+                                    label="Apri squadre attuali"
                                     href={buildTorneoHref('/squadre', torneo.id)}
                                     icon={<ShieldIcon size={19} color="#15803d" />}
                                 />
                                 <HomeQuickAction
-                                    label="Apri giocatori"
+                                    label="Apri giocatori attivi"
                                     href={buildTorneoHref('/giocatori', torneo.id)}
                                     icon={<UsersRoundIcon size={19} color="#1d4ed8" />}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={styles.card}>
+                            <View style={styles.sectionHeader}>
+                                <View style={styles.sectionTextBlock}>
+                                    <InterText style={styles.sectionTitle}>
+                                        Contatti utili
+                                    </InterText>
+                                    <InterText style={styles.sectionSubtitle}>
+                                        Problemi durante l'utilizzo dell'app? Errori o bug strani?
+                                        Nessun problema: contattaci e risolveremo il problema il
+                                        prima possibile!
+                                    </InterText>
+                                </View>
+                            </View>
+
+                            <View style={styles.contactList}>
+                                <ContactRow
+                                    icon={<MailIcon size={18} color="#0f172a" />}
+                                    label="Email:"
+                                    value="amarsdk03@gmail.com"
+                                    onPress={() => openExternalUrl('mailto:amarsdk03@gmail.com')}
+                                />
+                                <ContactRow
+                                    icon={<MailIcon size={18} color="#0f172a" />}
+                                    label="Email:"
+                                    value="alessandrogremes04@gmail.com"
+                                    onPress={() =>
+                                        openExternalUrl('mailto:alessandrogremes04@gmail.com')
+                                    }
                                 />
                             </View>
                         </View>
@@ -289,6 +314,21 @@ export default function HomeScreen() {
                 )}
             </ScrollView>
         </View>
+    );
+}
+
+function ContactRow({ icon, label, value, onPress }: ContactRowProps) {
+    return (
+        <TouchableOpacity style={styles.contactRow} onPress={onPress} activeOpacity={0.8}>
+            <View style={styles.detailIcon}>{icon}</View>
+            <View style={styles.detailTextBlock}>
+                <InterText style={styles.detailLabel}>{label}</InterText>
+                <InterText style={styles.detailValue} numberOfLines={1}>
+                    {value}
+                </InterText>
+            </View>
+            <ChevronRightIcon size={18} color="#94a3b8" />
+        </TouchableOpacity>
     );
 }
 
@@ -313,16 +353,60 @@ const styles = StyleSheet.create({
         flex: 1,
         minWidth: 0,
     },
-    eyebrow: {
+    contactList: {
+        gap: 4,
+    },
+    contactRow: {
+        minHeight: 52,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    detailIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 12,
+        backgroundColor: '#f8fafc',
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    detailTextBlock: {
+        flex: 1,
+        minWidth: 0,
+    },
+    detailLabel: {
         color: '#64748b',
         fontFamily: 'Inter-Medium',
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: '500',
+    },
+    detailValue: {
+        color: '#0f172a',
+        fontFamily: 'Inter-SemiBold',
+        fontSize: 14,
+        fontWeight: '600',
+        lineHeight: 20,
+        marginTop: 2,
+    },
+    card: {
+        gap: 16,
+        backgroundColor: '#ffffff',
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+        padding: 16,
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 12,
+        elevation: 2,
     },
     title: {
         color: '#0f172a',
         fontFamily: 'Inter-Bold',
-        fontSize: 30,
+        fontSize: 24,
         fontWeight: '700',
         lineHeight: 38,
     },
@@ -490,6 +574,17 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter-Bold',
         fontSize: 18,
         fontWeight: '700',
+    },
+    sectionSubtitle: {
+        color: '#64748b',
+        fontFamily: 'Inter',
+        fontSize: 13,
+        lineHeight: 19,
+        marginTop: 2,
+    },
+    sectionTextBlock: {
+        flex: 1,
+        minWidth: 0,
     },
     sectionLink: {
         color: '#b3642c',

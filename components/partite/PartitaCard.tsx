@@ -26,7 +26,7 @@ function formatDateTime(value: string | null) {
     if (isNaN(date.getTime())) return 'Data da definire';
 
     return new Intl.DateTimeFormat('it-IT', {
-        day: '2-digit',
+        day: 'numeric',
         month: 'short',
         hour: '2-digit',
         minute: '2-digit',
@@ -46,7 +46,7 @@ function formatTime(value: string | null) {
 }
 
 function formatStatus(value: string | null, isPlayed: boolean) {
-    if (isPlayed) return 'Risultato';
+    if (isPlayed) return 'Terminata';
     if (!value) return 'Da programmare';
 
     const date = new Date(value);
@@ -88,12 +88,12 @@ export default function PartitaCard({
     const isPlayed = goalCasa !== null && goalOspite !== null;
     const primaryValue = isPlayed ? score : formatTime(fischioInizio);
     const status = formatStatus(fischioInizio, isPlayed);
-    const leftMeta = [fase, categoria].filter(Boolean).join(' · ');
-    const gironeLabel = girone ? `Girone ${girone}` : null;
+    const gironeLabel = girone || null;
+    const leftMeta = [categoria, gironeLabel].filter(Boolean).join(' - ');
 
     return (
         <View style={styles.card}>
-            <View style={styles.metaRow}>
+            <View style={styles.cardRow}>
                 <InterText style={styles.phaseText} numberOfLines={1}>
                     {leftMeta || 'Partita'}
                 </InterText>
@@ -103,22 +103,17 @@ export default function PartitaCard({
                     </InterText>
                 </View>
                 <InterText style={styles.groupText} numberOfLines={1}>
-                    {gironeLabel ?? 'Girone -'}
+                    {fase ?? 'Girone -'}
                 </InterText>
             </View>
 
-            <View style={styles.matchRow}>
-                <View style={styles.teamColumn}>
-                    <TeamBadge
-                        name={squadraCasa}
-                        acronym={squadraCasaAcronimo}
-                        logo={squadraCasaStemma}
-                        color={squadraCasaColore}
-                    />
-                    <InterText style={styles.teamName} numberOfLines={2}>
-                        {squadraCasa ?? 'Squadra casa'}
-                    </InterText>
-                </View>
+            <View style={styles.cardRow}>
+                <TeamBadge
+                    name={squadraCasa}
+                    acronym={squadraCasaAcronimo}
+                    logo={squadraCasaStemma}
+                    color={squadraCasaColore}
+                />
 
                 <View style={[styles.scoreBox, isPlayed && styles.scoreBoxPlayed]}>
                     <InterText
@@ -133,24 +128,27 @@ export default function PartitaCard({
                     </InterText>
                 </View>
 
-                <View style={styles.teamColumn}>
-                    <TeamBadge
-                        name={squadraOspite}
-                        acronym={squadraOspiteAcronimo}
-                        logo={squadraOspiteStemma}
-                        color={squadraOspiteColore}
-                    />
-                    <InterText style={styles.teamName} numberOfLines={2}>
-                        {squadraOspite ?? 'Squadra ospite'}
-                    </InterText>
-                </View>
+                <TeamBadge
+                    name={squadraOspite}
+                    acronym={squadraOspiteAcronimo}
+                    logo={squadraOspiteStemma}
+                    color={squadraOspiteColore}
+                />
             </View>
 
-            {!isPlayed && (
+            <View style={styles.teamNamesRow}>
+                <InterText style={[styles.teamName, styles.teamNameLeft]} numberOfLines={2}>
+                    {squadraCasa ?? 'Squadra casa'}
+                </InterText>
+
                 <InterText style={styles.dateText} numberOfLines={1}>
                     {formatDateTime(fischioInizio)}
                 </InterText>
-            )}
+
+                <InterText style={[styles.teamName, styles.teamNameRight]} numberOfLines={2}>
+                    {squadraOspite ?? 'Squadra ospite'}
+                </InterText>
+            </View>
         </View>
     );
 }
@@ -166,10 +164,10 @@ function TeamBadge({
     logo?: string | null;
     color?: string | null;
 }) {
-    const fallback = acronym || name?.slice(0, 3).toUpperCase() || 'TCT';
+    const fallback = acronym || name?.slice(0, 3).toUpperCase() || '???';
 
     return (
-        <View style={[styles.logoBox, { backgroundColor: color ?? '#f1f5f9' }]}>
+        <View style={[styles.logoBox, { backgroundColor: logo && color ? color : '#f1f5f9' }]}>
             {logo ? (
                 <Image source={{ uri: logo }} style={styles.logo} resizeMode="contain" />
             ) : (
@@ -185,8 +183,8 @@ const styles = StyleSheet.create({
     card: {
         backgroundColor: '#ffffff',
         borderRadius: 16,
-        padding: 13,
-        gap: 11,
+        padding: 12,
+        gap: 12,
         shadowColor: '#0f172a',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.03,
@@ -195,11 +193,18 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#f1f5f9',
     },
-    metaRow: {
+    cardRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: 8,
+        gap: 16,
+    },
+    teamNamesRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        position: 'relative',
+        paddingTop: 8,
+        paddingBottom: 16,
     },
     phaseText: {
         flex: 1,
@@ -216,7 +221,7 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
     },
     statusPillPlayed: {
-        backgroundColor: '#fee2e2',
+        backgroundColor: '#ffeded',
     },
     statusText: {
         color: '#64748b',
@@ -226,7 +231,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     statusTextPlayed: {
-        color: '#991b1b',
+        color: '#994d4d',
     },
     groupText: {
         flex: 1,
@@ -236,22 +241,16 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         textAlign: 'right',
     },
-    matchRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 8,
-    },
     teamColumn: {
         flex: 1,
-        minWidth: 72,
         alignItems: 'center',
+        justifyContent: 'flex-start',
         gap: 6,
     },
     logoBox: {
         width: 44,
         height: 44,
-        borderRadius: 22,
+        borderRadius: 100,
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
@@ -259,8 +258,8 @@ const styles = StyleSheet.create({
         borderColor: '#e2e8f0',
     },
     logo: {
-        width: 36,
-        height: 36,
+        width: 44,
+        height: 44,
     },
     logoFallback: {
         color: '#64748b',
@@ -269,45 +268,57 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     teamName: {
+        position: 'absolute',
+        width: '36%',
         color: '#0f172a',
         fontFamily: 'Inter-Bold',
         fontSize: 12,
         fontWeight: '700',
-        minHeight: 32,
-        textAlign: 'center',
         lineHeight: 16,
+    },
+    teamNameLeft: {
+        left: 0,
+        textAlign: 'left',
+    },
+    teamNameRight: {
+        right: 0,
+        textAlign: 'right',
     },
     scoreBox: {
         minWidth: 66,
         maxWidth: 86,
         minHeight: 42,
+        marginTop: 1,
         borderRadius: 12,
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#fff',
+        borderColor: '#fff',
         borderWidth: 1,
-        borderColor: '#e2e8f0',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 8,
     },
     scoreBoxPlayed: {
-        backgroundColor: '#0f172a',
-        borderColor: '#0f172a',
+        backgroundColor: '#fff',
+        borderColor: '#fff',
     },
     scoreText: {
-        color: '#0f172a',
+        color: '#404040',
         fontFamily: 'Inter-Bold',
-        fontSize: 18,
+        fontSize: 24,
         fontWeight: '700',
         textAlign: 'center',
     },
     scoreTextPlayed: {
-        color: '#ffffff',
+        color: '#404040',
     },
     scoreTextScheduled: {
         color: '#0f172a',
         fontSize: 16,
     },
     dateText: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
         color: '#64748b',
         fontFamily: 'Inter',
         fontSize: 12,

@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     logoBox: {
         width: 54,
         height: 54,
-        borderRadius: 14,
+        borderRadius: 27,
         backgroundColor: '#f8fafc',
         borderWidth: 1,
         borderColor: '#e2e8f0',
@@ -86,8 +86,8 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     logo: {
-        width: 42,
-        height: 42,
+        width: 54,
+        height: 54,
     },
     content: {
         flex: 1,
@@ -126,6 +126,8 @@ const styles = StyleSheet.create({
     colorDot: {
         width: 10,
         height: 10,
+        borderWidth: 1,
+        borderColor: 'rgb(99 99 99 / 0.3)',
         borderRadius: 999,
     },
     meta: {

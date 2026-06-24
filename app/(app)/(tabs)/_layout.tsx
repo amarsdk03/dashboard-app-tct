@@ -3,7 +3,7 @@ import { Image, StyleSheet, Platform, View } from 'react-native';
 import { Award, CalendarDays, ShieldUser, UsersRound } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import React from 'react';
-import CreateButton from '@/components/generic/CreateButton';
+import TabBarButton from '@/components/generic/TabBarButton';
 
 /*
 Navbar principale dell'applicazione, basata sulle Tabs di Expo Router:
@@ -72,7 +72,7 @@ export default function BottomNavbar() {
                         padding: 18,
                     },
                     tabBarIcon: ({ color }) => <Award color={color} size={24} />,
-                    headerRight: () => <CreateButton link={'/tornei/modal?mode=create'} />,
+                    headerRight: () => <TabBarButton link={'/tornei/modal?mode=create'} />,
                 }}
             />
 
@@ -93,7 +93,7 @@ export default function BottomNavbar() {
                         padding: 18,
                     },
                     tabBarIcon: ({ color }) => <CalendarDays color={color} size={24} />,
-                    headerRight: () => <CreateButton link={'/partite/modal?mode=create'} />,
+                    headerRight: () => <TabBarButton link={'/partite/modal?mode=create'} />,
                 }}
             />
 
@@ -103,7 +103,15 @@ export default function BottomNavbar() {
                     title: '',
                     headerTitle: 'Dashboard',
                     headerTitleStyle: {
+                        fontSize: 24,
                         fontFamily: 'Inter',
+                        fontWeight: '700',
+                    },
+                    headerLeftContainerStyle: {
+                        padding: 1.5,
+                    },
+                    headerRightContainerStyle: {
+                        padding: 18,
                     },
                     tabBarIconStyle: {
                         width: '100%',
@@ -123,6 +131,7 @@ export default function BottomNavbar() {
                             resizeMode="contain"
                         />
                     ),
+                    headerRight: () => <TabBarButton link={'/impostazioni'} type={'settings'} />,
                 }}
             />
 
@@ -132,9 +141,18 @@ export default function BottomNavbar() {
                     title: 'Squadre',
                     headerTitle: 'Gestione squadre',
                     headerTitleStyle: {
+                        fontSize: 24,
                         fontFamily: 'Inter',
+                        fontWeight: '700',
+                    },
+                    headerLeftContainerStyle: {
+                        padding: 1.5,
+                    },
+                    headerRightContainerStyle: {
+                        padding: 18,
                     },
                     tabBarIcon: ({ color }) => <ShieldUser color={color} size={24} />,
+                    headerRight: () => <TabBarButton link={'/squadre/modal?mode=create'} />,
                 }}
             />
 
@@ -144,9 +162,18 @@ export default function BottomNavbar() {
                     title: 'Giocatori',
                     headerTitle: 'Gestione giocatori',
                     headerTitleStyle: {
+                        fontSize: 24,
                         fontFamily: 'Inter',
+                        fontWeight: '700',
+                    },
+                    headerLeftContainerStyle: {
+                        padding: 1.5,
+                    },
+                    headerRightContainerStyle: {
+                        padding: 18,
                     },
                     tabBarIcon: ({ color }) => <UsersRound color={color} size={24} />,
+                    headerRight: () => <TabBarButton link={'/giocatori/modal?mode=create'} />,
                 }}
             />
         </Tabs>

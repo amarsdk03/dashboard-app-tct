@@ -13,12 +13,16 @@ type Props = {
 export default function HomeQuickAction({ label, href, icon }: Props) {
     return (
         <Link href={href} asChild>
-            <Pressable style={({ pressed }) => [styles.action, pressed && styles.actionPressed]}>
-                <View style={styles.iconBox}>{icon}</View>
-                <InterText style={styles.label} numberOfLines={1}>
-                    {label}
-                </InterText>
-                <ChevronRightIcon size={18} color="#94a3b8" />
+            <Pressable>
+                {({ pressed }) => (
+                    <View style={[styles.action, pressed && styles.actionPressed]}>
+                        <View style={styles.iconBox}>{icon}</View>
+                        <InterText style={styles.label} numberOfLines={1}>
+                            {label}
+                        </InterText>
+                        <ChevronRightIcon size={18} color="#94a3b8" />
+                    </View>
+                )}
             </Pressable>
         </Link>
     );

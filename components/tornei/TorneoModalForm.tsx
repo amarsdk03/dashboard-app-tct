@@ -354,7 +354,7 @@ export default function TorneoModalForm(props: Props) {
         setCategorieDraft((current) => [
             ...current,
             {
-                tempId: String(current.length),
+                tempId: String(current.length + 1),
                 nome: 'Categoria n.' + (current.length + 1),
                 numGironi: '2',
                 durataPartita: '25',

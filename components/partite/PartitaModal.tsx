@@ -880,7 +880,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                     </View>
                     <View style={styles.flexChild}>
                         <TextInputField
-                            label="Ora"
+                            label="Ora partita"
                             readonly={readonly}
                             value={form.oraPartita}
                             onChange={(value) => setField('oraPartita', value)}
@@ -1955,7 +1955,7 @@ const styles = StyleSheet.create({
     },
     label: {
         color: '#111111',
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Inter',
         fontSize: 14,
         fontWeight: '500',
         marginBottom: 6,

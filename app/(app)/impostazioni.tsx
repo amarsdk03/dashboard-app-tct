@@ -215,25 +215,39 @@ export default function ImpostazioniScreen() {
 
     return (
         <View style={styles.screen}>
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.content}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
                 <View style={styles.header}>
                     <InterText style={styles.eyebrow}>Area amministratore</InterText>
                     <InterText style={styles.title}>Impostazioni</InterText>
                     <InterText style={styles.subtitle}>
-                        Account, notifiche e riferimenti utili per la gestione del torneo.
+                        Account, notifiche e riferimenti utili per la dashboard amministrativa del
+                        torneo.
                     </InterText>
                 </View>
 
                 <View style={styles.card}>
                     <View style={styles.sectionHeader}>
                         <View style={styles.sectionIcon}>
-                            <UserRoundIcon size={21} color="#b3642c" />
+                            <BellIcon size={21} color="#b3642c" />
                         </View>
                         <View style={styles.sectionTextBlock}>
-                            <InterText style={styles.sectionTitle}>Account</InterText>
-                            <InterText style={styles.sectionSubtitle}>Sessione Supabase attiva</InterText>
+                            <InterText style={styles.sectionTitle}>Notifiche</InterText>
+                            <InterText style={styles.sectionSubtitle}>
+                                {notificationStatus.description}
+                            </InterText>
+                        </View>
+                    </View>
+
+                    <View style={styles.statusPill}>
+                        <View style={styles.statusDot} />
+                        <InterText style={styles.statusText}>{notificationStatus.title}</InterText>
+                    </View>
+                </View>
+
+                <View style={styles.card}>
+                    <View style={styles.sectionHeader}>
+                        <View style={styles.sectionTextBlock}>
+                            <InterText style={styles.sectionTitle}>Info account:</InterText>
                         </View>
                     </View>
 
@@ -263,33 +277,43 @@ export default function ImpostazioniScreen() {
 
                 <View style={styles.card}>
                     <View style={styles.sectionHeader}>
-                        <View style={styles.sectionIcon}>
-                            <BellIcon size={21} color="#b3642c" />
-                        </View>
                         <View style={styles.sectionTextBlock}>
-                            <InterText style={styles.sectionTitle}>Notifiche</InterText>
+                            <InterText style={styles.sectionTitle}>Contatti utili</InterText>
                             <InterText style={styles.sectionSubtitle}>
-                                {notificationStatus.description}
+                                In caso di problemi o richieste di assistenza, non esitare a
+                                contattarci!
                             </InterText>
                         </View>
                     </View>
 
-                    <View style={styles.statusPill}>
-                        <View style={styles.statusDot} />
-                        <InterText style={styles.statusText}>{notificationStatus.title}</InterText>
+                    <View style={styles.contactList}>
+                        <ContactRow
+                            icon={<MailIcon size={18} color="#0f172a" />}
+                            label="Sviluppatore app"
+                            value="amarsdk03@gmail.com"
+                            onPress={() => openExternalUrl('mailto:amarsdk03@gmail.com')}
+                        />
+                        <ContactRow
+                            icon={<MailIcon size={18} color="#0f172a" />}
+                            label="Sviluppatore app"
+                            value="alessandrogremes04@gmail.com"
+                            onPress={() => openExternalUrl('mailto:alessandrogremes04@gmail.com')}
+                        />
+                        <ContactRow
+                            icon={<InstagramIcon size={18} color="#0f172a" />}
+                            label="Pagina IG organizzazione"
+                            value="@torneocittaditrento"
+                            onPress={() =>
+                                openExternalUrl('https://www.instagram.com/torneocittaditrento/')
+                            }
+                        />
                     </View>
                 </View>
 
                 <View style={styles.card}>
                     <View style={styles.sectionHeader}>
-                        <View style={styles.sectionIcon}>
-                            <InfoIcon size={21} color="#b3642c" />
-                        </View>
                         <View style={styles.sectionTextBlock}>
-                            <InterText style={styles.sectionTitle}>Applicazione</InterText>
-                            <InterText style={styles.sectionSubtitle}>
-                                Torneo Citta di Trento dashboard
-                            </InterText>
+                            <InterText style={styles.sectionTitle}>Informazioni tecniche</InterText>
                         </View>
                     </View>
 
@@ -307,41 +331,6 @@ export default function ImpostazioniScreen() {
                     </View>
                 </View>
 
-                <View style={styles.card}>
-                    <View style={styles.sectionHeader}>
-                        <View style={styles.sectionIcon}>
-                            <MailIcon size={21} color="#b3642c" />
-                        </View>
-                        <View style={styles.sectionTextBlock}>
-                            <InterText style={styles.sectionTitle}>Contatti utili</InterText>
-                            <InterText style={styles.sectionSubtitle}>
-                                Supporto tecnico e organizzazione torneo
-                            </InterText>
-                        </View>
-                    </View>
-
-                    <View style={styles.contactList}>
-                        <ContactRow
-                            icon={<MailIcon size={18} color="#0f172a" />}
-                            label="Supporto tecnico"
-                            value="amarsdk03@gmail.com"
-                            onPress={() => openExternalUrl('mailto:amarsdk03@gmail.com')}
-                        />
-                        <ContactRow
-                            icon={<MailIcon size={18} color="#0f172a" />}
-                            label="Supporto tecnico"
-                            value="alessandrogremes04@gmail.com"
-                            onPress={() => openExternalUrl('mailto:alessandrogremes04@gmail.com')}
-                        />
-                        <ContactRow
-                            icon={<InstagramIcon size={18} color="#0f172a" />}
-                            label="Organizzazione"
-                            value="@torneocittaditrento"
-                            onPress={() => openExternalUrl('https://www.instagram.com/torneocittaditrento/')}
-                        />
-                    </View>
-                </View>
-
                 <TouchableOpacity
                     style={[styles.logoutButton, isSigningOut && styles.logoutButtonDisabled]}
                     onPress={handleLogout}
@@ -353,7 +342,7 @@ export default function ImpostazioniScreen() {
                         <LogOutIcon size={19} color="#7c3f3f" />
                     )}
                     <InterText style={styles.logoutButtonText}>
-                        {isSigningOut ? 'Logout in corso...' : 'Logout'}
+                        {isSigningOut ? 'Logout in corso...' : 'Effettua il logout'}
                     </InterText>
                 </TouchableOpacity>
             </ScrollView>

@@ -2,18 +2,20 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
+    Platform,
     StyleSheet,
     TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
 import { Link, type Href, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { PlusIcon, SearchIcon, ShieldIcon, SlidersHorizontal } from 'lucide-react-native';
+import { CalendarDaysIcon, PlusIcon, SearchIcon, ShieldIcon, SlidersHorizontal } from 'lucide-react-native';
 import { InterText } from '@/components/generic/InterText';
 import SquadraCard from '@/components/squadre/SquadraCard';
 import errorMessage from '@/components/generic/ErrorMessage';
 import { getListaSquadre, listaSquadreType } from '@/data/squadre';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
+import { Picker } from '@react-native-picker/picker';
 
 export default function SquadreScreen() {
     const params = useLocalSearchParams<{ torneoId?: string }>();
@@ -116,23 +118,14 @@ export default function SquadreScreen() {
     return (
         <View className="bg-background flex-1">
             <View className="bg-background p-6 pb-4">
-                <View style={styles.headerRow}>
-                    <InterText style={styles.title}>Lista squadre</InterText>
-                    <Link href={createHref} asChild>
-                        <TouchableOpacity style={styles.roundButton} activeOpacity={0.85}>
-                            <PlusIcon size={22} color="#ffffff" strokeWidth={3} />
-                        </TouchableOpacity>
-                    </Link>
-                </View>
-
                 <View style={styles.searchRow}>
                     <View style={styles.searchBox}>
-                        <SearchIcon size={18} color="#6b7280" />
+                        <SearchIcon size={18} color="#b3b3b3" />
                         <TextInput
                             value={search}
                             onChangeText={setSearch}
-                            placeholder="Cerca per nome squadra..."
-                            placeholderTextColor="#9ca3af"
+                            placeholder="Cerca per nome, acronimo..."
+                            placeholderTextColor="#dadada"
                             style={styles.searchInput}
                         />
                     </View>
@@ -142,7 +135,7 @@ export default function SquadreScreen() {
                         activeOpacity={0.85}>
                         <SlidersHorizontal
                             size={20}
-                            color={filterOpen ? '#ffffff' : '#0f6096'}
+                            color={filterOpen ? '#ffffff' : '#b98e6b'}
                             strokeWidth={2.5}
                         />
                     </TouchableOpacity>
@@ -152,26 +145,26 @@ export default function SquadreScreen() {
                     <View style={styles.filterPanel}>
                         <View style={styles.filterSection}>
                             <InterText style={styles.filterLabel}>Torneo</InterText>
-                            <View style={styles.chipRow}>
-                                {tornei.map((torneo) => {
-                                    const active = selectedTorneo?.id === torneo.id;
-                                    return (
-                                        <TouchableOpacity
+                            <View style={styles.pickerWrapper}>
+                                <Picker
+                                    selectedValue={selectedTorneo?.id ?? null}
+                                    onValueChange={(itemValue) => {
+                                        const torneo = tornei.find((t) => t.id === itemValue);
+                                        if (torneo) handleSelectTorneo(torneo);
+                                    }}
+                                    style={styles.picker}
+                                    dropdownIconColor="#b98e6b"
+                                    itemStyle={styles.pickerItem}>
+                                    {tornei.map((torneo) => (
+                                        <Picker.Item
                                             key={torneo.id}
-                                            style={[styles.chip, active && styles.chipActive]}
-                                            onPress={() => handleSelectTorneo(torneo)}
-                                            activeOpacity={0.85}>
-                                            <InterText
-                                                style={[
-                                                    styles.chipText,
-                                                    active && styles.chipTextActive,
-                                                ]}
-                                                numberOfLines={1}>
-                                                {torneo.nome}
-                                            </InterText>
-                                        </TouchableOpacity>
-                                    );
-                                })}
+                                            label={' ' + torneo.nome}
+                                            value={torneo.id}
+                                            color="#0f172a"
+                                            fontFamily="Inter"
+                                        />
+                                    ))}
+                                </Picker>
                             </View>
                         </View>
 
@@ -197,12 +190,6 @@ export default function SquadreScreen() {
                         {squadre.length} risultati totali
                     </InterText>
                 </View>
-
-                {selectedTorneo && (
-                    <InterText style={styles.selectedTournament} numberOfLines={1}>
-                        {selectedTorneo.nome}
-                    </InterText>
-                )}
             </View>
 
             {loading ? (
@@ -214,16 +201,16 @@ export default function SquadreScreen() {
                 <FlatList
                     data={squadre}
                     keyExtractor={(item, index) => String(item.s_id ?? index)}
-                    contentContainerClassName="px-5 pb-28 gap-3 pt-1"
+                    contentContainerClassName="px-5 pb-28 gap-3"
                     onRefresh={() => loadSquadre(true)}
                     refreshing={refreshing}
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
-                        <View className="mt-16 items-center gap-3">
-                            <View className="bg-muted rounded-full p-5">
-                                <ShieldIcon size={36} color="#737373" />
+                        <View className="mt-32 items-center gap-3">
+                            <View className="bg-muted rounded-full p-2">
+                                <ShieldIcon size={48} color="#737373" />
                             </View>
-                            <InterText className="text-foreground text-lg font-semibold">
+                            <InterText className="text-lg font-semibold text-gray-500">
                                 Nessuna squadra trovata
                             </InterText>
                         </View>
@@ -257,33 +244,6 @@ export default function SquadreScreen() {
 }
 
 const styles = StyleSheet.create({
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 12,
-        marginBottom: 18,
-    },
-    title: {
-        flex: 1,
-        color: '#0f172a',
-        fontFamily: 'Inter-Bold',
-        fontSize: 30,
-        fontWeight: '700',
-    },
-    roundButton: {
-        width: 42,
-        height: 42,
-        borderRadius: 21,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#b98e6b',
-        shadowColor: '#0f172a',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 3,
-    },
     searchRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -294,9 +254,9 @@ const styles = StyleSheet.create({
         flex: 1,
         minHeight: 50,
         borderRadius: 16,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: '#ffffff',
+        borderColor: '#d9d9d9',
         borderWidth: 1,
-        borderColor: '#e2e8f0',
         flexDirection: 'row',
         alignItems: 'center',
         gap: 10,
@@ -304,25 +264,23 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        color: '#0f172a',
+        color: '#0d0703',
         fontFamily: 'Inter',
-        fontSize: 15,
-        minWidth: 0,
-        paddingVertical: 0,
+        fontSize: 13,
     },
     filterButton: {
         width: 50,
         height: 50,
         borderRadius: 16,
-        backgroundColor: '#eef6fb',
+        backgroundColor: '#e8d1be',
+        borderColor: '#e6cab8',
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: '#dbeafe',
     },
     filterButtonActive: {
-        backgroundColor: '#0f6096',
-        borderColor: '#0f6096',
+        backgroundColor: '#b98e6b',
+        borderColor: '#b98e6b',
     },
     filterPanel: {
         backgroundColor: '#ffffff',
@@ -332,7 +290,7 @@ const styles = StyleSheet.create({
         padding: 14,
         marginBottom: 16,
         gap: 2,
-        shadowColor: '#0f172a',
+        shadowColor: '#808080',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.03,
         shadowRadius: 12,
@@ -349,32 +307,23 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         textTransform: 'uppercase',
     },
-    chipRow: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-    },
-    chip: {
-        maxWidth: '100%',
-        borderRadius: 999,
+    pickerWrapper: {
+        borderRadius: 12,
         borderWidth: 1,
         borderColor: '#e2e8f0',
         backgroundColor: '#ffffff',
-        paddingHorizontal: 11,
-        paddingVertical: 8,
+        overflow: 'hidden',
+        marginTop: 2,
     },
-    chipActive: {
-        borderColor: '#0f172a',
-        backgroundColor: '#0f172a',
+    picker: {
+        color: '#0f172a',
+        backgroundColor: 'transparent',
+        padding: Platform.OS === 'web' ? 10 : 0,
     },
-    chipText: {
-        color: '#475569',
-        fontFamily: 'Inter-SemiBold',
+    pickerItem: {
         fontSize: 12,
-        fontWeight: '600',
-    },
-    chipTextActive: {
-        color: '#ffffff',
+        fontFamily: 'Inter',
+        color: '#0f172a',
     },
     filterActions: {
         flexDirection: 'row',
@@ -417,7 +366,6 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#e2e8f0',
         paddingBottom: 10,
-        marginBottom: 10,
     },
     totalText: {
         color: '#64748b',
