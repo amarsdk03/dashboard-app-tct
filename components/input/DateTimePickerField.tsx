@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
         color: '#808080',
     },
     placeholder: {
-        color: 'rgb(0 0 0 / 0.25)',
+        color: '#c8c8c8',
     },
     clearBtn: {
         position: 'absolute',

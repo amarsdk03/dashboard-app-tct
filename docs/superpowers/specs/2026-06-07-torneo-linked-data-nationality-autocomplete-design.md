@@ -78,7 +78,7 @@ The country list should be local and deterministic. It should include the most l
 
 Create focused components instead of adding too much responsibility to existing screens:
 
-- `components/input/NationalityAutocompleteField.tsx`
+- `components/input/NationalitySelectField.text`
   - form-level field with label, input, suggestions, readonly state;
   - uses `TextInput`, `TouchableOpacity`, `View`, `StyleSheet`, and `InterText`;
   - follows existing input colors and radii.

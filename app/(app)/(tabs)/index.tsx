@@ -1,18 +1,19 @@
-import React, { type ReactNode, useEffect, useMemo, useState } from 'react';
+import React, { type ReactNode, useEffect, useState } from 'react';
 import {
-    ActivityIndicator, Alert, Linking,
+    ActivityIndicator,
+    Alert,
+    Linking,
     RefreshControl,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Link, type Href } from 'expo-router';
+import { type Href, Link } from 'expo-router';
 import {
     AwardIcon,
     CalendarDaysIcon,
     ChevronRightIcon,
-    InstagramIcon,
     MailIcon,
     PlusIcon,
     ShieldIcon,
@@ -25,7 +26,6 @@ import HomeMatchCard from '@/components/home/HomeMatchCard';
 import HomeQuickAction from '@/components/home/HomeQuickAction';
 import HomeStatCard from '@/components/home/HomeStatCard';
 import { InterText } from '@/components/generic/InterText';
-import { useAuthContext } from '@/hooks/use-auth-context';
 import { getListaGiocatori } from '@/data/giocatori';
 import {
     getPartiteOggi,

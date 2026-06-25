@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, ImageBackground, Image, Pressable, Alert } from 'react-native';
+import { Alert, Image, ImageBackground, Pressable, StyleSheet, View } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { InterText } from '@/components/generic/InterText';
@@ -111,5 +111,5 @@ const styles = StyleSheet.create({
     loginButton: {
         borderRadius: 16,
         height: 48,
-    }
+    },
 });

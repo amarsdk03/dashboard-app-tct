@@ -13,7 +13,7 @@ type SelectableFieldProps<T> = {
     onSelect: (item: T) => void;
 };
 
-export default function SelectableField<T>({
+export default function ChipPickerField<T>({
     label,
     readonly,
     options,

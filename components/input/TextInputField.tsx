@@ -30,7 +30,7 @@ export default function TextInputField({ label, value, readonly = false, onChang
                     { fontFamily: 'Inter' },
                 ]}
                 placeholder={placeholderValue}
-                placeholderTextColor={'#808080'}
+                placeholderTextColor={readonly ? '#808080' : '#c8c8c8'}
                 value={value || ''}
                 onChangeText={(text) => onChange(text)}
                 multiline={multiline}

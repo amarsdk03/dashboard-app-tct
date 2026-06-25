@@ -30,7 +30,7 @@ export default function ImageInputField({
 
     async function pickNativeImage() {
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             quality: 0.78,
             base64: true,
@@ -105,24 +105,26 @@ export default function ImageInputField({
                                 <UploadIcon size={15} color="#ffffff" />
                                 <InterText style={styles.pickButtonText}>Scegli immagine</InterText>
                             </Pressable>
-                            {value && (
+
+                            {value ? (
                                 <Pressable style={styles.clearButton} onPress={() => onChange('')}>
                                     <XIcon size={15} color="#7c3f3f" />
                                 </Pressable>
-                            )}
+                            ) : null}
                         </View>
                     )}
                 </View>
             </View>
 
             {Platform.OS === 'web' && !readonly && (
-                <input
-                    ref={webInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleWebFileChange}
-                    style={{ display: 'none' }}
-                />
+                <View style={{ display: 'none' }}>
+                    <input
+                        ref={webInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleWebFileChange}
+                    />
+                </View>
             )}
         </View>
     );

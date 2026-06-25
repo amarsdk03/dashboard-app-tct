@@ -1,18 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import {
-    View,
-    FlatList,
-    ActivityIndicator,
-    TouchableOpacity,
-    StyleSheet,
-    SectionList,
-} from 'react-native';
+import { ActivityIndicator, SectionList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Link } from 'expo-router';
-import {
-    getListaTornei,
-    listaTorneiStatusFilter,
-    listaTorneiType,
-} from '@/data/tornei';
+import { getListaTornei, listaTorneiType } from '@/data/tornei';
 import { TrophyIcon } from 'lucide-react-native';
 import { InterText } from '@/components/generic/InterText';
 import TorneoCard from '@/components/tornei/TorneoCard';
@@ -30,7 +19,7 @@ function raggruppaTornei(items: listaTorneiType[]) {
     return Object.keys(groups)
         .sort((a, b) => parseInt(b) - parseInt(a))
         .map((year) => ({
-            title: year != 'N/A' ? "Fino al " + year : "Nessuna data specificata",
+            title: year != 'N/A' ? 'Fino al ' + year : 'Nessuna data specificata',
             data: groups[year],
         }));
 }
@@ -61,7 +50,7 @@ export default function TorneiScreen() {
 
     // Caricamento iniziale dei dati al montaggio del componente
     useEffect(() => {
-        loadTornei().then(r => null);
+        loadTornei().then((r) => null);
     }, []);
 
     return (

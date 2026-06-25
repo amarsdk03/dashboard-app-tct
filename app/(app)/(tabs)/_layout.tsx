@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Image, StyleSheet, Platform, View } from 'react-native';
+import { Image, Platform, StyleSheet, View } from 'react-native';
 import { Award, CalendarDays, ShieldUser, UsersRound } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import React from 'react';

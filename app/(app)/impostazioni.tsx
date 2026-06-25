@@ -148,7 +148,8 @@ export default function ImpostazioniScreen() {
             }
 
             setSession({
-                email: data.user?.email ?? (typeof claims?.email === 'string' ? claims.email : null),
+                email:
+                    data.user?.email ?? (typeof claims?.email === 'string' ? claims.email : null),
                 lastSignInAt: data.user?.last_sign_in_at ?? null,
             });
         }
@@ -192,13 +193,19 @@ export default function ImpostazioniScreen() {
         try {
             const canOpen = await Linking.canOpenURL(url);
             if (!canOpen) {
-                Alert.alert('Link non disponibile', 'Non riesco ad aprire questo contatto dal dispositivo.');
+                Alert.alert(
+                    'Link non disponibile',
+                    'Non riesco ad aprire questo contatto dal dispositivo.'
+                );
                 return;
             }
 
             await Linking.openURL(url);
         } catch {
-            Alert.alert('Link non disponibile', 'Non riesco ad aprire questo contatto dal dispositivo.');
+            Alert.alert(
+                'Link non disponibile',
+                'Non riesco ad aprire questo contatto dal dispositivo.'
+            );
         }
     }
 

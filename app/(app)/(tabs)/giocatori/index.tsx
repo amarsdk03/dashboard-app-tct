@@ -8,8 +8,8 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Link, type Href, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { PlusIcon, SearchIcon, ShieldIcon, SlidersHorizontal, UserRound } from 'lucide-react-native';
+import { type Href, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { SearchIcon, SlidersHorizontal, UserRound } from 'lucide-react-native';
 import { InterText } from '@/components/generic/InterText';
 import errorMessage from '@/components/generic/ErrorMessage';
 import GiocatoreCard from '@/components/giocatori/GiocatoreCard';
@@ -17,7 +17,8 @@ import { getListaGiocatori, listaGiocatoriType } from '@/data/giocatori';
 import { getListaSquadre, listaSquadreType } from '@/data/squadre';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
 import { Enums } from '@/types/database.types';
-import { Picker } from '@react-native-picker/picker';
+import TeamSelectField from '@/components/input/TeamSelectField';
+import GenericSelectField from '@/components/input/GenericSelectField';
 
 const RESULTS_PER_PAGE = 30;
 
@@ -146,7 +147,7 @@ export default function GiocatoriScreen() {
                     nomeSquadra: selectedSquadra?.s_nome,
                     ruolo: selectedRole,
                     soloCapitani: activeTab === 'capitani' || captainFilter,
-                },
+                }
             );
             const nextGiocatori = data.result ?? [];
             const totalCount = data.count ?? 0;
@@ -160,7 +161,7 @@ export default function GiocatoriScreen() {
                 const seenIds = new Set(
                     current
                         .map((giocatore) => giocatore.g_id)
-                        .filter((id): id is number => typeof id === 'number'),
+                        .filter((id): id is number => typeof id === 'number')
                 );
                 const uniqueNext = nextGiocatori.filter((giocatore) => {
                     if (typeof giocatore.g_id !== 'number') return true;
@@ -289,102 +290,63 @@ export default function GiocatoriScreen() {
 
                 {filterOpen && (
                     <View style={styles.filterPanel}>
-                        <View style={styles.filterSection}>
-                            <InterText style={styles.filterLabel}>Torneo</InterText>
-                            <View style={styles.pickerWrapper}>
-                                <Picker
-                                    selectedValue={selectedTorneo?.id ?? null}
-                                    onValueChange={(itemValue) => {
-                                        const torneo = tornei.find((t) => t.id === itemValue);
-                                        if (torneo) handleSelectTorneo(torneo);
-                                    }}
-                                    style={styles.picker}
-                                    dropdownIconColor="#b98e6b"
-                                    itemStyle={styles.pickerItem}>
-                                    {tornei.map((torneo) => (
-                                        <Picker.Item
-                                            key={torneo.id}
-                                            label={' ' + torneo.nome}
-                                            value={torneo.id}
-                                            color="#0f172a"
-                                            fontFamily="Inter"
-                                        />
-                                    ))}
-                                </Picker>
-                            </View>
-                        </View>
+                        <GenericSelectField
+                            label="Tornei"
+                            placeholder="Seleziona torneo"
+                            enableNullValue={false}
+                            value={selectedTorneo?.id ? selectedTorneo?.id.toString() : ''}
+                            options={tornei.map((torneo) => ({
+                                id: String(torneo.id),
+                                name: torneo.nome,
+                            }))}
+                            onChange={(val) => {
+                                const torneo = tornei.find((t) => t.id.toString() === val);
+                                if (torneo) handleSelectTorneo(torneo);
+                            }}
+                            defaultLabelStyle={false}
+                        />
 
-                        <View style={styles.filterSection}>
-                            <InterText style={styles.filterLabel}>Squadra</InterText>
-                            <View style={styles.pickerWrapper}>
-                                <Picker
-                                    selectedValue={selectedSquadra?.s_id ?? 'defaultPickerValue'}
-                                    onValueChange={(itemValue) => {
-                                        if (itemValue === 'defaultPickerValue') {
-                                            setSelectedSquadra(null);
-                                        } else {
-                                            const squadra = squadre.find(
-                                                (s) => s.s_id === itemValue
-                                            );
-                                            if (squadra) setSelectedSquadra(squadra);
-                                        }
-                                    }}
-                                    style={styles.picker}
-                                    dropdownIconColor="#b98e6b"
-                                    itemStyle={styles.pickerItem}>
-                                    <Picker.Item
-                                        label={' ' + 'Qualsiasi'}
-                                        value={'defaultPickerValue'}
-                                        color="#0f172a"
-                                        fontFamily="Inter"
-                                    />
-                                    {squadre.map((squadra) => (
-                                        <Picker.Item
-                                            key={squadra.s_id}
-                                            label={' ' + squadra.s_nome}
-                                            value={squadra.s_id}
-                                            color="#0f172a"
-                                            fontFamily="Inter"
-                                        />
-                                    ))}
-                                </Picker>
-                            </View>
-                        </View>
+                        <TeamSelectField
+                            label="Squadra"
+                            enableNullValue={true}
+                            defaultNullValue="Qualsiasi"
+                            value={selectedSquadra?.s_id ? selectedSquadra.s_id.toString() : ''}
+                            teams={squadre.map((s, index) => ({
+                                id: String(s.s_id ?? index),
+                                name: s.s_nome ?? 'Squadra senza nome',
+                                logoUrl: s.s_link_stemma ?? undefined,
+                            }))}
+                            onChange={(teamId) => {
+                                if (!teamId) {
+                                    setSelectedSquadra(null);
+                                } else {
+                                    const originalSquadra = squadre.find(
+                                        (s) => String(s.s_id) === teamId
+                                    );
+                                    if (originalSquadra) {
+                                        setSelectedSquadra(originalSquadra);
+                                    }
+                                }
+                            }}
+                            defaultLabelStyle={false}
+                        />
 
-                        <View style={styles.filterSection}>
-                            <InterText style={styles.filterLabel}>Ruolo</InterText>
-                            <View style={styles.pickerWrapper}>
-                                <Picker
-                                    selectedValue={selectedRole ?? 'defaultPickerValue'}
-                                    onValueChange={(itemValue) => {
-                                        type Ruolo = (typeof RUOLI)[number];
-                                        setSelectedRole(
-                                            itemValue !== 'defaultPickerValue'
-                                                ? (itemValue as Ruolo)
-                                                : null
-                                        );
-                                    }}
-                                    style={styles.picker}
-                                    dropdownIconColor="#b98e6b"
-                                    itemStyle={styles.pickerItem}>
-                                    <Picker.Item
-                                        label={' ' + 'Qualsiasi'}
-                                        value={'defaultPickerValue'}
-                                        color="#0f172a"
-                                        fontFamily="Inter"
-                                    />
-                                    {RUOLI.map((ruolo) => (
-                                        <Picker.Item
-                                            key={ruolo}
-                                            label={' ' + ruolo}
-                                            value={ruolo}
-                                            color="#0f172a"
-                                            fontFamily="Inter"
-                                        />
-                                    ))}
-                                </Picker>
-                            </View>
-                        </View>
+                        <GenericSelectField
+                            label="Ruolo"
+                            placeholder="Seleziona ruolo"
+                            enableNullValue={true}
+                            defaultNullValue="Qualsiasi"
+                            value={selectedRole ?? ''}
+                            options={RUOLI.map((ruolo) => ({
+                                id: ruolo,
+                                name: ruolo,
+                            }))}
+                            onChange={(val) => {
+                                type Ruolo = (typeof RUOLI)[number];
+                                setSelectedRole(val ? (val as Ruolo) : null);
+                            }}
+                            defaultLabelStyle={false}
+                        />
 
                         <View style={styles.filterActions}>
                             <TouchableOpacity
@@ -430,9 +392,7 @@ export default function GiocatoriScreen() {
                 </View>
 
                 <View style={styles.totalTextContainer}>
-                    <InterText style={styles.totalText}>
-                        {resultCount} risultati totali
-                    </InterText>
+                    <InterText style={styles.totalText}>{resultCount} risultati totali</InterText>
                 </View>
             </View>
 
@@ -487,7 +447,7 @@ export default function GiocatoriScreen() {
                                 id={item.g_id ?? ''}
                                 nome={item.g_nome}
                                 cognome={item.g_cognome}
-                                linkFoto={item.g_link_foto}
+                                linkFoto={item.s_link_stemma}
                                 nomeSquadra={item.s_nome}
                                 acronimoSquadra={item.s_acronimo}
                                 coloreSquadra={item.s_colore_squadra}

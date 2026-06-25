@@ -2,11 +2,11 @@ import '@/global.css';
 
 import { Stack } from 'expo-router';
 import {
-    useFonts,
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    useFonts,
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -31,7 +31,7 @@ export default function Root() {
 
     useEffect(() => {
         if (loaded || error) {
-            SplashScreen.hideAsync().then(_ => null);
+            SplashScreen.hideAsync().then((_) => null);
         }
     }, [loaded, error]);
 

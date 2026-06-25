@@ -1,18 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
+    ActivityIndicator, Platform,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
     View,
 } from 'react-native';
 import { Link, type Href } from 'expo-router';
-import { ArrowLeftIcon, SaveIcon, SquarePenIcon } from 'lucide-react-native';
+import { ArrowLeftIcon, ArrowRightIcon, SaveIcon, SquarePenIcon } from 'lucide-react-native';
 import { InterText } from '@/components/generic/InterText';
 import DateTimePickerField from '@/components/input/DateTimePickerField';
 import ImageInputField from '@/components/input/ImageInputField';
-import NationalityAutocompleteField from '@/components/input/NationalityAutocompleteField';
 import TextInputField from '@/components/input/TextInputField';
+import NationalitySelectField from '@/components/input/NationalitySelectField';
 import errorMessage from '@/components/generic/ErrorMessage';
 import {
     createGiocatoreConIscrizione,
@@ -24,6 +24,11 @@ import {
 import { getListaSquadre, listaSquadreType } from '@/data/squadre';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
 import { Enums } from '@/types/database.types';
+import { Picker } from '@react-native-picker/picker';
+import GenericSelectField from '@/components/input/GenericSelectField';
+import TeamSelectField from '@/components/input/TeamSelectField';
+import ChipPickerField from '@/components/input/ChipPickerField';
+import FormButton from '@/components/input/FormButton';
 
 export type GiocatoreModalMode = 'view' | 'create' | 'edit';
 
@@ -110,7 +115,7 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
         () => tornei.find((torneo) => torneo.id === form.idTorneo) ?? null,
         [form.idTorneo, tornei],
     );
-    const selectedSquadra = useMemo(
+    useMemo(
         () => squadre.find((squadra) => squadra.s_id === form.idSquadra) ?? null,
         [form.idSquadra, squadre],
     );
@@ -220,6 +225,10 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
         if (validatePlayerFields()) {
             setCreateStep(2);
         }
+    }
+
+    function handlePrevStep() {
+        setCreateStep(1);
     }
 
     async function handleCreateSubmit() {
@@ -347,14 +356,26 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                         <InterText style={styles.stepText}>Step {createStep} di 2</InterText>
                         <View style={styles.stepTrack}>
                             <View style={[styles.stepDot, styles.stepDotActive]} />
-                            <View style={[styles.stepDot, createStep === 2 && styles.stepDotActive]} />
+                            <View
+                                style={[styles.stepDot, createStep === 2 && styles.stepDotActive]}
+                            />
                         </View>
                     </View>
                 )}
 
                 {(mode !== 'create' || createStep === 1) && (
                     <>
-                        <InterText style={styles.sectionTitle}>Dati giocatore</InterText>
+                        <InterText style={styles.sectionTitle}>Dati giocatore:</InterText>
+
+                        <View className="hidden">
+                            <ImageInputField
+                                label="Foto giocatore"
+                                readonly={readonly}
+                                value={form.linkFoto}
+                                onChange={(value) => setField('linkFoto', value)}
+                                placeholder="https://example.com/foto.png"
+                            />
+                        </View>
 
                         <View style={styles.row}>
                             <View style={styles.flexChild}>
@@ -363,7 +384,8 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                                     readonly={readonly}
                                     value={form.nome}
                                     onChange={(value) => setField('nome', value)}
-                                    placeholder="Angelo"
+                                    placeholder="Alessandro"
+                                    required={true}
                                 />
                             </View>
                             <View style={styles.flexChild}>
@@ -373,56 +395,50 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                                     value={form.cognome}
                                     onChange={(value) => setField('cognome', value)}
                                     placeholder="Del Piero"
+                                    required={true}
                                 />
                             </View>
                         </View>
 
-                        <ImageInputField
-                            label="Foto giocatore"
-                            readonly={readonly}
-                            value={form.linkFoto}
-                            onChange={(value) => setField('linkFoto', value)}
-                            placeholder="https://example.com/foto.png"
-                        />
-
-                        <View style={styles.row}>
-                            <View style={styles.flexChild}>
-                                <NationalityAutocompleteField
-                                    label="Nazionalità"
-                                    readonly={readonly}
-                                    value={form.nazionalita}
-                                    onChange={(value) => setField('nazionalita', value)}
-                                    placeholder="Italia"
-                                />
-                            </View>
-                            <View style={styles.flexChild}>
-                                <DateTimePickerField
-                                    mode="date"
-                                    label="Data di nascita"
-                                    readonly={readonly}
-                                    value={form.dataNascita}
-                                    onChange={(value) => setField('dataNascita', value)}
-                                    placeholder="Seleziona..."
-                                />
-                            </View>
+                        <View style={styles.inputField}>
+                            <DateTimePickerField
+                                mode="date"
+                                label="Data di nascita"
+                                readonly={readonly}
+                                value={form.dataNascita}
+                                onChange={(value) => setField('dataNascita', value)}
+                                placeholder="Seleziona..."
+                            />
                         </View>
 
-                        <ChipSection
+                        <View style={styles.inputField}>
+                            <NationalitySelectField
+                                value={form.nazionalita}
+                                onChange={(value) => setField('nazionalita', value)}
+                                readonly={readonly}
+                            />
+                        </View>
+
+                        <View style={styles.inputField} />
+
+                        <ChipPickerField
                             label="Ruolo principale"
                             readonly={readonly}
                             options={RUOLI}
-                            selected={form.ruoloPrincipale}
+                            selectedId={form.ruoloPrincipale}
+                            getId={(ruolo) => ruolo}
+                            getValue={(ruolo) => ruolo}
                             onSelect={(value) => setField('ruoloPrincipale', value)}
-                            onClear={() => setField('ruoloPrincipale', null)}
                         />
 
-                        <ChipSection
+                        <ChipPickerField
                             label="Piede principale"
                             readonly={readonly}
                             options={PIEDI}
-                            selected={form.piedePrincipale}
+                            selectedId={form.piedePrincipale}
+                            getId={(piede) => piede}
+                            getValue={(piede) => piede}
                             onSelect={(value) => setField('piedePrincipale', value)}
-                            onClear={() => setField('piedePrincipale', null)}
                         />
 
                         <View style={styles.row}>
@@ -446,16 +462,18 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                             </View>
                         </View>
 
-                        <TextInputField
-                            label="Username IG"
-                            readonly={readonly}
-                            value={form.usernameIg}
-                            onChange={(value) => setField('usernameIg', value)}
-                            placeholder="@username"
-                        />
+                        <View style={styles.inputField}>
+                            <TextInputField
+                                label="Username IG"
+                                readonly={readonly}
+                                value={form.usernameIg}
+                                onChange={(value) => setField('usernameIg', value)}
+                                placeholder="alessandrodelpiero"
+                            />
+                        </View>
 
                         <ToggleRow
-                            label="Capitano"
+                            label="Capitano/tecnico squadra?"
                             readonly={readonly}
                             value={form.isCapitano}
                             onChange={(value) => setField('isCapitano', value)}
@@ -466,30 +484,37 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                 {(mode !== 'create' || createStep === 2) && (
                     <>
                         <View style={styles.separator} />
-                        <InterText style={styles.sectionTitle}>Dati iscrizione</InterText>
+                        <InterText style={styles.sectionTitle}>Storico carriera:</InterText>
 
-                        <SelectSection
+                        <GenericSelectField
                             label="Torneo"
-                            readonly={readonly}
-                            options={tornei}
-                            selectedId={form.idTorneo}
-                            getId={(torneo) => torneo.id}
-                            getLabel={(torneo) => torneo.nome}
-                            onSelect={(torneo) => {
-                                setField('idTorneo', torneo.id);
+                            placeholder="Seleziona torneo"
+                            enableNullValue={false}
+                            value={selectedTorneo?.id ? selectedTorneo?.id.toString() : ''}
+                            options={tornei.map((torneo) => ({
+                                id: String(torneo.id),
+                                name: torneo.nome,
+                            }))}
+                            onChange={(val) => {
+                                setField('idTorneo', Number.parseInt(val));
                                 setField('idSquadra', null);
                             }}
+                            readonly={readonly}
                         />
 
-                        <SelectSection
+                        <TeamSelectField
                             label="Squadra"
+                            enableNullValue={false}
+                            value={form.idSquadra ? String(form.idSquadra) : ''}
+                            teams={squadre.map((s, index) => ({
+                                id: String(s.s_id),
+                                name: s.s_nome ?? 'Squadra senza nome',
+                                logoUrl: s.s_link_stemma ?? undefined,
+                            }))}
+                            onChange={(val) => {
+                                setField('idSquadra', val ? Number.parseInt(val) : null);
+                            }}
                             readonly={readonly}
-                            options={squadre}
-                            selectedId={form.idSquadra}
-                            getId={(squadra) => squadra.s_id}
-                            getLabel={(squadra) => squadra.s_nome ?? 'Squadra senza nome'}
-                            onSelect={(squadra) => setField('idSquadra', squadra.s_id)}
-                            emptyText={selectedTorneo ? 'Nessuna squadra disponibile' : 'Seleziona un torneo'}
                         />
 
                         <TextInputField
@@ -506,72 +531,54 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                 <View style={[styles.dynamicRow, { marginTop: 12 }]}>
                     {mode === 'create' ? (
                         <>
-                            <TouchableOpacity
-                                style={[styles.button, styles.buttonDestructive]}
-                                onPress={onClose}
-                                activeOpacity={0.8}>
-                                <ArrowLeftIcon size={16} color="#7c3f3f" />
-                                <InterText style={[styles.buttonText, styles.buttonDestructiveText]}>
-                                    Annulla
-                                </InterText>
-                            </TouchableOpacity>
-
-                            {createStep === 2 && (
-                                <TouchableOpacity
-                                    style={[styles.button, styles.buttonSecondary]}
-                                    onPress={() => setCreateStep(1)}
-                                    activeOpacity={0.8}>
-                                    <ArrowLeftIcon size={16} color="#6b7280" />
-                                    <InterText style={[styles.buttonText, styles.buttonSecondaryText]}>
-                                        Indietro
-                                    </InterText>
-                                </TouchableOpacity>
+                            {createStep === 1 ? (
+                                <FormButton
+                                    type={'destructive'}
+                                    label={'Annulla'}
+                                    onPress={onClose}
+                                    icon={ArrowLeftIcon}
+                                />
+                            ) : (
+                                <FormButton
+                                    type={'secondary'}
+                                    label={'Indietro'}
+                                    onPress={handlePrevStep}
+                                    icon={ArrowLeftIcon}
+                                />
                             )}
 
                             {createStep === 1 ? (
-                                <TouchableOpacity
-                                    style={styles.button}
+                                <FormButton
+                                    label={'Avanti'}
                                     onPress={handleNextStep}
-                                    activeOpacity={0.8}>
-                                    <InterText style={styles.buttonText}>Avanti</InterText>
-                                </TouchableOpacity>
+                                    icon={ArrowRightIcon}
+                                />
                             ) : (
-                                <TouchableOpacity
-                                    style={[styles.button, submitting && { opacity: 0.6 }]}
+                                <FormButton
+                                    label={'Crea giocatore'}
                                     onPress={handleCreateSubmit}
+                                    icon={SaveIcon}
                                     disabled={submitting}
-                                    activeOpacity={0.8}>
-                                    <SaveIcon size={16} color="#fff" />
-                                    <InterText style={styles.buttonText}>Crea giocatore</InterText>
-                                </TouchableOpacity>
+                                />
                             )}
                         </>
                     ) : mode === 'edit' ? (
-                        <TouchableOpacity
-                            style={[styles.button, styles.buttonDestructive]}
+                        <FormButton
+                            type={'destructive'}
+                            label={'Annulla'}
                             onPress={onClose}
-                            activeOpacity={0.8}>
-                            <ArrowLeftIcon size={16} color="#7c3f3f" />
-                            <InterText style={[styles.buttonText, styles.buttonDestructiveText]}>
-                                Annulla
-                            </InterText>
-                        </TouchableOpacity>
+                            icon={ArrowLeftIcon}
+                        />
                     ) : (
                         <>
-                            <TouchableOpacity
-                                style={[styles.button, styles.buttonSecondary]}
+                            <FormButton
+                                type={'secondary'}
+                                label={'Indietro'}
                                 onPress={onClose}
-                                activeOpacity={0.8}>
-                                <ArrowLeftIcon size={16} color="#6b7280" />
-                                <InterText style={[styles.buttonText, styles.buttonSecondaryText]}>
-                                    Torna indietro
-                                </InterText>
-                            </TouchableOpacity>
+                                icon={ArrowLeftIcon}
+                            />
                             <Link href={editHref} asChild>
-                                <TouchableOpacity style={styles.button} activeOpacity={0.8}>
-                                    <SquarePenIcon size={16} color="#fff" />
-                                    <InterText style={styles.buttonText}>Modifica</InterText>
-                                </TouchableOpacity>
+                                <FormButton label={'Modifica'} icon={SquarePenIcon} />
                             </Link>
                         </>
                     )}
@@ -592,121 +599,6 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
     );
 }
 
-type ChipSectionProps<T extends string> = {
-    label: string;
-    readonly: boolean;
-    options: T[];
-    selected: T | null;
-    onSelect: (value: T) => void;
-    onClear: () => void;
-};
-
-function ChipSection<T extends string>({
-    label,
-    readonly,
-    options,
-    selected,
-    onSelect,
-    onClear,
-}: ChipSectionProps<T>) {
-    return (
-        <View style={styles.inputGroup}>
-            <InterText style={styles.label}>{label}:</InterText>
-            <View style={styles.chipRow}>
-                {!readonly && (
-                    <TouchableOpacity
-                        style={[styles.chip, !selected && styles.chipActive]}
-                        onPress={onClear}
-                        activeOpacity={0.85}>
-                        <InterText style={[styles.chipText, !selected && styles.chipTextActive]}>
-                            Nessuno
-                        </InterText>
-                    </TouchableOpacity>
-                )}
-                {options.map((option) => {
-                    const active = selected === option;
-                    return (
-                        <TouchableOpacity
-                            key={option}
-                            disabled={readonly}
-                            style={[styles.chip, active && styles.chipActive, readonly && styles.readonlyChip]}
-                            onPress={() => onSelect(option)}
-                            activeOpacity={0.85}>
-                            <InterText style={[styles.chipText, active && styles.chipTextActive]}>
-                                {option}
-                            </InterText>
-                        </TouchableOpacity>
-                    );
-                })}
-            </View>
-        </View>
-    );
-}
-
-type SelectSectionProps<T> = {
-    label: string;
-    readonly: boolean;
-    options: T[];
-    selectedId: number | null;
-    getId: (item: T) => number | null;
-    getLabel: (item: T) => string;
-    onSelect: (item: T) => void;
-    emptyText?: string;
-};
-
-function SelectSection<T>({
-    label,
-    readonly,
-    options,
-    selectedId,
-    getId,
-    getLabel,
-    onSelect,
-    emptyText = 'Nessuna opzione disponibile',
-}: SelectSectionProps<T>) {
-    const selected = options.find((item) => getId(item) === selectedId) ?? null;
-
-    if (readonly) {
-        return (
-            <View style={styles.inputGroup}>
-                <InterText style={styles.label}>{label}:</InterText>
-                <InterText style={styles.readonlyValue}>
-                    {selected ? getLabel(selected) : 'N/A'}
-                </InterText>
-            </View>
-        );
-    }
-
-    return (
-        <View style={styles.inputGroup}>
-            <InterText style={styles.label}>{label}:</InterText>
-            <View style={styles.chipRow}>
-                {options.length === 0 ? (
-                    <InterText style={styles.emptyOptions}>{emptyText}</InterText>
-                ) : (
-                    options.map((option) => {
-                        const id = getId(option);
-                        const active = id === selectedId;
-                        return (
-                            <TouchableOpacity
-                                key={String(id ?? getLabel(option))}
-                                style={[styles.chip, active && styles.chipActive]}
-                                onPress={() => onSelect(option)}
-                                activeOpacity={0.85}>
-                                <InterText
-                                    style={[styles.chipText, active && styles.chipTextActive]}
-                                    numberOfLines={1}>
-                                    {getLabel(option)}
-                                </InterText>
-                            </TouchableOpacity>
-                        );
-                    })
-                )}
-            </View>
-        </View>
-    );
-}
-
 type ToggleRowProps = {
     label: string;
     readonly: boolean;
@@ -717,7 +609,7 @@ type ToggleRowProps = {
 function ToggleRow({ label, readonly, value, onChange }: ToggleRowProps) {
     return (
         <View style={styles.toggleRow}>
-            <InterText style={styles.label}>{label}:</InterText>
+            <InterText style={styles.label}>{label}</InterText>
             <TouchableOpacity
                 disabled={readonly}
                 style={[styles.toggle, value && styles.toggleActive, readonly && styles.readonlyChip]}
@@ -784,9 +676,12 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     dynamicRow: {
-        flexDirection: 'column',
+        flexDirection: Platform.OS === 'web' ? 'row' : 'column',
         width: '100%',
         gap: 12,
+    },
+    inputField: {
+        marginVertical: 5,
     },
     flexChild: {
         flex: 1,
@@ -800,7 +695,17 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '500',
         color: '#111111',
-        fontFamily: 'Inter-Medium',
+        marginBottom: 4,
+    },
+    picker: {
+        color: '#0f172a',
+        backgroundColor: 'transparent',
+        padding: Platform.OS === 'web' ? 10 : 0,
+    },
+    pickerItem: {
+        fontSize: 13,
+        fontFamily: 'Inter',
+        color: '#0f172a',
     },
     chipRow: {
         flexDirection: 'row',
@@ -843,6 +748,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter',
     },
     toggleRow: {
+        marginTop: 12,
         marginBottom: 20,
         flexDirection: 'row',
         alignItems: 'center',

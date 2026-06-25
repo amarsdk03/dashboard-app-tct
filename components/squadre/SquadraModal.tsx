@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
-    Image,
+    Image, Platform,
     ScrollView,
     StyleSheet,
     TextInput,
@@ -38,7 +38,9 @@ import {
     updateSquadra,
 } from '@/data/squadre';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
-import SelectableField from '@/components/input/SelectableField';
+import ChipPickerField from '@/components/input/ChipPickerField';
+import FormButton from '@/components/input/FormButton';
+import GenericSelectField from '@/components/input/GenericSelectField';
 
 export type SquadraModalMode = 'view' | 'create' | 'edit';
 
@@ -564,7 +566,11 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
             <View style={styles.formCard}>
                 <View style={styles.modalHeader}>
                     <View>
-                        <InterText style={styles.eyebrow}>Squadre</InterText>
+                        {!isCreate && (
+                            <InterText style={styles.eyebrow}>
+                                {mode === 'view' ? 'Info squadra' : 'Modifica dati squadra'}
+                            </InterText>
+                        )}
                         <InterText style={styles.title}>
                             {mode === 'create' ? 'Nuova squadra' : form.nome || 'Squadra'}
                         </InterText>
@@ -590,46 +596,48 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                 )}
 
                 {isCreate && (
-                    <SelectableField
+                    <GenericSelectField
                         label="Torneo"
+                        placeholder="Seleziona torneo"
+                        enableNullValue={false}
+                        value={form.idTorneo?.toString() || ''}
+                        options={tornei.map((torneo) => ({
+                            id: String(torneo.id),
+                            name: torneo.nome,
+                        }))}
+                        onChange={(val) => {
+                            selectCreateTorneo(Number.parseInt(val));
+                        }}
                         readonly={readonly}
-                        options={tornei}
-                        selectedId={form.idTorneo?.toString() || null}
-                        getId={(torneo) => torneo.id.toString()}
-                        getValue={(torneo) => torneo.nome}
-                        onSelect={(torneo) => selectCreateTorneo(torneo.id)}
                     />
                 )}
 
-                <TextInputField
-                    label="Nome squadra"
-                    readonly={readonly}
-                    value={form.nome}
-                    onChange={(value) => setField('nome', value)}
-                    placeholder="Prometheus FC"
-                />
-                <TextInputField
-                    label="Acronimo"
-                    readonly={readonly}
-                    value={form.acronimo}
-                    onChange={(value) => setField('acronimo', value.toUpperCase())}
-                    placeholder="PFC"
-                />
-                <ImageInputField
-                    label="Stemma"
-                    readonly={readonly}
-                    value={form.linkStemma}
-                    onChange={(value) => setField('linkStemma', value)}
-                    placeholder="https://example.com/stemma.png"
-                />
                 <View style={styles.row}>
+                    <View style={styles.flexChild}>
+                        <TextInputField
+                            label="Nome squadra"
+                            readonly={readonly}
+                            value={form.nome}
+                            onChange={(value) => setField('nome', value)}
+                            placeholder="Real Madrid CdF"
+                        />
+                    </View>
+                    <View style={styles.flexChild}>
+                        <TextInputField
+                            label="Acronimo"
+                            readonly={readonly}
+                            value={form.acronimo}
+                            onChange={(value) => setField('acronimo', value.toUpperCase())}
+                            placeholder="RMA"
+                        />
+                    </View>
                     <View style={styles.flexChild}>
                         <TextInputField
                             label="Colore squadra"
                             readonly={readonly}
                             value={form.coloreSquadra}
                             onChange={(value) => setField('coloreSquadra', value)}
-                            placeholder="#b3642c"
+                            placeholder="#ffcc33"
                         />
                     </View>
                     <View style={styles.flexChild}>
@@ -638,7 +646,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                             readonly={readonly}
                             value={form.usernameIg}
                             onChange={(value) => setField('usernameIg', value)}
-                            placeholder="@squadra"
+                            placeholder="@realmadrid"
                         />
                     </View>
                 </View>
@@ -692,13 +700,19 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                     />
                 )}
 
-                <CaptainPicker
-                    readonly={readonly}
-                    players={selectedRosterPlayers}
-                    selectedId={form.idCapitano}
-                    onSelect={(id) => setField('idCapitano', id)}
-                    onClear={() => setField('idCapitano', null)}
-                />
+                <View className={'my-4'}>
+                    <ChipPickerField<PickerPlayer>
+                        label="Capitano squadra"
+                        readonly={readonly}
+                        options={selectedRosterPlayers}
+                        selectedId={form.idCapitano?.toString() ?? null}
+                        getId={(player) => getPlayerId(player)?.toString() ?? ''}
+                        getValue={(player) =>
+                            getPlayerName(player) || `Giocatore ${getPlayerId(player)}`
+                        }
+                        onSelect={(player) => setField('idCapitano', getPlayerId(player) ?? null)}
+                    />
+                </View>
 
                 {!isCreate && readonly && (
                     <RosterSection
@@ -709,22 +723,28 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                 )}
 
                 <View style={styles.dynamicRow}>
-                    <FooterButton
-                        label={readonly ? 'Torna indietro' : 'Annulla'}
-                        variant={readonly ? 'secondary' : 'destructive'}
-                        onPress={onClose}
-                    />
+                    {readonly ? (
+                        <FormButton
+                            type={'secondary'}
+                            label={'Torna indietro'}
+                            onPress={onClose}
+                            icon={ArrowLeftIcon}
+                        />
+                    ) : (
+                        <FormButton
+                            type={'destructive'}
+                            label={'Indietro'}
+                            onPress={onClose}
+                            icon={ArrowLeftIcon}
+                        />
+                    )}
                     {!readonly && (
-                        <TouchableOpacity
-                            style={[styles.button, submitting && { opacity: 0.6 }]}
+                        <FormButton
+                            label={mode === 'create' ? 'Crea squadra' : 'Salva modifiche'}
                             onPress={handleSubmit}
+                            icon={SaveIcon}
                             disabled={submitting}
-                            activeOpacity={0.8}>
-                            <SaveIcon size={16} color="#ffffff" />
-                            <InterText style={styles.buttonText}>
-                                {mode === 'create' ? 'Crea squadra' : 'Salva modifiche'}
-                            </InterText>
-                        </TouchableOpacity>
+                        />
                     )}
                 </View>
             </View>
@@ -821,16 +841,16 @@ function PlayerSearchPicker({
     const suggestions = players.filter((player) => !selectedIds.includes(player.id)).slice(0, 8);
 
     return (
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { marginTop: 12 }]}>
             <InterText style={styles.label}>{label}:</InterText>
 
             <View style={styles.searchInputBox}>
-                <SearchIcon size={16} color="#94a3b8" />
+                <SearchIcon size={16} color="#bfbfbf" />
                 <TextInput
                     value={search}
                     onChangeText={onSearchChange}
-                    placeholder="Cerca giocatore per nome o cognome"
-                    placeholderTextColor="#94a3b8"
+                    placeholder="Cerca per nome o cognome..."
+                    placeholderTextColor="#bfbfbf"
                     style={styles.searchInput}
                 />
             </View>
@@ -838,7 +858,7 @@ function PlayerSearchPicker({
             <View style={styles.suggestionsBox}>
                 {search.trim().length < 2 ? (
                     <InterText style={styles.emptyOptions}>
-                        Scrivi almeno 2 lettere per vedere i suggerimenti
+                        Scrivi almeno 2 lettere per visualizzare i suggerimenti...
                     </InterText>
                 ) : loading ? (
                     <View style={styles.loadingRow}>
@@ -1000,64 +1020,6 @@ function PlayerAvatar({ player }: { player: PickerPlayer }) {
     );
 }
 
-function CaptainPicker({
-    readonly,
-    players,
-    selectedId,
-    onSelect,
-    onClear,
-}: {
-    readonly: boolean;
-    players: PickerPlayer[];
-    selectedId: number | null;
-    onSelect: (id: number) => void;
-    onClear: () => void;
-}) {
-    return (
-        <View style={styles.inputGroup}>
-            <InterText style={styles.label}>Capitano:</InterText>
-            <View style={styles.chipRow}>
-                {!readonly && (
-                    <TouchableOpacity
-                        style={[styles.chip, !selectedId && styles.chipActive]}
-                        onPress={onClear}
-                        activeOpacity={0.85}>
-                        <InterText style={[styles.chipText, !selectedId && styles.chipTextActive]}>
-                            Nessuno
-                        </InterText>
-                    </TouchableOpacity>
-                )}
-                {players.length === 0 ? (
-                    <InterText style={styles.emptyOptions}>
-                        Seleziona prima i giocatori della rosa
-                    </InterText>
-                ) : (
-                    players.map((player) => {
-                        const id = getPlayerId(player);
-                        if (!id) return null;
-
-                        const active = selectedId === id;
-                        return (
-                            <TouchableOpacity
-                                key={id}
-                                disabled={readonly}
-                                style={[styles.chip, active && styles.chipActive]}
-                                onPress={() => onSelect(id)}
-                                activeOpacity={0.85}>
-                                <InterText
-                                    style={[styles.chipText, active && styles.chipTextActive]}
-                                    numberOfLines={1}>
-                                    {getPlayerName(player) || `Giocatore ${id}`}
-                                </InterText>
-                            </TouchableOpacity>
-                        );
-                    })
-                )}
-            </View>
-        </View>
-    );
-}
-
 function RosterSection({
     roster,
     idCapitano,
@@ -1173,6 +1135,9 @@ const styles = StyleSheet.create({
         gap: 12,
         marginBottom: 20,
     },
+    inputField: {
+        gap: 15,
+    },
     eyebrow: {
         color: '#64748b',
         fontFamily: 'Inter-SemiBold',
@@ -1209,7 +1174,7 @@ const styles = StyleSheet.create({
     logoBox: {
         width: 64,
         height: 64,
-        borderRadius: 18,
+        borderRadius: 32,
         backgroundColor: '#ffffff',
         borderWidth: 1,
         borderColor: '#e2e8f0',
@@ -1218,8 +1183,8 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     logo: {
-        width: 52,
-        height: 52,
+        width: 64,
+        height: 64,
     },
     teamHeaderContent: {
         flex: 1,
@@ -1289,7 +1254,6 @@ const styles = StyleSheet.create({
     },
     label: {
         color: '#111111',
-        fontFamily: 'Inter-Medium',
         fontSize: 14,
         fontWeight: '500',
         marginBottom: 6,
@@ -1306,7 +1270,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
         borderColor: '#e2e8f0',
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#ffffff',
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
@@ -1324,7 +1288,7 @@ const styles = StyleSheet.create({
     suggestionsBox: {
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: '#faf6f2',
         backgroundColor: '#ffffff',
         padding: 8,
         marginBottom: 10,
@@ -1340,7 +1304,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 10,
         borderRadius: 12,
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#fcfaf7',
         borderWidth: 1,
         borderColor: '#e2e8f0',
         padding: 10,
@@ -1545,9 +1509,8 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
     dynamicRow: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
+        flexDirection: Platform.OS === 'web' ? 'row' : 'column',
+        width: '100%',
         gap: 12,
         marginTop: 12,
     },

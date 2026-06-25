@@ -30,9 +30,10 @@ import { InterText } from '@/components/generic/InterText';
 import DateTimePickerField from '@/components/input/DateTimePickerField';
 import TextInputField from '@/components/input/TextInputField';
 import errorMessage from '@/components/generic/ErrorMessage';
-import SelectableField from '@/components/input/SelectableField';
+import ChipPickerField from '@/components/input/ChipPickerField';
 import { getListaCampi, listaCampiType } from '@/data/campi';
 import { TorneoModalMode } from '@/app/(app)/(tabs)/tornei/modal';
+import FormButton from '@/components/input/FormButton';
 
 type Props = {
     mode: TorneoModalMode;
@@ -610,69 +611,51 @@ export default function TorneoModalForm(props: Props) {
                 )}
 
                 <View style={[styles.dynamicRow, { marginTop: 12 }]}>
-                    {createStep < 2 ? (
-                        <TouchableOpacity
-                            style={styles.button}
-                            onPress={handleNextCreateStep}
-                            activeOpacity={0.8}>
-                            <ArrowRightIcon size={16} color="#fff" />
-                            <InterText style={styles.buttonText}>Avanti</InterText>
-                        </TouchableOpacity>
-                    ) : props.mode !== 'view' ? (
-                        <TouchableOpacity
-                            style={[styles.button, submitting && { opacity: 0.6 }]}
-                            onPress={handleSubmit}
-                            disabled={submitting}
-                            activeOpacity={0.8}>
-                            <SaveIcon size={16} color="#fff" />
-                            <InterText style={styles.buttonText}>
-                                {props.mode === 'create' ? 'Crea torneo' : 'Salva modifiche'}
-                            </InterText>
-                        </TouchableOpacity>
-                    ) : null}
-
                     {createStep > 0 ? (
-                        <TouchableOpacity
-                            style={[styles.button, styles.buttonSecondary]}
+                        <FormButton
+                            type={'secondary'}
+                            label={'Indietro'}
                             onPress={handlePrevCreateStep}
-                            activeOpacity={0.8}>
-                            <ArrowLeftIcon size={16} color="#6b7280" />
-                            <InterText style={[styles.buttonText, styles.buttonSecondaryText]}>
-                                Indietro
-                            </InterText>
-                        </TouchableOpacity>
+                            icon={ArrowLeftIcon}
+                        />
                     ) : props.mode !== 'view' ? (
-                        <TouchableOpacity
-                            style={[styles.button, styles.buttonSecondary]}
+                        <FormButton
+                            type={'destructive'}
+                            label={'Annulla'}
                             onPress={handleClose}
-                            activeOpacity={0.8}>
-                            <ArrowLeftIcon size={16} color="#6b7280" />
-                            <InterText style={[styles.buttonText, styles.buttonSecondaryText]}>
-                                Annulla
-                            </InterText>
-                        </TouchableOpacity>
+                            icon={ArrowLeftIcon}
+                        />
                     ) : (
                         <>
-                            <TouchableOpacity
-                                style={[styles.button, styles.buttonSecondary]}
+                            <FormButton
+                                type={'destructive'}
+                                label={'Torna indietro'}
                                 onPress={handleClose}
-                                activeOpacity={0.8}>
-                                <ArrowLeftIcon size={16} color="#6b7280" />
-                                <InterText style={[styles.buttonText, styles.buttonSecondaryText]}>
-                                    Torna indietro
-                                </InterText>
-                            </TouchableOpacity>
+                                icon={ArrowLeftIcon}
+                            />
                             <Link
                                 key={form.id}
                                 href={`/tornei/modal?mode=edit&torneoId=${form.id}`}
                                 asChild>
-                                <TouchableOpacity style={styles.button} activeOpacity={0.8}>
-                                    <SquarePenIcon size={16} color="#fff" />
-                                    <InterText style={styles.buttonText}>Modifica</InterText>
-                                </TouchableOpacity>
+                                <FormButton label={'Modifica'} icon={SquarePenIcon} />
                             </Link>
                         </>
                     )}
+
+                    {createStep < 2 ? (
+                        <FormButton
+                            label={'Avanti'}
+                            onPress={handleNextCreateStep}
+                            icon={ArrowRightIcon}
+                        />
+                    ) : props.mode !== 'view' ? (
+                        <FormButton
+                            label={props.mode === 'create' ? 'Crea torneo' : 'Salva modifiche'}
+                            onPress={handleSubmit}
+                            icon={SaveIcon}
+                            disabled={submitting}
+                        />
+                    ) : null}
                 </View>
             </View>
         </ScrollView>
@@ -783,7 +766,7 @@ function FormDatiTorneo({
                     </View>
                 </View>
 
-                <SelectableField
+                <ChipPickerField
                     label="Campo svolgimento"
                     readonly={readonly}
                     options={campi}
@@ -934,7 +917,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     dynamicRow: {
-        flexDirection: Platform.OS === 'web' ? 'row-reverse' : 'column',
+        flexDirection: Platform.OS === 'web' ? 'row' : 'column',
         width: '100%',
         gap: 12,
     },

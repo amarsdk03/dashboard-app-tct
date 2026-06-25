@@ -14,7 +14,7 @@
 
 - Create `tests/feature-contracts.ts`: compile-time contract for planned exports and route-facing helper APIs.
 - Create `constants/nationalities.ts`: deterministic country list and pure helpers for matching/filtering nationalities.
-- Create `components/input/NationalityAutocompleteField.tsx`: field UI for nationality suggestions.
+- Create `components/input/NationalitySelectField.text`: field UI for nationality suggestions.
 - Modify `components/giocatori/GiocatoreModal.tsx`: remove visible hint chips and use the autocomplete field.
 - Modify `data/partite.ts`: add match count helper and abort signals on list queries.
 - Create `components/tornei/TorneoLinkedData.tsx`: count cards plus navigation actions.
@@ -154,7 +154,7 @@ git commit -m "feat: add partite torneo count"
 ## Task 4: Nationality Autocomplete UI
 
 **Files:**
-- Create: `components/input/NationalityAutocompleteField.tsx`
+- Create: `components/input/NationalitySelectField.text`
 - Modify: `components/giocatori/GiocatoreModal.tsx`
 
 - [ ] **Step 1: Create autocomplete field**
@@ -196,7 +196,7 @@ Expected: PASS.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add components/input/NationalityAutocompleteField.tsx components/giocatori/GiocatoreModal.tsx
+git add components/input/NationalitySelectField.text components/giocatori/GiocatoreModal.tsx
 git commit -m "feat: add nationality autocomplete field"
 ```
 

@@ -8,8 +8,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { Link, type Href, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { type Href, Link, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { CalendarDaysIcon, SearchIcon, SlidersHorizontal } from 'lucide-react-native';
 import { InterText } from '@/components/generic/InterText';
 import PartitaCard from '@/components/partite/PartitaCard';
@@ -21,6 +20,7 @@ import {
     listaPartiteType,
 } from '@/data/partite';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
+import GenericSelectField from '@/components/input/GenericSelectField';
 
 type TabKey = 'tutti' | 'questanno' | 'inarrivo';
 
@@ -216,30 +216,21 @@ export default function PartiteScreen() {
 
                 {filterOpen && (
                     <View style={styles.filterPanel}>
-                        <View style={styles.filterSection}>
-                            <InterText style={styles.filterLabel}>Torneo</InterText>
-                            <View style={styles.pickerWrapper}>
-                                <Picker
-                                    selectedValue={selectedTorneo?.id ?? null}
-                                    onValueChange={(itemValue) => {
-                                        const torneo = tornei.find((t) => t.id === itemValue);
-                                        if (torneo) handleSelectTorneo(torneo);
-                                    }}
-                                    style={styles.picker}
-                                    dropdownIconColor="#b98e6b"
-                                    itemStyle={styles.pickerItem}>
-                                    {tornei.map((torneo) => (
-                                        <Picker.Item
-                                            key={torneo.id}
-                                            label={' ' + torneo.nome}
-                                            value={torneo.id}
-                                            color="#0f172a"
-                                            fontFamily="Inter"
-                                        />
-                                    ))}
-                                </Picker>
-                            </View>
-                        </View>
+                        <GenericSelectField
+                            label="Torneo"
+                            placeholder="Seleziona torneo"
+                            enableNullValue={false}
+                            value={selectedTorneo?.id ? selectedTorneo?.id.toString() : ''}
+                            options={tornei.map((torneo) => ({
+                                id: String(torneo.id),
+                                name: torneo.nome,
+                            }))}
+                            onChange={(val) => {
+                                const torneo = tornei.find((t) => t.id.toString() === val);
+                                if (torneo) handleSelectTorneo(torneo);
+                            }}
+                            defaultLabelStyle={false}
+                        />
 
                         <View style={styles.filterSection}>
                             <InterText style={styles.filterLabel}>Categoria</InterText>

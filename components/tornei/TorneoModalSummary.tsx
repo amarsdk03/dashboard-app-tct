@@ -25,8 +25,9 @@ import DateTimePickerField from '@/components/input/DateTimePickerField';
 import TextInputField from '@/components/input/TextInputField';
 import errorMessage from '@/components/generic/ErrorMessage';
 import TorneoLinkedData from '@/components/tornei/TorneoLinkedData';
-import SelectableField from '@/components/input/SelectableField';
+import ChipPickerField from '@/components/input/ChipPickerField';
 import { getListaCampi, listaCampiType } from '@/data/campi';
+import FormButton from '@/components/input/FormButton';
 
 type Props = {
     torneoId: number | null;
@@ -190,7 +191,6 @@ export default function TorneoModal(props: Props) {
     return (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
             <View style={styles.formCard}>
-
                 <View style={styles.section}>
                     <InterText style={styles.sectionTitle}>Dati principali:</InterText>
 
@@ -235,7 +235,7 @@ export default function TorneoModal(props: Props) {
                             </View>
                         </View>
 
-                        <SelectableField
+                        <ChipPickerField
                             label="Campo svolgimento"
                             readonly={true}
                             options={campi}
@@ -255,8 +255,7 @@ export default function TorneoModal(props: Props) {
                     partiteCount={summary.partiteCount}
                 />
 
-                {
-                    form.id &&
+                {form.id &&
                     (editSetupLoading ? (
                         <View style={styles.emptyState}>
                             <ActivityIndicator />
@@ -266,27 +265,20 @@ export default function TorneoModal(props: Props) {
                         </View>
                     ) : (
                         <ReadonlyTournamentManagement categorie={categorieGestione} />
-                    ))
-                }
+                    ))}
 
                 <View style={[styles.dynamicRow, { marginTop: 12 }]}>
-                    <TouchableOpacity
-                        style={[styles.button, styles.buttonSecondary]}
+                    <FormButton
+                        type={'secondary'}
+                        label={'Indietro'}
                         onPress={handleClose}
-                        activeOpacity={0.8}>
-                        <ArrowLeftIcon size={16} color="#6b7280" />
-                        <InterText style={[styles.buttonText, styles.buttonSecondaryText]}>
-                            Torna indietro
-                        </InterText>
-                    </TouchableOpacity>
+                        icon={ArrowLeftIcon}
+                    />
                     <Link
                         key={form.id}
                         href={`/tornei/modal?mode=edit&torneoId=${form.id}`}
                         asChild>
-                        <TouchableOpacity style={styles.button} activeOpacity={0.8}>
-                            <SquarePenIcon size={16} color="#fff" />
-                            <InterText style={styles.buttonText}>Modifica</InterText>
-                        </TouchableOpacity>
+                        <FormButton label={'Modifica'} icon={SquarePenIcon} />
                     </Link>
                 </View>
             </View>
@@ -416,7 +408,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     dynamicRow: {
-        flexDirection: Platform.OS === 'web' ? 'row-reverse' : 'column',
+        flexDirection: Platform.OS === 'web' ? 'row' : 'column',
         width: '100%',
         gap: 12,
     },

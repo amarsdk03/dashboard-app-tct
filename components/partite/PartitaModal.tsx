@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Platform,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
@@ -35,6 +36,9 @@ import {
 import { getListaSquadre, listaSquadreType } from '@/data/squadre';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
 import { Enums } from '@/types/database.types';
+import GenericSelectField from '@/components/input/GenericSelectField';
+import TeamSelectField from '@/components/input/TeamSelectField';
+import FormButton from '@/components/input/FormButton';
 
 export type PartitaModalMode = 'view' | 'create' | 'edit';
 
@@ -223,7 +227,6 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
     const [categorie, setCategorie] = useState<listaCategorieType>([]);
     const [squadre, setSquadre] = useState<listaSquadreType[]>([]);
     const [campi, setCampi] = useState<campiPartitaType>([]);
-    const [arbitri, setArbitri] = useState<arbitriPartitaType>([]);
     const [giocatori, setGiocatori] = useState<giocatoriPartitaType>([]);
     const [partita, setPartita] = useState<datiPartitaType>(null);
     const [azioni, setAzioni] = useState<azioniPartitaType>([]);
@@ -261,8 +264,6 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
     const isCreate = activeMode === 'create';
     const isEdit = activeMode === 'edit';
     const campoPartita = campi.find((campo) => campo.id === partita?.campo_svolgimento) ?? null;
-    const arbitroPartita = arbitri.find((arbitro) => arbitro.id === partita?.id_arbitro) ?? null;
-    const mvpPartita = giocatori.find((giocatore) => giocatore.id === partita?.mvp_partita) ?? null;
     const reportTeamsMatchSavedPartita =
         !partita ||
         (partita.squadra_casa_id === form.idSquadraCasa &&
@@ -341,18 +342,16 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         setLoading(true);
 
         try {
-            const [torneiData, categorieData, campiData, arbitriData] = await Promise.all([
+            const [torneiData, categorieData, campiData] = await Promise.all([
                 getListaTornei(null),
                 getListaCategorie(),
                 getCampiPartita(),
-                getArbitriPartita(),
             ]);
             const torneiList = torneiData ?? [];
 
             setTornei(torneiList);
             setCategorie(categorieData ?? []);
             setCampi(campiData ?? []);
-            setArbitri(arbitriData ?? []);
 
             if (!isCreate) {
                 if (!partitaId) {
@@ -702,8 +701,9 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                 <View style={styles.formCard}>
                     <View style={styles.modalHeader}>
                         <View>
-                            <InterText style={styles.eyebrow}>Dettagli partita</InterText>
-                            <InterText style={styles.title}>Partita {partitaId ?? ''}</InterText>
+                            <InterText style={styles.title}>
+                                Dettagli partita
+                            </InterText>
                         </View>
                     </View>
 
@@ -729,26 +729,9 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                                 />
                                 <DetailItem label="Campo" value={campoPartita?.nome ?? null} />
                                 <DetailItem
-                                    label="Arbitro"
-                                    value={arbitroPartita?.nominativo ?? null}
-                                />
-                                <DetailItem
-                                    label="MVP"
-                                    value={
-                                        mvpPartita
-                                            ? `${mvpPartita.nome} ${mvpPartita.cognome}`
-                                            : null
-                                    }
-                                />
-                                <DetailItem
                                     label="Tavolino"
                                     value={partita.vinta_a_tavolino ?? 'No'}
                                 />
-                                <DetailItem
-                                    label="Highlights"
-                                    value={partita.highlights_yt ?? null}
-                                />
-                                <DetailItem label="Post IG" value={partita.link_post_ig ?? null} />
                             </View>
 
                             <ActionSection
@@ -809,23 +792,25 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         <ScrollView contentContainerStyle={styles.scrollContainer}>
             <View style={styles.formCard}>
                 <View style={styles.modalHeader}>
-                    <View>
-                        <InterText style={styles.eyebrow}>Partite</InterText>
-                        <InterText style={styles.title}>
-                            {isCreate ? 'Nuova partita' : `Modifica partita ${partitaId ?? ''}`}
-                        </InterText>
-                    </View>
+                    <InterText style={styles.title}>
+                        {isCreate ? 'Nuova partita' : 'Aggiorna partita'}
+                    </InterText>
                 </View>
 
-                <SelectSection
+                {/* ── Categoria e girone ── */}
+                <InterText style={styles.sectionTitle}>Categoria e girone:</InterText>
+
+                <GenericSelectField
                     label="Torneo"
+                    placeholder="Seleziona torneo"
+                    enableNullValue={false}
+                    value={form.idTorneo?.toString() || ''}
+                    options={tornei.map((torneo) => ({
+                        id: String(torneo.id),
+                        name: torneo.nome,
+                    }))}
+                    onChange={(id) => selectTorneo(Number.parseInt(id))}
                     readonly={readonly}
-                    options={tornei}
-                    selectedId={form.idTorneo}
-                    getId={(torneo) => torneo.id}
-                    getLabel={(torneo) => torneo.nome ?? 'Torneo senza nome'}
-                    onSelect={(torneo) => selectTorneo(torneo.id)}
-                    emptyText="Nessun torneo disponibile"
                 />
 
                 <SelectSection
@@ -849,25 +834,12 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                     emptyText="Seleziona una categoria per vedere i gironi"
                 />
 
-                <TextInputField
-                    label="Fase"
-                    readonly={readonly}
-                    value={form.fase}
-                    onChange={(value) => setField('fase', value)}
-                    placeholder="Quarti di finale"
-                />
+                <View style={styles.sectionDivider} />
 
-                <ChipSection
-                    label="Fasi rapide"
-                    readonly={readonly}
-                    options={FASI_RAPIDE}
-                    selected={FASI_RAPIDE.includes(form.fase) ? form.fase : null}
-                    onSelect={(fase) => setField('fase', fase)}
-                    onClear={() => setField('fase', '')}
-                    emptyText="Nessuna fase rapida"
-                />
+                {/* ── Dettagli partita ── */}
+                <InterText style={styles.sectionTitle}>Dettagli partita:</InterText>
 
-                <View style={styles.row}>
+                <View style={[styles.row, { marginBottom: 6, marginTop: 4 }]}>
                     <View style={styles.flexChild}>
                         <DateTimePickerField
                             mode="date"
@@ -889,85 +861,89 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                     </View>
                 </View>
 
-                <TextInputField
-                    label="Giornata"
+                <View style={{ gap: 4, marginBottom: 6 }}>
+                    <TextInputField
+                        label="Giornata"
+                        readonly={readonly}
+                        value={form.giornata}
+                        onChange={(value) => setField('giornata', value)}
+                        placeholder="1"
+                    />
+                </View>
+
+                <View style={{ gap: 4, marginBottom: 6 }}>
+                    <TextInputField
+                        label="Fase"
+                        readonly={readonly}
+                        value={form.fase}
+                        onChange={(value) => setField('fase', value)}
+                        placeholder="Seleziona una fase..."
+                    />
+                    <ChipSection
+                        readonly={readonly}
+                        options={FASI_RAPIDE}
+                        selected={FASI_RAPIDE.includes(form.fase) ? form.fase : null}
+                        onSelect={(fase) => setField('fase', fase)}
+                        onClear={() => setField('fase', '')}
+                        emptyText="Nessuna fase rapida"
+                    />
+                </View>
+
+                <View style={styles.sectionDivider} />
+
+                {/* ── Squadre e campo ── */}
+                <InterText style={styles.sectionTitle}>Squadre e campo:</InterText>
+
+                <TeamSelectField
+                    label="Squadra casa"
+                    enableNullValue={false}
+                    value={form.idSquadraCasa ? String(form.idSquadraCasa) : ''}
+                    teams={squadre.map((s) => ({
+                        id: String(s.s_id),
+                        name: s.s_nome ?? 'Squadra senza nome',
+                        logoUrl: s.s_link_stemma ?? undefined,
+                    }))}
+                    onChange={(val) => {
+                        resetReportForm();
+                        setForm((current) => ({
+                            ...current,
+                            idSquadraCasa: val ? Number.parseInt(val) : null,
+                            mvpPartita: null,
+                        }));
+                    }}
                     readonly={readonly}
-                    value={form.giornata}
-                    onChange={(value) => setField('giornata', value)}
-                    placeholder="1"
                 />
 
-                <View style={styles.row}>
-                    <View style={styles.flexChild}>
-                        <SelectSection
-                            label="Squadra casa"
-                            readonly={readonly}
-                            options={squadre}
-                            selectedId={form.idSquadraCasa}
-                            getId={(squadra) => squadra.s_id}
-                            getLabel={(squadra) => squadra.s_nome ?? 'Squadra senza nome'}
-                            onSelect={(squadra) => {
-                                resetReportForm();
-                                setForm((current) => ({
-                                    ...current,
-                                    idSquadraCasa: squadra.s_id,
-                                    mvpPartita: null,
-                                }));
-                            }}
-                            emptyText="Nessuna squadra disponibile"
-                        />
-                    </View>
-                    <View style={styles.flexChild}>
-                        <SelectSection
-                            label="Squadra ospite"
-                            readonly={readonly}
-                            options={squadre}
-                            selectedId={form.idSquadraOspite}
-                            getId={(squadra) => squadra.s_id}
-                            getLabel={(squadra) => squadra.s_nome ?? 'Squadra senza nome'}
-                            onSelect={(squadra) => {
-                                resetReportForm();
-                                setForm((current) => ({
-                                    ...current,
-                                    idSquadraOspite: squadra.s_id,
-                                    mvpPartita: null,
-                                }));
-                            }}
-                            emptyText="Nessuna squadra disponibile"
-                        />
-                    </View>
-                </View>
+                <TeamSelectField
+                    label="Squadra ospite"
+                    enableNullValue={false}
+                    value={form.idSquadraOspite ? String(form.idSquadraOspite) : ''}
+                    teams={squadre.map((s) => ({
+                        id: String(s.s_id),
+                        name: s.s_nome ?? 'Squadra senza nome',
+                        logoUrl: s.s_link_stemma ?? undefined,
+                    }))}
+                    onChange={(val) => {
+                        resetReportForm();
+                        setForm((current) => ({
+                            ...current,
+                            idSquadraOspite: val ? Number.parseInt(val) : null,
+                            mvpPartita: null,
+                        }));
+                    }}
+                    readonly={readonly}
+                />
 
-                <View style={styles.row}>
-                    <View style={styles.flexChild}>
-                        <SelectSection
-                            label="Campo"
-                            readonly={readonly}
-                            options={campi}
-                            selectedId={form.campoSvolgimento}
-                            getId={(campo) => campo.id}
-                            getLabel={(campo) => campo.nome}
-                            onSelect={(campo) => setField('campoSvolgimento', campo.id)}
-                            emptyText="Nessun campo disponibile"
-                        />
-                    </View>
-                    <View style={styles.flexChild}>
-                        <SelectSection
-                            label="Arbitro"
-                            readonly={readonly}
-                            options={arbitri}
-                            selectedId={form.idArbitro}
-                            getId={(arbitro) => arbitro.id}
-                            getLabel={(arbitro) =>
-                                arbitro.ruolo
-                                    ? `${arbitro.nominativo} - ${arbitro.ruolo}`
-                                    : arbitro.nominativo
-                            }
-                            onSelect={(arbitro) => setField('idArbitro', arbitro.id)}
-                            emptyText="Nessun arbitro disponibile"
-                        />
-                    </View>
-                </View>
+                <SelectSection
+                    label="Campo"
+                    readonly={readonly}
+                    options={campi}
+                    selectedId={form.campoSvolgimento}
+                    getId={(campo) => campo.id}
+                    getLabel={(campo) => campo.nome}
+                    onSelect={(campo) => setField('campoSvolgimento', campo.id)}
+                    emptyText="Nessun campo disponibile"
+                />
 
                 <EnumChipSection
                     label="Vittoria a tavolino"
@@ -979,41 +955,9 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                     onSelect={(value) => setField('vintaATavolino', value as VittoriaTavolino)}
                 />
 
-                <SelectSection
-                    label="MVP partita"
-                    readonly={readonly}
-                    options={giocatori}
-                    selectedId={form.mvpPartita}
-                    getId={(giocatore) => giocatore.id}
-                    getLabel={(giocatore) =>
-                        `${giocatore.nome} ${giocatore.cognome}${
-                            giocatore.squadra_nome ? ` - ${giocatore.squadra_nome}` : ''
-                        }`
-                    }
-                    onSelect={(giocatore) => setField('mvpPartita', giocatore.id)}
-                    emptyText={
-                        isCreate
-                            ? 'Disponibile dopo il primo salvataggio della partita'
-                            : 'Nessun giocatore disponibile'
-                    }
-                />
+                <View style={styles.inputGroup} />
 
-                <TextInputField
-                    label="Highlights YouTube"
-                    readonly={readonly}
-                    value={form.highlightsYt}
-                    onChange={(value) => setField('highlightsYt', value)}
-                    placeholder="https://youtube.com/..."
-                />
-
-                <TextInputField
-                    label="Post Instagram"
-                    readonly={readonly}
-                    value={form.linkPostIg}
-                    onChange={(value) => setField('linkPostIg', value)}
-                    placeholder="https://instagram.com/..."
-                />
-
+                {/* ── Referto ── */}
                 {isEdit && partita && reportTeamsMatchSavedPartita && (
                     <ReportEditor
                         partita={partita}
@@ -1034,45 +978,45 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
 
                 {isEdit && partita && !reportTeamsMatchSavedPartita && (
                     <View style={styles.emptyDetailBox}>
-                        <InterText style={styles.emptyDetailTitle}>
-                            Referto bloccato
-                        </InterText>
+                        <InterText style={styles.emptyDetailTitle}>Referto bloccato</InterText>
                         <InterText style={styles.emptyDetailText}>
-                            Le squadre della partita sono state cambiate. Salva la partita prima
-                            di aggiungere goal, cartellini o rigori.
+                            Le squadre della partita sono state cambiate. Salva la partita prima di
+                            aggiungere goal, cartellini o rigori.
                         </InterText>
                     </View>
                 )}
 
                 <View style={styles.dynamicRow}>
-                    <FooterButton
-                        label="Annulla"
-                        variant="destructive"
-                        onPress={() => {
-                            if (isCreate) {
-                                onClose();
-                            } else {
-                                if (partita) setForm(buildFormFromPartita(partita));
-                                setActiveMode('view');
-                            }
-                        }}
-                    />
-                    <TouchableOpacity
-                        style={[styles.button, submitting && { opacity: 0.6 }]}
-                        onPress={handleSubmit}
-                        disabled={submitting}
-                        activeOpacity={0.8}>
-                        <SaveIcon size={16} color="#fff" />
-                        <InterText style={styles.buttonText}>
-                            {submitting
-                                ? isCreate
-                                    ? 'Creazione...'
-                                    : 'Salvataggio...'
-                                : isCreate
-                                  ? 'Crea partita'
-                                  : 'Salva partita'}
-                        </InterText>
-                    </TouchableOpacity>
+                    {readonly ? (
+                        <FormButton
+                            type={'secondary'}
+                            label={'Torna indietro'}
+                            onPress={onClose}
+                            icon={ArrowLeftIcon}
+                        />
+                    ) : (
+                        <FormButton
+                            type={'destructive'}
+                            label={'Annulla'}
+                            onPress={() => {
+                                if (isCreate) {
+                                    onClose();
+                                } else {
+                                    if (partita) setForm(buildFormFromPartita(partita));
+                                    setActiveMode('view');
+                                }
+                            }}
+                            icon={ArrowLeftIcon}
+                        />
+                    )}
+                    {!readonly && (
+                        <FormButton
+                            label={mode === 'create' ? 'Crea partita' : 'Salva modifiche'}
+                            onPress={handleSubmit}
+                            icon={SaveIcon}
+                            disabled={submitting}
+                        />
+                    )}
                 </View>
             </View>
         </ScrollView>
@@ -1309,12 +1253,14 @@ function ReportEditor({
                 />
             </View>
 
-            <EnumChipSection
+            <GenericSelectField
                 label="Tipo azione"
-                options={TIPI_AZIONE}
-                selected={reportForm.tipo}
-                onSelect={(value) => onReportFieldChange('tipo', value as TipoAzione)}
+                enableNullValue={false}
+                value={reportForm.tipo}
+                options={TIPI_AZIONE.map((tipo) => ({ id: tipo, name: tipo }))}
+                onChange={(val) => onReportFieldChange('tipo', val as TipoAzione)}
             />
+
             <EnumChipSection
                 label="Squadra"
                 options={ASSEGNAMENTI_AZIONE}
@@ -1330,19 +1276,18 @@ function ReportEditor({
                 }}
             />
 
-            <SelectSection
+            <GenericSelectField
                 label="Giocatore"
-                readonly={false}
-                options={giocatori}
-                selectedId={reportForm.idGiocatore}
-                getId={(giocatore) => giocatore.id}
-                getLabel={(giocatore) =>
-                    `${giocatore.nome} ${giocatore.cognome}${
-                        giocatore.numero_maglia ? ` #${giocatore.numero_maglia}` : ''
-                    }`
+                enableNullValue={true}
+                defaultNullValue="Nessun giocatore"
+                value={reportForm.idGiocatore ? String(reportForm.idGiocatore) : ''}
+                options={giocatori.map((g) => ({
+                    id: String(g.id),
+                    name: `${g.nome} ${g.cognome}${g.numero_maglia ? ` #${g.numero_maglia}` : ''}`,
+                }))}
+                onChange={(val) =>
+                    onReportFieldChange('idGiocatore', val ? Number.parseInt(val) : null)
                 }
-                onSelect={(giocatore) => onReportFieldChange('idGiocatore', giocatore.id)}
-                emptyText="Nessun giocatore disponibile per questa squadra"
             />
 
             <View style={styles.row}>
@@ -1570,7 +1515,7 @@ function SelectSection<T>({
 }
 
 type ChipSectionProps = {
-    label: string;
+    label?: string;
     readonly: boolean;
     options: string[];
     selected: string | null;
@@ -1599,7 +1544,7 @@ function ChipSection({
 
     return (
         <View style={styles.inputGroup}>
-            <InterText style={styles.label}>{label}:</InterText>
+            {label && (<InterText style={styles.label}>{label}:</InterText>)}
             <View style={styles.chipRow}>
                 <TouchableOpacity
                     style={[styles.chip, !selected && styles.chipActive]}
@@ -1682,7 +1627,7 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     modalHeader: {
-        marginBottom: 20,
+        marginBottom: 15,
     },
     eyebrow: {
         color: '#64748b',
@@ -1790,6 +1735,12 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter-Bold',
         fontSize: 16,
         fontWeight: '700',
+        marginBottom: 8,
+    },
+    sectionDivider: {
+        height: 1,
+        backgroundColor: '#f1f5f9',
+        marginVertical: 20,
     },
     actionCountBadge: {
         minWidth: 28,
@@ -1890,7 +1841,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: 12,
-        marginBottom: 14,
+        marginBottom: 8,
     },
     scoreMiniBox: {
         minWidth: 70,
@@ -1911,9 +1862,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 8,
-        marginBottom: 18,
+        marginBottom: 22,
     },
     quickButton: {
+        flex: 1,
+        minWidth: '48%',
         flexDirection: 'row',
         alignItems: 'center',
         gap: 6,
@@ -1939,19 +1892,18 @@ const styles = StyleSheet.create({
     },
     row: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
+        width: '100%',
+        gap: 8,
     },
     flexChild: {
         flex: 1,
-        minWidth: 220,
     },
     minuteField: {
         width: 110,
         minWidth: 110,
     },
     inputGroup: {
-        marginBottom: 20,
+        marginBottom: 10,
     },
     label: {
         color: '#111111',
@@ -1991,7 +1943,7 @@ const styles = StyleSheet.create({
         color: '#64748b',
         fontFamily: 'Inter',
         fontSize: 13,
-        paddingVertical: 8,
+        paddingVertical: 2,
     },
     readonlyValue: {
         color: '#737373',
@@ -1999,15 +1951,16 @@ const styles = StyleSheet.create({
         fontSize: 13,
     },
     dynamicRow: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
+        flexDirection: Platform.OS === 'web' ? 'row' : 'column',
+        width: '100%',
         gap: 12,
         marginTop: 12,
     },
     reportSubmitButton: {
+        width: '100%',
         alignSelf: 'flex-start',
-        marginBottom: 12,
+        marginTop: 6,
+        marginBottom: 24,
     },
     reportCancelButton: {
         alignSelf: 'flex-start',
