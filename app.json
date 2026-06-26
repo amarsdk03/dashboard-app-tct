@@ -13,7 +13,7 @@
         "ios": {
             "userInterfaceStyle": "light",
             "supportsTablet": true,
-            "bundleIdentifier": "com.anonymous.dashboard-cdt",
+            "bundleIdentifier": "com.anonymous.dashboard_cdt",
             "infoPlist": {
                 "ITSAppUsesNonExemptEncryption": false
             }
@@ -24,7 +24,7 @@
                 "foregroundImage": "./assets/images/app-icon.png",
                 "backgroundColor": "#ffffff"
             },
-            "package": "com.anonymous.dashboard-cdt",
+            "package": "com.anonymous.dashboard_cdt",
             "softwareKeyboardLayoutMode": "pan"
         },
         "web": {

@@ -81,21 +81,15 @@ def enableMinifyInReleaseBuilds = (findProperty('android.enableMinifyInReleaseBu
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
-def releaseStoreFile = findProperty('TCT_UPLOAD_STORE_FILE') ?: System.getenv('TCT_UPLOAD_STORE_FILE')
-def releaseStorePassword = findProperty('TCT_UPLOAD_STORE_PASSWORD') ?: System.getenv('TCT_UPLOAD_STORE_PASSWORD')
-def releaseKeyAlias = findProperty('TCT_UPLOAD_KEY_ALIAS') ?: System.getenv('TCT_UPLOAD_KEY_ALIAS')
-def releaseKeyPassword = findProperty('TCT_UPLOAD_KEY_PASSWORD') ?: System.getenv('TCT_UPLOAD_KEY_PASSWORD')
-def hasReleaseSigningConfig = releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword
-
 android {
     ndkVersion rootProject.ext.ndkVersion
 
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.anonymous.dashboardcdt'
+    namespace 'com.anonymous.dashboard_cdt'
     defaultConfig {
-        applicationId 'com.anonymous.dashboardcdt'
+        applicationId 'com.anonymous.dashboard_cdt'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -110,23 +104,15 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
-        if (hasReleaseSigningConfig) {
-            release {
-                storeFile file(releaseStoreFile)
-                storePassword releaseStorePassword
-                keyAlias releaseKeyAlias
-                keyPassword releaseKeyPassword
-            }
-        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            if (hasReleaseSigningConfig) {
-                signingConfig signingConfigs.release
-            }
+            // Caution! In production, you need to generate your own keystore file.
+            // see https://reactnative.dev/docs/signed-apk-android.
+            signingConfig signingConfigs.debug
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds

@@ -1,4 +1,4 @@
-package com.anonymous.dashboardcdt
+package com.anonymous.dashboard_cdt
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

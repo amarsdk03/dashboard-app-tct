@@ -5,22 +5,39 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="02039681-6d6f-43de-b84f-55cbb0bd0377" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/components/input/ColorPickerField.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/REFACTORING.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/login.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/giocatori/GiocatoreModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/giocatori/GiocatoreModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/home/CurrentRankingsTables.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/home/CurrentRankingsTables.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/home/HomeStatCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/home/HomeStatCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/home/RankingTable.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/home/RankingTable.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/input/ChipPickerField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/ChipPickerField.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/input/TextInputField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/TextInputField.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/partite/PartitaCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/partite/PartitaCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/partite/PartitaModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/partite/PartitaModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/squadre/SquadraModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/squadre/SquadraModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/tornei/TorneoLinkedData.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoLinkedData.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/tornei/TorneoModalForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoModalForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/tornei/TorneoModalSummary.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoModalSummary.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/tornei.ts" beforeDir="false" afterPath="$PROJECT_DIR$/data/tornei.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/java/com/anonymous/dashboardcdt/MainActivity.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/java/com/anonymous/dashboardcdt/MainApplication.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable-hdpi/splashscreen_logo.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/drawable-hdpi/splashscreen_logo.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable-mdpi/splashscreen_logo.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/drawable-mdpi/splashscreen_logo.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable-xhdpi/splashscreen_logo.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/drawable-xhdpi/splashscreen_logo.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable-xxhdpi/splashscreen_logo.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/drawable-xxhdpi/splashscreen_logo.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable-xxxhdpi/splashscreen_logo.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/drawable-xxxhdpi/splashscreen_logo.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher_round.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher_round.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher_round.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher_round.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/values/colors.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/values/colors.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/values/strings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/values/styles.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/values/styles.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/xml/secure_store_backup_rules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/xml/secure_store_data_extraction_rules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/settings.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/android/settings.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,7 +48,7 @@
     <option name="formatViaClangd" value="false" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="199" />
+    <option name="cachedIndexableFilesCount" value="201" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="ExternalProjectsManager">
@@ -79,61 +96,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="1.8329604866679196E-81" />
-      <entry key="S2" value="6.5431710810941E-21" />
-      <entry key="S5" value="8.439472654336833E-9" />
-      <entry key="S10" value="9.186725010953499E-5" />
-      <entry key="S30" value="0.04616476434041099" />
-      <entry key="S60" value="0.26922471152731353" />
-      <entry key="M2" value="1.0653082943497654" />
-      <entry key="M5" value="4.301854286496521" />
-      <entry key="M10" value="9.120449319890703" />
-      <entry key="M15" value="13.583733587980307" />
-      <entry key="M30" value="26.03891664126221" />
-      <entry key="H1" value="45.34325125500991" />
-      <entry key="H2" value="75.32321834444348" />
-      <entry key="H4" value="145.08569829244283" />
-      <entry key="D1" value="969.4335683684859" />
-      <entry key="W1" value="1690.982540994408" />
+      <entry key="MS100" value="1.0000000000000007" />
+      <entry key="MS500" value="1.001510498851694" />
+      <entry key="S2" value="1.7283665638759382" />
+      <entry key="S5" value="4.573708118015691" />
+      <entry key="S10" value="8.551760680867948" />
+      <entry key="S30" value="21.60714624641083" />
+      <entry key="S60" value="34.6562907222563" />
+      <entry key="M2" value="55.03460208443876" />
+      <entry key="M5" value="118.26375797723075" />
+      <entry key="M10" value="208.34574337145725" />
+      <entry key="M15" value="270.053442993702" />
+      <entry key="M30" value="366.1353366836451" />
+      <entry key="H1" value="438.10948740698666" />
+      <entry key="H2" value="498.04647570279184" />
+      <entry key="H4" value="578.1833770398621" />
+      <entry key="D1" value="1397.2142689891439" />
+      <entry key="W1" value="2187.5233530798473" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0" />
-      <entry key="S5" value="1.0000000294645581" />
-      <entry key="S10" value="1.0002415567086993" />
-      <entry key="S30" value="1.0988102339646153" />
-      <entry key="S60" value="1.4598582573185959" />
-      <entry key="M2" value="2.278956303095799" />
-      <entry key="M5" value="5.226002832670401" />
-      <entry key="M10" value="9.970116568677225" />
-      <entry key="M15" value="14.468834642333048" />
-      <entry key="M30" value="25.726757520929674" />
-      <entry key="H1" value="39.57617311176383" />
-      <entry key="H2" value="53.96547532185908" />
-      <entry key="H4" value="75.77924840055461" />
-      <entry key="D1" value="238.96880220265766" />
-      <entry key="W1" value="360.5143739879039" />
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="0.0" />
+      <entry key="S10" value="0.0" />
+      <entry key="S30" value="6.027864437982054E-120" />
+      <entry key="S60" value="3.4192517766899767E-60" />
+      <entry key="M2" value="3.487756793803444E-30" />
+      <entry key="M5" value="6.195747622608803E-12" />
+      <entry key="M10" value="1.085581103622271E-5" />
+      <entry key="M15" value="0.001531351586089498" />
+      <entry key="M30" value="0.2646706188977654" />
+      <entry key="H1" value="4.014154989144074" />
+      <entry key="H2" value="17.186845643517128" />
+      <entry key="H4" value="42.765187300661545" />
+      <entry key="D1" value="217.23571160124033" />
+      <entry key="W1" value="355.63694654931595" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="1.6791281959713678E-4" />
-      <entry key="MS500" value="0.17579914998913987" />
-      <entry key="S2" value="0.6475214994272125" />
-      <entry key="S5" value="0.8404302865035101" />
-      <entry key="S10" value="0.9170661270967609" />
-      <entry key="S30" value="1.1139100384075402" />
-      <entry key="S60" value="1.7066847951009625" />
-      <entry key="M2" value="3.312589070333843" />
-      <entry key="M5" value="9.471839771156548" />
-      <entry key="M10" value="19.033729851955083" />
-      <entry key="M15" value="28.000150657258224" />
-      <entry key="M30" value="51.72236861000628" />
-      <entry key="H1" value="84.88576836586283" />
-      <entry key="H2" value="129.26307296093623" />
-      <entry key="H4" value="220.84279181912402" />
-      <entry key="D1" value="1208.3869896944027" />
-      <entry key="W1" value="2051.4935748272965" />
+      <entry key="MS100" value="5.261319863422654E-8" />
+      <entry key="MS500" value="0.035901647329612284" />
+      <entry key="S2" value="1.054939263876781" />
+      <entry key="S5" value="4.024737269882344" />
+      <entry key="S10" value="8.064686318916857" />
+      <entry key="S30" value="21.187903655280227" />
+      <entry key="S60" value="34.31117793434132" />
+      <entry key="M2" value="54.7505692008441" />
+      <entry key="M5" value="118.0069571907071" />
+      <entry key="M10" value="208.11351406395647" />
+      <entry key="M15" value="269.8525089619683" />
+      <entry key="M30" value="366.2612901510907" />
+      <entry key="H1" value="442.0380056860171" />
+      <entry key="H2" value="515.1801261397015" />
+      <entry key="H4" value="620.9124669278996" />
+      <entry key="D1" value="1614.4319076622508" />
+      <entry key="W1" value="2543.1564162516083" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -249,7 +266,7 @@
       <workItem from="1782301416747" duration="14717000" />
       <workItem from="1782387110564" duration="15712000" />
       <workItem from="1782408869268" duration="18296000" />
-      <workItem from="1782473552716" duration="6820000" />
+      <workItem from="1782473552716" duration="13971000" />
     </task>
     <servers />
   </component>
