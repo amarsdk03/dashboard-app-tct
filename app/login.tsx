@@ -37,17 +37,14 @@ export default function LoginScreen() {
                 className="flex-1 items-center justify-between"
                 resizeMode="cover"
                 style={{ backgroundColor: '#8e8171' }}>
-
                 {/* ── Main form ── */}
                 <View className="mt-24 w-96 justify-center px-8">
                     <View className="mb-10 items-center">
-                        <View style={styles.logoShadow}>
-                            <Image
-                                source={require('@/assets/images/logo.png')}
-                                style={{ width: 180, height: 180 }}
-                                resizeMode="contain"
-                            />
-                        </View>
+                        <Image
+                            source={require('@/assets/images/logo.png')}
+                            style={{ width: 180, height: 180 }}
+                            resizeMode="contain"
+                        />
                         <InterText className="text-3xl font-bold text-white">
                             Dashboard Torneo
                         </InterText>
@@ -73,6 +70,7 @@ export default function LoginScreen() {
                                 placeholder="Password"
                                 placeholderTextColor="rgba(255, 255, 255, 0.8)"
                                 autoCapitalize="none"
+                                keyboardType="visible-password"
                                 style={[styles.input]}
                                 className="h-12 rounded-2xl border-white bg-black/40 text-white"
                             />
@@ -121,7 +119,8 @@ export default function LoginScreen() {
                                         Problemi di accesso?
                                     </InterText>
                                     <InterText style={styles.modalSubtitle}>
-                                        In caso di ulteriori problemi, contatta uno sviluppatore per assistenza!
+                                        In caso di ulteriori problemi, contatta uno sviluppatore per
+                                        assistenza!
                                     </InterText>
                                 </View>
                                 <Pressable
@@ -185,13 +184,6 @@ function HelpItem({ number, title, body }: { number: string; title: string; body
 }
 
 const styles = StyleSheet.create({
-    logoShadow: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.45,
-        shadowRadius: 16,
-        elevation: 12,
-    },
     input: {
         backgroundColor: 'rgba(0, 0, 0, 0.3)',
         borderRadius: 20,

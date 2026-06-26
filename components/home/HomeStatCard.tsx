@@ -9,6 +9,7 @@ type Props = {
     value: number;
     tone: Tone;
     icon: React.ReactNode;
+    smallValueSize?: boolean;
 };
 
 const cardToneStyles: Record<Tone, { backgroundColor: string; borderColor: string }> = {
@@ -45,12 +46,18 @@ const textToneStyles: Record<Tone, { color: string }> = {
     },
 };
 
-export default function HomeStatCard({ label, value, tone, icon }: Props) {
+export default function HomeStatCard({ label, value, tone, icon, smallValueSize = false }: Props) {
     return (
         <View style={[styles.card, cardToneStyles[tone]]}>
-            <View style={styles.topRow}>
+            <View style={[styles.topRow, smallValueSize && { gap: 4 }]}>
                 <View style={styles.iconBox}>{icon}</View>
-                <InterText style={[styles.value, textToneStyles[tone]]}>{value}</InterText>
+                <InterText
+                    style={[
+                        !smallValueSize ? styles.value : styles.smallValue,
+                        textToneStyles[tone],
+                    ]}>
+                    {value}
+                </InterText>
             </View>
             <InterText style={[styles.label, textToneStyles[tone]]} numberOfLines={2}>
                 {label}
@@ -78,8 +85,6 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     iconBox: {
-        width: 44,
-        height: 44,
         borderRadius: 12,
         backgroundColor: 'transparent',
         alignItems: 'center',
@@ -88,6 +93,11 @@ const styles = StyleSheet.create({
     value: {
         fontFamily: 'Inter-Bold',
         fontSize: 44,
+        fontWeight: '700',
+    },
+    smallValue: {
+        fontFamily: 'Inter-Bold',
+        fontSize: 24,
         fontWeight: '700',
     },
     label: {

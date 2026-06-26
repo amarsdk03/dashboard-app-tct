@@ -22,10 +22,6 @@ import {
     getDatiTorneo,
     getSetupTorneo,
 } from '@/data/tornei';
-import { categorieGestioneTorneoType, getCategorieGestioneTorneo } from '@/data/classifiche';
-import { getListaGiocatori } from '@/data/giocatori';
-import { getConteggioPartiteTorneo } from '@/data/partite';
-import { getListaSquadre } from '@/data/squadre';
 import { InterText } from '@/components/generic/InterText';
 import DateTimePickerField from '@/components/input/DateTimePickerField';
 import TextInputField from '@/components/input/TextInputField';
@@ -50,31 +46,12 @@ interface datiTorneo {
     idCampo: string | null;
 }
 
-type LinkedDataSummary = {
-    squadreCount: number;
-    giocatoriCount: number;
-    partiteCount: number;
-};
-
 type CategoriaType = {
     tempId: string;
     nome: string;
     numGironi: string;
     durataPartita: string;
     fasiPartite: string;
-};
-
-type PartitaDraft = {
-    draftId: string;
-    categoriaDraftId: string;
-    categoriaNome: string;
-    girone: string;
-    squadraCasa: string;
-    squadraOspite: string;
-    fase: string;
-    giornata: string;
-    dataPartita: Date | null;
-    oraPartita: string;
 };
 
 type CategoriaNormalizzata = {
@@ -140,26 +117,6 @@ function parseOptionalPositiveInteger(value: string) {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : Number.NaN;
 }
 
-function buildKickoffIso(date: Date | null, time: string) {
-    if (!date) return null;
-
-    const kickoff = new Date(date);
-    const trimmedTime = time.trim();
-
-    if (trimmedTime) {
-        const [hours, minutes] = trimmedTime.split(':').map(Number);
-        kickoff.setHours(hours, minutes, 0, 0);
-    } else {
-        kickoff.setHours(0, 0, 0, 0);
-    }
-
-    return kickoff.toISOString();
-}
-
-function getTeamKey(teamName: string) {
-    return teamName.trim().toLocaleLowerCase('it');
-}
-
 function normalizzaCategorie(categorie: CategoriaType[]): CategoriaNormalizzata[] {
     return categorie
         .map((draft) => {
@@ -178,19 +135,10 @@ function normalizzaCategorie(categorie: CategoriaType[]): CategoriaNormalizzata[
 export default function TorneoModalForm(props: Props) {
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    const [summaryLoading, setSummaryLoading] = useState(false);
-    const [summary, setSummary] = useState<LinkedDataSummary>({
-        squadreCount: 0,
-        giocatoriCount: 0,
-        partiteCount: 0,
-    });
     const [createStep, setCreateStep] = useState<number>(0);
     const [categorieDraft, setCategorieDraft] = useState<CategoriaType[]>(defaultCategorie());
     const [campi, setCampi] = useState<listaCampiType[]>([]);
-    const [partiteDraft, setPartiteDraft] = useState<PartitaDraft[]>([]);
-    const [editSetupLoading, setEditSetupLoading] = useState(false);
     const [editCategorieDraft, setEditCategorieDraft] = useState<EditCategoriaDraft[]>([]);
-    const [categorieGestione, setCategorieGestione] = useState<categorieGestioneTorneoType>([]);
 
     const [form, setForm] = useState<datiTorneo>({
         id: props.mode !== 'create' ? (props.torneoId ?? null) : null,
@@ -255,48 +203,13 @@ export default function TorneoModalForm(props: Props) {
     }, [props.mode, props.torneoId]);
 
     useEffect(() => {
-        if (props.mode !== 'view' || !props.torneoId) {
-            return;
-        }
-
-        setSummaryLoading(true);
-
-        Promise.all([
-            getListaSquadre(null, props.torneoId),
-            getListaGiocatori('', props.torneoId, 1, 1),
-            getConteggioPartiteTorneo(props.torneoId),
-        ])
-            .then(([squadre, giocatori, partiteCount]) => {
-                setSummary({
-                    squadreCount: squadre.length,
-                    giocatoriCount: giocatori.count ?? 0,
-                    partiteCount,
-                });
-            })
-            .catch((error) => {
-                errorMessage('Impossibile recuperare i dati collegati', error);
-                setSummary({
-                    squadreCount: 0,
-                    giocatoriCount: 0,
-                    partiteCount: 0,
-                });
-            })
-            .finally(() => {
-                setSummaryLoading(false);
-            });
-    }, [props.mode, props.torneoId]);
-
-    useEffect(() => {
         if (props.mode === 'create' || !props.torneoId) {
             setEditCategorieDraft([]);
-            setCategorieGestione([]);
             return;
         }
 
-        setEditSetupLoading(true);
-
-        Promise.all([getSetupTorneo(props.torneoId), getCategorieGestioneTorneo(props.torneoId)])
-            .then(([setup, categorieGestioneTorneo]) => {
+        Promise.all([getSetupTorneo(props.torneoId)])
+            .then(([setup]) => {
                 if (props.mode === 'edit') {
                     setEditCategorieDraft(
                         setup.categorie.map((categoria) => ({
@@ -314,15 +227,11 @@ export default function TorneoModalForm(props: Props) {
                         }))
                     );
                 }
-
-                setCategorieGestione(categorieGestioneTorneo);
             })
             .catch((error) => {
                 errorMessage('Impossibile recuperare categorie e calendario', error);
             })
-            .finally(() => {
-                setEditSetupLoading(false);
-            });
+            .finally(() => null);
     }, [props.mode, props.torneoId]);
 
     const handleInputChange = (key: keyof datiTorneo, value: string) => {
@@ -453,67 +362,10 @@ export default function TorneoModalForm(props: Props) {
                 if (!validateCategorie()) return;
 
                 const categoriaIndexByDraftId = new Map<string, number>();
-                const squadraIndexByName = new Map<string, number>();
                 const squadre: { nome: string; acronimo: string }[] = [];
 
                 categorieNormalizzate.forEach((categoria, categoriaIndex) => {
                     categoriaIndexByDraftId.set(categoria.draft.tempId, categoriaIndex);
-                });
-
-                const partite = partiteDraft.map((partita) => {
-                    const categoriaIndex = categoriaIndexByDraftId.get(partita.categoriaDraftId);
-                    const squadraCasaIndex = squadraIndexByName.get(
-                        getTeamKey(partita.squadraCasa)
-                    );
-                    const squadraOspiteIndex = squadraIndexByName.get(
-                        getTeamKey(partita.squadraOspite)
-                    );
-                    const giornata = parseOptionalPositiveInteger(partita.giornata);
-
-                    if (categoriaIndex === undefined) {
-                        throw new Error(`Categoria non valida per ${partita.squadraCasa}.`);
-                    }
-
-                    if (squadraCasaIndex === undefined || squadraOspiteIndex === undefined) {
-                        throw new Error(
-                            'Ogni partita deve usare squadre presenti nella categoria.'
-                        );
-                    }
-
-                    if (squadraCasaIndex === squadraOspiteIndex) {
-                        throw new Error(
-                            'Le due squadre della stessa partita devono essere diverse.'
-                        );
-                    }
-
-                    if (!partita.fase.trim()) {
-                        throw new Error('Ogni partita deve avere una fase.');
-                    }
-
-                    if (Number.isNaN(giornata)) {
-                        throw new Error('La giornata deve essere un numero intero positivo.');
-                    }
-
-                    if (
-                        partita.oraPartita.trim() &&
-                        !/^([01]\d|2[0-3]):([0-5]\d)$/.test(partita.oraPartita.trim())
-                    ) {
-                        throw new Error("Inserisci l'orario partita nel formato HH:mm.");
-                    }
-
-                    if (partita.oraPartita.trim() && !partita.dataPartita) {
-                        throw new Error("Se inserisci l'orario, seleziona anche la data.");
-                    }
-
-                    return {
-                        categoriaIndex,
-                        squadraCasaIndex,
-                        squadraOspiteIndex,
-                        fase: partita.fase.trim(),
-                        girone: partita.girone.trim() || 'A',
-                        giornata: giornata || null,
-                        fischio_inizio: buildKickoffIso(partita.dataPartita, partita.oraPartita),
-                    };
                 });
 
                 await createTorneoSetup({
@@ -527,7 +379,6 @@ export default function TorneoModalForm(props: Props) {
                             : ['Gironi'],
                     })),
                     squadre,
-                    partite,
                 });
             } else if (props.mode === 'edit') {
                 if (!form.id) {
@@ -732,6 +583,7 @@ function FormDatiTorneo({
                     value={form.nome}
                     onChange={(val) => onInputChange('nome', val)}
                     placeholder={'es: 4° Edizione - 2025/2026'}
+                    required={true}
                 />
 
                 <TextInputField
@@ -837,6 +689,7 @@ function CreateCategoriesStep({
                                         onFieldChange(categoria.tempId, 'numGironi', value)
                                     }
                                     placeholder="2"
+                                    inputMode="numeric"
                                 />
                             </View>
                             <View style={styles.flexChild}>
@@ -847,6 +700,7 @@ function CreateCategoriesStep({
                                         onFieldChange(categoria.tempId, 'durataPartita', value)
                                     }
                                     placeholder="25"
+                                    inputMode="numeric"
                                 />
                             </View>
                         </View>

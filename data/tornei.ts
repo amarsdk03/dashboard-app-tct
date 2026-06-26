@@ -496,7 +496,6 @@ export async function createTorneoSetup(payload: {
     torneo: insertTorneoPayload;
     categorie: torneoSetupCategoriaInput[];
     squadre: torneoSetupSquadraInput[];
-    partite: torneoSetupPartitaInput[];
 }) {
     const rpcPayload = removeUndefined({
         torneo: payload.torneo,
@@ -507,15 +506,6 @@ export async function createTorneoSetup(payload: {
         squadre: payload.squadre.map((squadra, index) => ({
             ...squadra,
             client_id: String(index),
-        })),
-        partite: payload.partite.map((partita) => ({
-            client_categoria_id: String(partita.categoriaIndex),
-            client_squadra_casa_id: String(partita.squadraCasaIndex),
-            client_squadra_ospite_id: String(partita.squadraOspiteIndex),
-            fase: partita.fase,
-            girone: partita.girone ?? null,
-            giornata: partita.giornata ?? null,
-            fischio_inizio: partita.fischio_inizio ?? null,
         })),
     });
 
@@ -528,14 +518,12 @@ export async function createTorneoSetup(payload: {
     } else if (
         rpcData?.torneo &&
         Array.isArray(rpcData?.categorie) &&
-        Array.isArray(rpcData?.squadre) &&
-        Array.isArray(rpcData?.partite)
+        Array.isArray(rpcData?.squadre)
     ) {
         return rpcData as {
             torneo: Tables<'torneo'>;
             categorie: Tables<'categoria'>[];
             squadre: Tables<'squadra'>[];
-            partite: Tables<'partita'>[];
         };
     } else {
         throw new Error('Risposta RPC create_torneo_setup non valida.');
@@ -574,36 +562,10 @@ export async function createTorneoSetup(payload: {
         : { data: [], error: null };
     if (squadreError) throw squadreError;
 
-    const partitePayload: TablesInsert<'partita'>[] = payload.partite.map((partita) => {
-        const categoria = categorie?.[partita.categoriaIndex];
-        const squadraCasa = squadre?.[partita.squadraCasaIndex];
-        const squadraOspite = squadre?.[partita.squadraOspiteIndex];
-
-        if (!categoria || !squadraCasa || !squadraOspite) {
-            throw new Error('Calendario non coerente con categorie e squadre inserite.');
-        }
-
-        return {
-            fase: partita.fase,
-            girone: partita.girone ?? undefined,
-            giornata: partita.giornata ?? null,
-            fischio_inizio: partita.fischio_inizio ?? null,
-            id_categoria: categoria.id,
-            id_squadra_casa: squadraCasa.id,
-            id_squadra_ospite: squadraOspite.id,
-        };
-    });
-
-    const { data: partite, error: partiteError } = partitePayload.length
-        ? await supabase.from('partita').insert(partitePayload).select()
-        : { data: [], error: null };
-    if (partiteError) throw partiteError;
-
     return {
         torneo,
         categorie: categorie ?? [],
         squadre: squadre ?? [],
-        partite: partite ?? [],
     };
 }
 

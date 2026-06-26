@@ -4,13 +4,14 @@ import React from 'react';
 import TextInputField from '@/components/input/TextInputField';
 
 type SelectableFieldProps<T> = {
-    label: string;
+    label?: string;
     readonly: boolean;
     options: T[];
     selectedId: string | null;
     getId: (item: T) => string | null;
     getValue: (item: T) => string;
     onSelect: (item: T) => void;
+    required?: boolean;
 };
 
 export default function ChipPickerField<T>({
@@ -21,13 +22,14 @@ export default function ChipPickerField<T>({
     getId,
     getValue,
     onSelect,
+    required = false,
 }: SelectableFieldProps<T>) {
     const selected = options.find((option) => getId(option) === selectedId) ?? null;
 
     if (readonly) {
         return (
             <TextInputField
-                label={label}
+                label={label ?? ''}
                 value={selected ? getValue(selected) : 'N/A'}
                 onChange={() => null}
                 placeholder={'Nessun opzione selezionata'}
@@ -38,7 +40,12 @@ export default function ChipPickerField<T>({
 
     return (
         <View style={styles.inputGroup}>
-            <InterText style={styles.label}>{label}:</InterText>
+            {label && (
+                <InterText style={styles.label}>
+                    {required && <InterText style={styles.asterisk}>*</InterText>}
+                    {label}:
+                </InterText>
+            )}
             <View style={styles.chipRow}>
                 {options.length === 0 ? (
                     <InterText style={styles.emptyOptions}>Nessuna opzione disponibile</InterText>
@@ -73,10 +80,15 @@ const styles = StyleSheet.create({
     },
     label: {
         color: '#111111',
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Inter',
         fontSize: 14,
         fontWeight: '500',
         marginBottom: 6,
+    },
+    asterisk: {
+        color: '#d93636',
+        fontWeight: '800',
+        letterSpacing: 2,
     },
     readonlyValue: {
         color: '#737373',
@@ -86,7 +98,7 @@ const styles = StyleSheet.create({
     chipRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
+        gap: 6,
     },
     chip: {
         maxWidth: '100%',

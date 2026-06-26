@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { InterText } from '@/components/generic/InterText';
 
 export interface SquadraClassifica {
@@ -66,6 +66,7 @@ export default function RankingTable({
     numPlayoff = 0,
     numEliminate = 0,
 }: RankingTableProps) {
+    const { width: screenWidth } = useWindowDimensions();
     const totalTeams = datiSquadre.length;
 
     function getZoneColor(pos: number): string | null {
@@ -78,10 +79,10 @@ export default function RankingTable({
     }
 
     return (
-        <View>
+        <View style={{ width: '100%' }}>
             {/* ── Table ── */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={styles.table}>
+                <View style={[styles.table, { minWidth: screenWidth }]}>
                     {/* Header */}
                     <View style={[styles.row, styles.headerRow]}>
                         {mostraClassifiche && (
@@ -148,12 +149,14 @@ export default function RankingTable({
                                         style={styles.teamLogo}
                                         resizeMode="cover"
                                     />
-                                    <InterText style={styles.teamName} numberOfLines={1}>
-                                        {squadra.nome}
-                                    </InterText>
-                                    <InterText style={styles.teamAcronimo}>
-                                        ({squadra.acronimo || squadra.nome.slice(0, 3)})
-                                    </InterText>
+                                    <View style={styles.teamInfo}>
+                                        <InterText style={styles.teamName} numberOfLines={1}>
+                                            {squadra.nome}
+                                        </InterText>
+                                        <InterText style={styles.teamAcronimo}>
+                                            ({squadra.acronimo || squadra.nome.slice(0, 3)})
+                                        </InterText>
+                                    </View>
                                 </View>
 
                                 <View style={[styles.cell, styles.cellStat, styles.cellPT]}>
@@ -252,14 +255,14 @@ export default function RankingTable({
                         <InterText style={styles.legendaTitle}>Legenda statistiche</InterText>
                         <View style={styles.legendaRow}>
                             {[
-                                { key: 'PT', label: 'Punti', color: '#e2e8f0' },
-                                { key: 'G', label: 'Giornata', color: '#e2e8f0' },
+                                { key: 'PT', label: 'Punti', color: '#757580' },
+                                { key: 'G', label: 'Giornata', color: '#757580' },
                                 { key: 'V', label: 'Vittorie', color: '#4ade80' },
                                 { key: 'N', label: 'Pareggi', color: '#facc15' },
                                 { key: 'P', label: 'Sconfitte', color: '#f87171' },
-                                { key: 'GF', label: 'Goal fatti', color: '#e2e8f0' },
-                                { key: 'GS', label: 'Goal subiti', color: '#e2e8f0' },
-                                { key: 'DR', label: 'Diff. reti', color: '#e2e8f0' },
+                                { key: 'GF', label: 'Goal fatti', color: '#757580' },
+                                { key: 'GS', label: 'Goal subiti', color: '#757580' },
+                                { key: 'DR', label: 'Diff. reti', color: '#757580' },
                             ].map(({ key, label, color }) => (
                                 <View key={key} style={styles.legendaItem}>
                                     <InterText style={[styles.legendaKey, { color }]}>
@@ -285,6 +288,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffff',
     },
     row: {
+        width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -314,7 +318,7 @@ const styles = StyleSheet.create({
         paddingLeft: 4,
     },
     cellTeam: {
-        width: 200,
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
@@ -376,17 +380,20 @@ const styles = StyleSheet.create({
         height: 22,
         borderRadius: 11,
     },
+    teamInfo: {
+        flex: 1,
+    },
     teamName: {
+        minWidth: 115,
         color: '#0f172a',
         fontFamily: 'Inter-SemiBold',
         fontSize: 13,
         fontWeight: '600',
-        flexShrink: 1,
     },
     teamAcronimo: {
         color: '#94a3b8',
         fontFamily: 'Inter',
-        fontSize: 11,
+        fontSize: 10,
     },
 
     // Stat cells

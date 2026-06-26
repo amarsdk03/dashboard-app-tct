@@ -8,6 +8,8 @@ import {
     UsersRoundIcon,
 } from 'lucide-react-native';
 import { InterText } from '@/components/generic/InterText';
+import HomeQuickAction from '@/components/home/HomeQuickAction';
+import HomeStatCard from '@/components/home/HomeStatCard';
 
 type Props = {
     torneoId: number;
@@ -21,17 +23,17 @@ const ACTIONS = [
     {
         label: 'Vedi squadre',
         path: '/squadre',
-        icon: ShieldIcon,
+        icon: <ShieldIcon size={16} color="#15803d" />,
     },
     {
         label: 'Vedi giocatori',
         path: '/giocatori',
-        icon: UsersRoundIcon,
+        icon: <UsersRoundIcon size={16} color="#1d4ed8" />,
     },
     {
         label: 'Vedi partite',
         path: '/partite',
-        icon: CalendarDaysIcon,
+        icon: <CalendarDaysIcon size={16} color="#be123c" />,
     },
 ] as const;
 
@@ -50,26 +52,33 @@ export default function TorneoLinkedData({
             </View>
 
             <View style={styles.countGrid}>
-                <CountTile label="Squadre" value={squadreCount} />
-                <CountTile label="Giocatori" value={giocatoriCount} />
-                <CountTile label="Partite" value={partiteCount} />
+                <HomeStatCard
+                    label="Squadre"
+                    value={squadreCount}
+                    tone="green"
+                    icon={<ShieldIcon size={20} color="#15803d" />}
+                    smallValueSize={true}
+                />
+                <HomeStatCard
+                    label="Giocatori"
+                    value={giocatoriCount}
+                    tone="blue"
+                    icon={<UsersRoundIcon size={20} color="#1d4ed8" />}
+                    smallValueSize={true}
+                />
+                <HomeStatCard
+                    label="Partite"
+                    value={squadreCount}
+                    tone="red"
+                    icon={<CalendarDaysIcon size={20} color="#be123c" />}
+                    smallValueSize={true}
+                />
             </View>
 
             <View style={styles.actions}>
                 {ACTIONS.map((action) => {
-                    const Icon = action.icon;
                     const href = `${action.path}?torneoId=${torneoId}` as Href;
-                    return (
-                        <Link key={action.path} href={href} asChild>
-                            <TouchableOpacity style={styles.actionButton} activeOpacity={0.85}>
-                                <View style={styles.actionIcon}>
-                                    <Icon size={15} color="#0f172a" />
-                                </View>
-                                <InterText style={styles.actionText}>{action.label}</InterText>
-                                <ChevronRightIcon size={15} color="#64748b" />
-                            </TouchableOpacity>
-                        </Link>
-                    );
+                    return <HomeQuickAction label={action.label} href={href} icon={action.icon} />;
                 })}
             </View>
         </View>

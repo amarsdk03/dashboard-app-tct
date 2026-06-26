@@ -221,6 +221,7 @@ export default function CurrentRankingsTables() {
 
 const styles = StyleSheet.create({
     container: {
+        width: '100%',
         gap: 24,
     },
     centeredBox: {

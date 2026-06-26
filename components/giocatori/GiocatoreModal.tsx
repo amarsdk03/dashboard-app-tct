@@ -24,7 +24,6 @@ import {
 import { getListaSquadre, listaSquadreType } from '@/data/squadre';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
 import { Enums } from '@/types/database.types';
-import { Picker } from '@react-native-picker/picker';
 import GenericSelectField from '@/components/input/GenericSelectField';
 import TeamSelectField from '@/components/input/TeamSelectField';
 import ChipPickerField from '@/components/input/ChipPickerField';
@@ -421,44 +420,51 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
 
                         <View style={styles.inputField} />
 
-                        <ChipPickerField
-                            label="Ruolo principale"
-                            readonly={readonly}
-                            options={RUOLI}
-                            selectedId={form.ruoloPrincipale}
-                            getId={(ruolo) => ruolo}
-                            getValue={(ruolo) => ruolo}
-                            onSelect={(value) => setField('ruoloPrincipale', value)}
-                        />
+                        <View style={styles.inputField}>
+                            <ChipPickerField
+                                label="Ruolo principale"
+                                readonly={readonly}
+                                options={RUOLI}
+                                selectedId={form.ruoloPrincipale}
+                                getId={(ruolo) => ruolo}
+                                getValue={(ruolo) => ruolo}
+                                onSelect={(value) => setField('ruoloPrincipale', value)}
+                            />
+                        </View>
 
-                        <ChipPickerField
-                            label="Piede principale"
-                            readonly={readonly}
-                            options={PIEDI}
-                            selectedId={form.piedePrincipale}
-                            getId={(piede) => piede}
-                            getValue={(piede) => piede}
-                            onSelect={(value) => setField('piedePrincipale', value)}
-                        />
+                        <View style={styles.inputField}>
+                            <ChipPickerField
+                                label="Piede principale"
+                                readonly={readonly}
+                                options={PIEDI}
+                                selectedId={form.piedePrincipale}
+                                getId={(piede) => piede}
+                                getValue={(piede) => piede}
+                                onSelect={(value) => setField('piedePrincipale', value)}
+                            />
+                        </View>
 
-                        <View style={styles.row}>
-                            <View style={styles.flexChild}>
-                                <TextInputField
-                                    label="Nome maglia"
-                                    readonly={readonly}
-                                    value={form.nomeMaglia}
-                                    onChange={(value) => setField('nomeMaglia', value)}
-                                    placeholder="Del Piero"
-                                />
-                            </View>
-                            <View style={styles.flexChild}>
-                                <TextInputField
-                                    label="Numero maglia"
-                                    readonly={readonly}
-                                    value={form.numeroMaglia}
-                                    onChange={(value) => setField('numeroMaglia', value)}
-                                    placeholder="10"
-                                />
+                        <View style={styles.inputField}>
+                            <View style={styles.row}>
+                                <View style={styles.flexChild}>
+                                    <TextInputField
+                                        label="Nome maglia"
+                                        readonly={readonly}
+                                        value={form.nomeMaglia}
+                                        onChange={(value) => setField('nomeMaglia', value)}
+                                        placeholder="Del Piero"
+                                    />
+                                </View>
+                                <View style={styles.flexChild}>
+                                    <TextInputField
+                                        label="Numero maglia"
+                                        readonly={readonly}
+                                        value={form.numeroMaglia}
+                                        onChange={(value) => setField('numeroMaglia', value)}
+                                        placeholder="10"
+                                        inputMode="numeric"
+                                    />
+                                </View>
                             </View>
                         </View>
 
@@ -500,6 +506,7 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                                 setField('idSquadra', null);
                             }}
                             readonly={readonly}
+                            required={true}
                         />
 
                         <TeamSelectField
@@ -515,6 +522,7 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                                 setField('idSquadra', val ? Number.parseInt(val) : null);
                             }}
                             readonly={readonly}
+                            required={true}
                         />
 
                         <TextInputField

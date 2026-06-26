@@ -40,6 +40,7 @@ import { getListaTornei, listaTorneiType } from '@/data/tornei';
 import ChipPickerField from '@/components/input/ChipPickerField';
 import FormButton from '@/components/input/FormButton';
 import GenericSelectField from '@/components/input/GenericSelectField';
+import ColorPickerField from '@/components/input/ColorPickerField';
 
 export type SquadraModalMode = 'view' | 'create' | 'edit';
 
@@ -616,6 +617,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                             selectCreateTorneo(Number.parseInt(val));
                         }}
                         readonly={readonly}
+                        required={true}
                     />
                 )}
 
@@ -627,6 +629,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                             value={form.nome}
                             onChange={(value) => setField('nome', value)}
                             placeholder="Real Madrid CdF"
+                            required={true}
                         />
                     </View>
                     <View style={styles.flexChild}>
@@ -636,10 +639,11 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                             value={form.acronimo}
                             onChange={(value) => setField('acronimo', value.toUpperCase())}
                             placeholder="RMA"
+                            required={true}
                         />
                     </View>
                     <View style={styles.flexChild}>
-                        <TextInputField
+                        <ColorPickerField
                             label="Colore squadra"
                             readonly={readonly}
                             value={form.coloreSquadra}

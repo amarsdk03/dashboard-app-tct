@@ -319,7 +319,6 @@ function ReadonlyTournamentManagement({ categorie }: { categorie: categorieGesti
                                         : '-'
                                 }
                             />
-                            <ReadonlyStat label="Squadre" value={String(categoria.squadre_count)} />
                             <ReadonlyStat
                                 label="Fasi"
                                 value={
@@ -328,15 +327,26 @@ function ReadonlyTournamentManagement({ categorie }: { categorie: categorieGesti
                                         : 'Gironi'
                                 }
                             />
-                            <ReadonlyStat
-                                label="Qualificate"
-                                value={String(categoria.num_qualificate)}
-                            />
-                            <ReadonlyStat label="Playoff" value={String(categoria.num_playoff)} />
-                            <ReadonlyStat
-                                label="Eliminate"
-                                value={String(categoria.num_eliminate)}
-                            />
+                            <View style={styles.formRow}>
+                                <ReadonlyStat
+                                    label="Num. squadre"
+                                    value={String(categoria.squadre_count)}
+                                />
+                                <ReadonlyStat
+                                    label="Num. qualificate"
+                                    value={String(categoria.num_qualificate)}
+                                />
+                            </View>
+                            <View style={styles.formRow}>
+                                <ReadonlyStat
+                                    label="Num. playoff"
+                                    value={String(categoria.num_playoff)}
+                                />
+                                <ReadonlyStat
+                                    label="Num. eliminate"
+                                    value={String(categoria.num_eliminate)}
+                                />
+                            </View>
                         </View>
                     </View>
                 ))
@@ -498,24 +508,22 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     detailItem: {
-        flexBasis: '47%',
         flexGrow: 1,
-        minWidth: 132,
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#ffffff',
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: '#f2f2f2',
         borderRadius: 12,
         padding: 10,
     },
     detailLabel: {
-        color: '#64748b',
+        color: '#8c8c8c',
         fontSize: 11,
         fontWeight: '600',
         marginBottom: 4,
         textTransform: 'uppercase',
     },
     detailValue: {
-        color: '#0f172a',
+        color: '#232929',
         fontSize: 13,
         fontWeight: '700',
         lineHeight: 18,

@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     statusPill: {
         maxWidth: 132,
         borderRadius: 999,
-        backgroundColor: '#fff2d9',
+        backgroundColor: '#e9e6ff',
         paddingHorizontal: 8,
         paddingVertical: 4,
     },
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f1f5f9',
     },
     statusText: {
-        color: '#8c8370',
+        color: '#807a99',
         fontFamily: 'Inter-SemiBold',
         fontSize: 11,
         fontWeight: '600',

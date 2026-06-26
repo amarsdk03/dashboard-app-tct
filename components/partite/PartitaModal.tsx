@@ -25,9 +25,7 @@ import {
     getGiocatoriPartita,
     getGiocatoriSquadrePartita,
     getCampiPartita,
-    getArbitriPartita,
     azioniPartitaType,
-    arbitriPartitaType,
     campiPartitaType,
     datiPartitaType,
     giocatoriPartitaType,
@@ -39,6 +37,7 @@ import { Enums } from '@/types/database.types';
 import GenericSelectField from '@/components/input/GenericSelectField';
 import TeamSelectField from '@/components/input/TeamSelectField';
 import FormButton from '@/components/input/FormButton';
+import ChipPickerField from '@/components/input/ChipPickerField';
 
 export type PartitaModalMode = 'view' | 'create' | 'edit';
 
@@ -84,7 +83,13 @@ type ReportFormState = {
     dettagli: string;
 };
 
-const FASI_RAPIDE = ['Gironi', 'Ottavi di finale', 'Quarti di finale', 'Semifinale', 'Finale'];
+const FASI_RAPIDE = [
+    'Gironi',
+    'Quarti di finale',
+    'Semifinale',
+    'Spareggio 3\u00B0 posto',
+    'Finale',
+];
 const TIPI_AZIONE: TipoAzione[] = [
     'Goal',
     'Assist',
@@ -393,6 +398,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         }
     }
 
+    // TODO: caricare le squadre del solo torneo correlato, e non tutte!
     async function loadSquadre(idTorneo: number) {
         try {
             const data = await getListaSquadre(null, null);
@@ -681,7 +687,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                         <ActivityIndicator size="large" />
                         <InterText className="text-muted-foreground">Caricamento dati...</InterText>
                     </View>
-                    <FooterButton label="Torna indietro" variant="secondary" onPress={onClose} />
+                    <FormButton type="secondary" label="Torna indietro" onPress={onClose} />
                 </View>
             </ScrollView>
         );
@@ -699,9 +705,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                 <View style={styles.formCard}>
                     <View style={styles.modalHeader}>
                         <View>
-                            <InterText style={styles.title}>
-                                Dettagli partita
-                            </InterText>
+                            <InterText style={styles.title}>Dettagli partita</InterText>
                         </View>
                     </View>
 
@@ -711,15 +715,17 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
 
                             <View style={styles.detailGrid}>
                                 <DetailItem label="Torneo" value={partita.torneo_nome} />
-                                <DetailItem label="Categoria" value={partita.categoria_nome} />
-                                <DetailItem label="Fase" value={partita.fase} />
-                                <DetailItem
-                                    label="Girone"
-                                    value={partita.girone ? `Girone ${partita.girone}` : null}
-                                />
                                 <DetailItem
                                     label="Fischio d'inizio"
                                     value={formatDateTime(partita.fischio_inizio)}
+                                />
+                                <View style={styles.formRow}>
+                                    <DetailItem label="Categoria" value={partita.categoria_nome} />
+                                    <DetailItem label="Fase" value={partita.fase} />
+                                </View>
+                                <DetailItem
+                                    label="Girone"
+                                    value={partita.girone ? `Girone ${partita.girone}` : null}
                                 />
                                 <DetailItem
                                     label="Giornata"
@@ -766,10 +772,11 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                     )}
 
                     <View style={styles.dynamicRow}>
-                        <FooterButton
-                            label="Torna indietro"
-                            variant="secondary"
+                        <FormButton
+                            type={'secondary'}
+                            label={'Torna indietro'}
                             onPress={onClose}
+                            icon={ArrowLeftIcon}
                         />
                         {partita && (
                             <TouchableOpacity
@@ -809,27 +816,28 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                     }))}
                     onChange={(id) => selectTorneo(Number.parseInt(id))}
                     readonly={readonly}
+                    required={true}
                 />
 
-                <SelectSection
+                <ChipPickerField
                     label="Categoria"
                     readonly={readonly}
                     options={categorieTorneo}
-                    selectedId={form.idCategoria}
-                    getId={(categoria) => categoria.id}
-                    getLabel={(categoria) => categoria.nome}
+                    selectedId={form.idCategoria ? form.idCategoria.toString() : null}
+                    getId={(categoria) => categoria.id.toString()}
+                    getValue={(categoria) => categoria.nome}
                     onSelect={selectCategoria}
-                    emptyText="Nessuna categoria disponibile per questo torneo"
+                    required={true}
                 />
 
-                <ChipSection
+                <ChipPickerField
                     label="Girone"
                     readonly={readonly}
                     options={gironiCategoria}
-                    selected={form.girone}
+                    selectedId={form.girone ? form.girone.toString() : null}
+                    getId={(girone) => girone}
+                    getValue={(girone) => girone}
                     onSelect={(girone) => setField('girone', girone)}
-                    onClear={() => setField('girone', null)}
-                    emptyText="Seleziona una categoria per vedere i gironi"
                 />
 
                 <View style={styles.sectionDivider} />
@@ -860,31 +868,51 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                     </View>
                 </View>
 
-                <View style={{ gap: 4, marginBottom: 6 }}>
-                    <TextInputField
-                        label="Giornata"
-                        readonly={readonly}
-                        value={form.giornata}
-                        onChange={(value) => setField('giornata', value)}
-                        placeholder="1"
-                    />
+                <View style={[styles.row, { marginBottom: 6, marginTop: 4 }]}>
+                    <View style={[styles.flexChild, { flex: 1.5 }]}>
+                        <TextInputField
+                            label="Fase"
+                            readonly={readonly}
+                            value={form.fase}
+                            onChange={(value) => setField('fase', value)}
+                            placeholder="Seleziona..."
+                        />
+                    </View>
+                    <View style={styles.flexChild}>
+                        <TextInputField
+                            label="Giornata"
+                            readonly={readonly}
+                            value={form.giornata}
+                            onChange={(value) => setField('giornata', value)}
+                            placeholder="Seleziona..."
+                            inputMode="numeric"
+                        />
+                    </View>
                 </View>
 
                 <View style={{ gap: 4, marginBottom: 6 }}>
-                    <TextInputField
-                        label="Fase"
-                        readonly={readonly}
-                        value={form.fase}
-                        onChange={(value) => setField('fase', value)}
-                        placeholder="Seleziona una fase..."
-                    />
-                    <ChipSection
+                    <ChipPickerField
                         readonly={readonly}
                         options={FASI_RAPIDE}
-                        selected={FASI_RAPIDE.includes(form.fase) ? form.fase : null}
-                        onSelect={(fase) => setField('fase', fase)}
-                        onClear={() => setField('fase', '')}
-                        emptyText="Nessuna fase rapida"
+                        selectedId={FASI_RAPIDE.includes(form.fase) ? form.fase : null}
+                        getId={(fase: any) => String(fase)}
+                        getValue={(fase: any) => String(fase)}
+                        onSelect={(fase: any) => {
+                            setField('fase', fase);
+
+                            const mappingGiornate: Record<string, string> = {
+                                Gironi: '1',
+                                'Quarti di finale': '8',
+                                Semifinale: '10',
+                                'Spareggio 3\u00B0 posto': '11',
+                                Finale: '11',
+                            };
+
+                            const giornataCorrispondente = mappingGiornate[String(fase)];
+                            if (giornataCorrispondente) {
+                                setField('giornata', giornataCorrispondente);
+                            }
+                        }}
                     />
                 </View>
 
@@ -911,6 +939,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                         }));
                     }}
                     readonly={readonly}
+                    required={true}
                 />
 
                 <TeamSelectField
@@ -931,15 +960,16 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                         }));
                     }}
                     readonly={readonly}
+                    required={true}
                 />
 
-                <EnumChipSection
+                <ChipPickerField
                     label="Vittoria a tavolino"
+                    readonly={readonly}
                     options={VITTORIE_TAVOLINO}
-                    selected={form.vintaATavolino}
-                    getLabel={(value) =>
-                        value === 'No' ? 'No' : value === 'Casa' ? 'Casa' : 'Ospiti'
-                    }
+                    selectedId={form.vintaATavolino}
+                    getId={(value) => value}
+                    getValue={(value) => value}
                     onSelect={(value) => setField('vintaATavolino', value as VittoriaTavolino)}
                 />
 
@@ -1247,21 +1277,21 @@ function ReportEditor({
                 value={reportForm.tipo}
                 options={TIPI_AZIONE.map((tipo) => ({ id: tipo, name: tipo }))}
                 onChange={(val) => onReportFieldChange('tipo', val as TipoAzione)}
+                required={true}
             />
 
-            <EnumChipSection
+            <ChipPickerField
                 label="Squadra"
+                readonly={false}
                 options={ASSEGNAMENTI_AZIONE}
-                selected={reportForm.assegnamento}
-                getLabel={(value) =>
-                    value === 'Casa'
-                        ? (partita.squadra_casa_nome ?? 'Casa')
-                        : (partita.squadra_ospite_nome ?? 'Ospiti')
-                }
+                selectedId={reportForm.assegnamento}
+                getId={(value) => value}
+                getValue={(value) => value}
                 onSelect={(value) => {
                     onReportFieldChange('assegnamento', value as AssegnamentoAzione);
                     onReportFieldChange('idGiocatore', null);
                 }}
+                required={true}
             />
 
             <GenericSelectField
@@ -1400,203 +1430,6 @@ function QuickActionButton({
     );
 }
 
-function EnumChipSection<T extends string>({
-    label,
-    options,
-    selected,
-    getLabel,
-    onSelect,
-}: {
-    label: string;
-    options: T[];
-    selected: T;
-    getLabel?: (value: T) => string;
-    onSelect: (value: T) => void;
-}) {
-    return (
-        <View style={styles.inputGroup}>
-            <InterText style={styles.label}>{label}:</InterText>
-            <View style={styles.chipRow}>
-                {options.map((option) => {
-                    const active = selected === option;
-                    return (
-                        <TouchableOpacity
-                            key={option}
-                            style={[styles.chip, active && styles.chipActive]}
-                            onPress={() => onSelect(option)}
-                            activeOpacity={0.85}>
-                            <InterText
-                                style={[styles.chipText, active && styles.chipTextActive]}
-                                numberOfLines={1}>
-                                {getLabel ? getLabel(option) : option}
-                            </InterText>
-                        </TouchableOpacity>
-                    );
-                })}
-            </View>
-        </View>
-    );
-}
-
-type SelectSectionProps<T> = {
-    label: string;
-    readonly: boolean;
-    options: T[];
-    selectedId: number | null;
-    getId: (item: T) => number | null;
-    getLabel: (item: T) => string;
-    onSelect: (item: T) => void;
-    emptyText: string;
-};
-
-function SelectSection<T>({
-    label,
-    readonly,
-    options,
-    selectedId,
-    getId,
-    getLabel,
-    onSelect,
-    emptyText,
-}: SelectSectionProps<T>) {
-    const selected = options.find((option) => getId(option) === selectedId) ?? null;
-
-    if (readonly) {
-        return (
-            <View style={styles.inputGroup}>
-                <InterText style={styles.label}>{label}:</InterText>
-                <InterText style={styles.readonlyValue}>
-                    {selected ? getLabel(selected) : 'N/A'}
-                </InterText>
-            </View>
-        );
-    }
-
-    return (
-        <View style={styles.inputGroup}>
-            <InterText style={styles.label}>{label}:</InterText>
-            <View style={styles.chipRow}>
-                {options.length === 0 ? (
-                    <InterText style={styles.emptyOptions}>{emptyText}</InterText>
-                ) : (
-                    options.map((option) => {
-                        const id = getId(option);
-                        const active = id === selectedId;
-                        return (
-                            <TouchableOpacity
-                                key={String(id ?? getLabel(option))}
-                                style={[styles.chip, active && styles.chipActive]}
-                                onPress={() => onSelect(option)}
-                                activeOpacity={0.85}>
-                                <InterText
-                                    style={[styles.chipText, active && styles.chipTextActive]}
-                                    numberOfLines={1}>
-                                    {getLabel(option)}
-                                </InterText>
-                            </TouchableOpacity>
-                        );
-                    })
-                )}
-            </View>
-        </View>
-    );
-}
-
-type ChipSectionProps = {
-    label?: string;
-    readonly: boolean;
-    options: string[];
-    selected: string | null;
-    onSelect: (value: string) => void;
-    onClear: () => void;
-    emptyText: string;
-};
-
-function ChipSection({
-    label,
-    readonly,
-    options,
-    selected,
-    onSelect,
-    onClear,
-    emptyText,
-}: ChipSectionProps) {
-    if (readonly) {
-        return (
-            <View style={styles.inputGroup}>
-                <InterText style={styles.label}>{label}:</InterText>
-                <InterText style={styles.readonlyValue}>{selected ?? 'N/A'}</InterText>
-            </View>
-        );
-    }
-
-    return (
-        <View style={styles.inputGroup}>
-            {label && (<InterText style={styles.label}>{label}:</InterText>)}
-            <View style={styles.chipRow}>
-                <TouchableOpacity
-                    style={[styles.chip, !selected && styles.chipActive]}
-                    onPress={onClear}
-                    activeOpacity={0.85}>
-                    <InterText style={[styles.chipText, !selected && styles.chipTextActive]}>
-                        Nessuno
-                    </InterText>
-                </TouchableOpacity>
-                {options.length === 0 ? (
-                    <InterText style={styles.emptyOptions}>{emptyText}</InterText>
-                ) : (
-                    options.map((option) => {
-                        const active = selected === option;
-                        return (
-                            <TouchableOpacity
-                                key={option}
-                                style={[styles.chip, active && styles.chipActive]}
-                                onPress={() => onSelect(option)}
-                                activeOpacity={0.85}>
-                                <InterText
-                                    style={[styles.chipText, active && styles.chipTextActive]}>
-                                    {option}
-                                </InterText>
-                            </TouchableOpacity>
-                        );
-                    })
-                )}
-            </View>
-        </View>
-    );
-}
-
-function FooterButton({
-    label,
-    variant,
-    onPress,
-}: {
-    label: string;
-    variant: 'secondary' | 'destructive';
-    onPress: () => void;
-}) {
-    return (
-        <TouchableOpacity
-            style={[
-                styles.button,
-                variant === 'secondary' ? styles.buttonSecondary : styles.buttonDestructive,
-            ]}
-            onPress={onPress}
-            activeOpacity={0.8}>
-            <ArrowLeftIcon size={16} color={variant === 'secondary' ? '#6b7280' : '#7c3f3f'} />
-            <InterText
-                style={[
-                    styles.buttonText,
-                    variant === 'secondary'
-                        ? styles.buttonSecondaryText
-                        : styles.buttonDestructiveText,
-                ]}>
-                {label}
-            </InterText>
-        </TouchableOpacity>
-    );
-}
-
 const styles = StyleSheet.create({
     scrollContainer: {
         padding: 16,
@@ -1674,35 +1507,37 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         textAlign: 'center',
     },
+    formRow: {
+        flexDirection: 'row',
+        width: '100%',
+        gap: 8,
+    },
     detailGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 10,
-        marginBottom: 18,
+        marginBottom: 16,
     },
     detailItem: {
         flexGrow: 1,
-        flexBasis: '45%',
-        minWidth: 160,
-        borderRadius: 12,
         backgroundColor: '#ffffff',
         borderWidth: 1,
-        borderColor: '#f1f5f9',
-        padding: 12,
+        borderColor: '#f2f2f2',
+        borderRadius: 12,
+        padding: 10,
     },
     detailLabel: {
-        color: '#64748b',
-        fontFamily: 'Inter-SemiBold',
+        color: '#8c8c8c',
         fontSize: 11,
         fontWeight: '600',
+        marginBottom: 4,
         textTransform: 'uppercase',
-        marginBottom: 5,
     },
     detailValue: {
-        color: '#0f172a',
-        fontFamily: 'Inter-SemiBold',
+        color: '#232929',
         fontSize: 13,
-        fontWeight: '600',
+        fontWeight: '700',
+        lineHeight: 18,
     },
     actionSection: {
         borderTopWidth: 1,
@@ -1723,12 +1558,13 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter-Bold',
         fontSize: 16,
         fontWeight: '700',
-        marginBottom: 8,
+        marginBottom: 12,
     },
     sectionDivider: {
         height: 1,
         backgroundColor: '#f1f5f9',
-        marginVertical: 20,
+        marginTop: 10,
+        marginBottom: 20,
     },
     actionCountBadge: {
         minWidth: 28,

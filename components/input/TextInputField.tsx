@@ -1,6 +1,8 @@
+import React from 'react';
+
 import { StyleSheet, TextInput, View } from 'react-native';
 import { InterText } from '@/components/generic/InterText';
-import React from 'react';
+import { InputModeOptions } from 'react-native/Libraries/Components/TextInput/TextInput';
 
 interface TextInputFieldProps {
     label: string;
@@ -9,10 +11,20 @@ interface TextInputFieldProps {
     onChange: (text: string) => void;
     placeholder?: string;
     multiline?: boolean;
+    inputMode?: InputModeOptions;
     required?: boolean;
 }
 
-export default function TextInputField({ label, value, readonly = false, onChange, placeholder, multiline, required = false }: TextInputFieldProps) {
+export default function TextInputField({
+    label,
+    value,
+    readonly = false,
+    onChange,
+    placeholder,
+    multiline,
+    inputMode = 'text',
+    required = false,
+}: TextInputFieldProps) {
     const placeholderValue = readonly ? 'N/A' : placeholder;
 
     return (
@@ -22,6 +34,7 @@ export default function TextInputField({ label, value, readonly = false, onChang
                 {label}:
             </InterText>
             <TextInput
+                inputMode={inputMode}
                 editable={!readonly}
                 style={[
                     styles.input,
@@ -36,6 +49,7 @@ export default function TextInputField({ label, value, readonly = false, onChang
                 multiline={multiline}
                 numberOfLines={multiline ? 3 : 1}
                 textAlignVertical={multiline ? 'top' : 'center'}
+                keyboardType={inputMode === 'numeric' ? 'numeric' : 'default'}
             />
         </View>
     );
