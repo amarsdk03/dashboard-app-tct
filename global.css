@@ -62,3 +62,19 @@ body {
         --chart-5: 340 75% 55%;
     }
 }
+
+.live-circle {
+    animation: pulseLive 2s infinite;
+}
+
+@keyframes pulseLive {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.25;
+    }
+    100% {
+        opacity: 1;
+    }
+}

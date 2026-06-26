@@ -261,13 +261,13 @@ export default function ImpostazioniScreen() {
                     <View style={styles.detailList}>
                         <DetailRow
                             icon={<ShieldCheckIcon size={18} color="#0f172a" />}
-                            label="Nome"
-                            value={adminName}
+                            label="Nome utente"
+                            value={adminName.charAt(0).toUpperCase() + adminName.slice(1)}
                         />
                         <DetailRow
                             icon={<UserRoundIcon size={18} color="#0f172a" />}
                             label="Ruolo"
-                            value={adminRole}
+                            value={adminRole === 'authenticated' ? 'Amministratore' : 'Sconosiuto'}
                         />
                         <DetailRow
                             icon={<MailIcon size={18} color="#0f172a" />}

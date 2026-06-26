@@ -1,5 +1,6 @@
 import '@/global.css';
 
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import {
     Inter_400Regular,
@@ -9,10 +10,9 @@ import {
     useFonts,
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { SplashScreenController } from '@/components/splash-screen-controller';
 
 import 'react-native-reanimated';
-import { SplashScreenController } from '@/components/splash-screen-controller';
 import { useAuthContext } from '@/hooks/use-auth-context';
 import AuthProvider from '@/providers/auth-provider';
 

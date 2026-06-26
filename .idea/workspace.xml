@@ -5,39 +5,34 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="02039681-6d6f-43de-b84f-55cbb0bd0377" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/components/generic/DynamicReactFlag.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/input/FormButton.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/input/GenericSelectField.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/input/NationalitySelectField.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/input/TeamSelectField.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/iso3to2conversion.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/generic/LiveCircle.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/home/CurrentRankingsTables.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/home/RankingTable.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/giocatori/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/giocatori/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/partite/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/partite/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/squadre/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/squadre/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/tornei/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/tornei/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(app)/impostazioni.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/impostazioni.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/+html.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/+html.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/_layout.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/login.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/giocatori/GiocatoreCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/giocatori/GiocatoreCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/giocatori/GiocatoreModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/giocatori/GiocatoreModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/home/HomeMatchCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/home/HomeMatchCard.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/input/DateTimePickerField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/DateTimePickerField.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/input/ImageInputField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/ImageInputField.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/input/NationalityAutocompleteField.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/input/SelectableField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/ChipPickerField.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/input/TextInputField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/TextInputField.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/login/sign-out-button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/login/SignOutButton.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/partite/PartitaCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/partite/PartitaCard.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/partite/PartitaModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/partite/PartitaModal.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/squadre/SquadraModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/squadre/SquadraModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/tornei/TorneoModalForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoModalForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/tornei/TorneoModalSummary.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoModalSummary.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/constants/nationalities.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/superpowers/plans/2026-06-07-torneo-linked-data-nationality-autocomplete.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/superpowers/plans/2026-06-07-torneo-linked-data-nationality-autocomplete.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/superpowers/specs/2026-06-07-torneo-linked-data-nationality-autocomplete-design.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/superpowers/specs/2026-06-07-torneo-linked-data-nationality-autocomplete-design.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/partite.ts" beforeDir="false" afterPath="$PROJECT_DIR$/data/partite.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/squadre.ts" beforeDir="false" afterPath="$PROJECT_DIR$/data/squadre.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/tornei.ts" beforeDir="false" afterPath="$PROJECT_DIR$/data/tornei.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/superpowers/plans/2026-06-07-giocatori-screen.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/superpowers/plans/2026-06-07-torneo-linked-data-nationality-autocomplete.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/superpowers/plans/2026-06-08-home-dashboard.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/superpowers/specs/2026-06-07-giocatori-design.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/superpowers/specs/2026-06-07-torneo-linked-data-nationality-autocomplete-design.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/superpowers/specs/2026-06-08-home-dashboard-design.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/global.css" beforeDir="false" afterPath="$PROJECT_DIR$/global.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/seed-giocatori-examples.mjs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/feature-contracts.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/feature-contracts.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,7 +43,7 @@
     <option name="formatViaClangd" value="false" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="201" />
+    <option name="cachedIndexableFilesCount" value="202" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="ExternalProjectsManager">
@@ -96,61 +91,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.003879267560301" />
-      <entry key="MS500" value="1.329419987933535" />
-      <entry key="S2" value="1.7575956750983734" />
-      <entry key="S5" value="1.8949088270443686" />
-      <entry key="S10" value="1.948789367504556" />
-      <entry key="S30" value="2.1280830540287967" />
-      <entry key="S60" value="2.4792006610588118" />
-      <entry key="M2" value="3.2515638890992244" />
-      <entry key="M5" value="5.316717101158535" />
-      <entry key="M10" value="9.143706652236194" />
-      <entry key="M15" value="13.684977240441475" />
-      <entry key="M30" value="28.664594987838395" />
-      <entry key="H1" value="57.12072918085199" />
-      <entry key="H2" value="108.66241282625774" />
-      <entry key="H4" value="235.79176027759706" />
-      <entry key="D1" value="1077.2189320028288" />
-      <entry key="W1" value="1559.9598111691103" />
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="9.209539277064703E-179" />
+      <entry key="S2" value="3.097843516092094E-45" />
+      <entry key="S5" value="1.5718959480835848E-18" />
+      <entry key="S10" value="1.2538733180712938E-9" />
+      <entry key="S30" value="0.0011277728988684493" />
+      <entry key="S60" value="0.04041757158842414" />
+      <entry key="M2" value="0.3192223617277229" />
+      <entry key="M5" value="2.0388021604754463" />
+      <entry key="M10" value="5.265297155356226" />
+      <entry key="M15" value="7.898013554850174" />
+      <entry key="M30" value="13.440501674301375" />
+      <entry key="H1" value="22.708113022653986" />
+      <entry key="H2" value="45.873242775214024" />
+      <entry key="H4" value="117.29949866026222" />
+      <entry key="D1" value="949.1041084520466" />
+      <entry key="W1" value="1636.2851968437783" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="3.4569675058653545E-285" />
-      <entry key="MS500" value="1.2815603414291524E-57" />
-      <entry key="S2" value="5.983217147391529E-15" />
-      <entry key="S5" value="2.045379533289975E-6" />
-      <entry key="S10" value="0.0014301676591539807" />
-      <entry key="S30" value="0.11266727465296149" />
-      <entry key="S60" value="0.336406407640972" />
-      <entry key="M2" value="0.6085774273312651" />
-      <entry key="M5" value="1.2028632795190475" />
-      <entry key="M10" value="2.50757448353777" />
-      <entry key="M15" value="4.016342370950836" />
-      <entry key="M30" value="8.639586167628437" />
-      <entry key="H1" value="17.23812665644928" />
-      <entry key="H2" value="32.900898312825674" />
-      <entry key="H4" value="64.16176520309777" />
-      <entry key="D1" value="208.58306693805076" />
-      <entry key="W1" value="281.6180519825297" />
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.000000000000397" />
+      <entry key="S5" value="1.0000109523501393" />
+      <entry key="S10" value="1.0033094335073054" />
+      <entry key="S30" value="1.1490226706892588" />
+      <entry key="S60" value="1.3867456588021083" />
+      <entry key="M2" value="1.6635682235471205" />
+      <entry key="M5" value="2.61766256738748" />
+      <entry key="M10" value="4.507829624244478" />
+      <entry key="M15" value="5.994848024288509" />
+      <entry key="M30" value="8.539322217198867" />
+      <entry key="H1" value="10.993461519468854" />
+      <entry key="H2" value="16.175713185515008" />
+      <entry key="H4" value="33.75615690339263" />
+      <entry key="D1" value="192.0582660187023" />
+      <entry key="W1" value="305.75258809669197" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.013792534012384146" />
-      <entry key="MS500" value="0.47413148842286623" />
-      <entry key="S2" value="1.2790837136766093" />
-      <entry key="S5" value="1.6584174595392691" />
-      <entry key="S10" value="1.8225479690737947" />
-      <entry key="S30" value="2.18862106619888" />
-      <entry key="S60" value="2.767861038809657" />
-      <entry key="M2" value="3.803687141170934" />
-      <entry key="M5" value="6.468514544463624" />
-      <entry key="M10" value="11.607128261045206" />
-      <entry key="M15" value="17.659218767688312" />
-      <entry key="M30" value="37.26423322584126" />
-      <entry key="H1" value="74.32209628610379" />
-      <entry key="H2" value="141.53015568573028" />
-      <entry key="H4" value="299.9225194691082" />
-      <entry key="D1" value="1285.787066593122" />
-      <entry key="W1" value="1841.5750949299536" />
+      <entry key="MS100" value="0.004775938584734642" />
+      <entry key="MS500" value="0.3434090583574056" />
+      <entry key="S2" value="0.7655136457553702" />
+      <entry key="S5" value="0.8986400021723032" />
+      <entry key="S10" value="0.9510371044744933" />
+      <entry key="S30" value="1.1288651511127064" />
+      <entry key="S60" value="1.4128818579762765" />
+      <entry key="M2" value="1.9690369523167701" />
+      <entry key="M5" value="4.628166377069434" />
+      <entry key="M10" value="9.739140054180115" />
+      <entry key="M15" value="13.861171723768484" />
+      <entry key="M30" value="21.95654195962744" />
+      <entry key="H1" value="33.6847635637597" />
+      <entry key="H2" value="62.034129799916265" />
+      <entry key="H4" value="151.03898187834787" />
+      <entry key="D1" value="1141.1480972127426" />
+      <entry key="W1" value="1942.0346804177962" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -264,7 +259,8 @@
       <workItem from="1782142332651" duration="2535000" />
       <workItem from="1782213781905" duration="14422000" />
       <workItem from="1782301416747" duration="14717000" />
-      <workItem from="1782387110564" duration="9506000" />
+      <workItem from="1782387110564" duration="15712000" />
+      <workItem from="1782408869268" duration="18022000" />
     </task>
     <servers />
   </component>

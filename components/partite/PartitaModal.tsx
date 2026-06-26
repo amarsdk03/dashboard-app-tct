@@ -58,7 +58,7 @@ type FormState = {
     fase: string;
     giornata: string;
     dataPartita: Date | null;
-    oraPartita: string;
+    oraPartita: Date | null;
     campoSvolgimento: number | null;
     idArbitro: number | null;
     mvpPartita: number | null;
@@ -108,14 +108,13 @@ function parsePositiveNumber(value: string) {
     return Number.isInteger(parsed) && parsed > 0 ? parsed : NaN;
 }
 
-function buildKickoffIso(date: Date | null, time: string) {
+function buildKickoffIso(date: Date | null, time: Date | null) {
     if (!date) return null;
 
-    const match = time.trim().match(/^([01]\d|2[0-3]):([0-5]\d)$/);
     const result = new Date(date);
 
-    if (match) {
-        result.setHours(Number(match[1]), Number(match[2]), 0, 0);
+    if (time) {
+        result.setHours(time.getHours(), time.getMinutes(), 0, 0);
     } else {
         result.setHours(0, 0, 0, 0);
     }
@@ -153,13 +152,16 @@ function getDatePart(value: string | null) {
     return date;
 }
 
-function getTimePart(value: string | null) {
-    const date = getDatePart(value);
-    if (!date) return '';
+function getTimePart(value: string | null): Date | null {
+    if (!value) return null;
 
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return null;
+
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+
+    return date;
 }
 
 function buildFormFromPartita(partita: NonNullable<datiPartitaType>): FormState {
@@ -244,7 +246,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         fase: 'Gironi',
         giornata: '',
         dataPartita: null,
-        oraPartita: '',
+        oraPartita: null,
         campoSvolgimento: null,
         idArbitro: null,
         mvpPartita: null,
@@ -275,6 +277,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
 
         for (const categoria of categorie) {
             if (categoria.torneo_id !== form.idTorneo || !categoria.categoria_id) continue;
+
             if (seen.has(categoria.categoria_id)) continue;
 
             seen.add(categoria.categoria_id);
@@ -392,7 +395,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
 
     async function loadSquadre(idTorneo: number) {
         try {
-            const data = await getListaSquadre(null, idTorneo);
+            const data = await getListaSquadre(null, null);
             setSquadre(data ?? []);
         } catch (error: any) {
             errorMessage('Impossibile recuperare le squadre', error.message ?? String(error));
@@ -447,11 +450,6 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         const giornata = parsePositiveNumber(form.giornata);
         if (Number.isNaN(giornata)) {
             errorMessage('Dati non validi', 'La giornata deve essere un numero intero positivo.');
-            return;
-        }
-
-        if (form.oraPartita.trim() && !/^([01]\d|2[0-3]):([0-5]\d)$/.test(form.oraPartita.trim())) {
-            errorMessage('Dati non validi', "Inserisci l'orario nel formato HH:mm.");
             return;
         }
 
@@ -520,11 +518,11 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         if (partitaData) setForm(buildFormFromPartita(partitaData));
     }
 
-    function resetReportForm() {
+    function resetReportForm(mantainAssegnamento?: 'Casa' | 'Ospiti') {
         setSelectedActionId(null);
         setReportForm({
             tipo: 'Goal',
-            assegnamento: 'Casa',
+            assegnamento: mantainAssegnamento ?? 'Casa',
             idGiocatore: null,
             minuto: '',
             dettagli: '',
@@ -617,7 +615,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                 await insertAzionePartita(payload);
             }
 
-            resetReportForm();
+            resetReportForm(reportForm.assegnamento);
             await refreshPartitaDetails();
         } catch (error: any) {
             errorMessage('Impossibile salvare il referto', error.message ?? String(error));
@@ -851,12 +849,13 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                         />
                     </View>
                     <View style={styles.flexChild}>
-                        <TextInputField
+                        <DateTimePickerField
+                            mode="time"
                             label="Ora partita"
                             readonly={readonly}
                             value={form.oraPartita}
-                            onChange={(value) => setField('oraPartita', value)}
-                            placeholder="21:45"
+                            onChange={(time) => setField('oraPartita', time)}
+                            placeholder="Seleziona..."
                         />
                     </View>
                 </View>
@@ -891,8 +890,8 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
 
                 <View style={styles.sectionDivider} />
 
-                {/* ── Squadre e campo ── */}
-                <InterText style={styles.sectionTitle}>Squadre e campo:</InterText>
+                {/* ── Squadre e esito ── */}
+                <InterText style={styles.sectionTitle}>Squadre e esito:</InterText>
 
                 <TeamSelectField
                     label="Squadra casa"
@@ -932,17 +931,6 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                         }));
                     }}
                     readonly={readonly}
-                />
-
-                <SelectSection
-                    label="Campo"
-                    readonly={readonly}
-                    options={campi}
-                    selectedId={form.campoSvolgimento}
-                    getId={(campo) => campo.id}
-                    getLabel={(campo) => campo.nome}
-                    onSelect={(campo) => setField('campoSvolgimento', campo.id)}
-                    emptyText="Nessun campo disponibile"
                 />
 
                 <EnumChipSection
@@ -1126,11 +1114,11 @@ function ActionSection({
                                 <InterText style={styles.actionTitle} numberOfLines={1}>
                                     {action.a_minuto !== null
                                         ? `${action.a_minuto}' - ${action.a_tipo ?? 'Azione'}`
-                                        : (action.a_tipo ?? 'Azione')}
+                                        : (action.a_tipo ?? 'Azione')}{' '}
+                                    - {actionTeamLabel(action, homeTeam, awayTeam)}
                                 </InterText>
                                 <InterText style={styles.actionMeta} numberOfLines={2}>
-                                    {actionPlayerLabel(action)} -{' '}
-                                    {actionTeamLabel(action, homeTeam, awayTeam)}
+                                    {actionPlayerLabel(action)}
                                     {action.a_dettagli ? ` - ${action.a_dettagli}` : ''}
                                 </InterText>
                             </View>

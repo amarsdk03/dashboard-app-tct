@@ -1,6 +1,8 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { InterText } from '@/components/generic/InterText';
+import { CircleIcon } from 'lucide-react-native';
+import LiveCircle from '@/components/generic/LiveCircle';
 
 type Props = {
     fischioInizio: string | null;
@@ -45,7 +47,8 @@ function formatTime(value: string | null) {
     }).format(date);
 }
 
-function formatStatus(value: string | null, isPlayed: boolean) {
+function formatStatus(value: string | null, isPlayed: boolean, isLive: boolean) {
+    if (isLive) return 'In corso';
     if (isPlayed) return 'Terminata';
     if (!value) return 'Da programmare';
 
@@ -53,13 +56,26 @@ function formatStatus(value: string | null, isPlayed: boolean) {
     if (isNaN(date.getTime())) return 'Da programmare';
 
     const diffMinutes = Math.round((date.getTime() - Date.now()) / 60000);
-    if (diffMinutes > 0 && diffMinutes < 60) return `Tra ${diffMinutes} minuti`;
-    if (diffMinutes >= 60 && diffMinutes < 24 * 60) {
+
+    if (diffMinutes <= 0) {
+        return 'Da programmare';
+    } else if (diffMinutes < 60) {
+        return `Tra ${diffMinutes} minut${diffMinutes === 1 ? 'o' : 'i'}`;
+    } else if (diffMinutes < 24 * 60) {
         const hours = Math.round(diffMinutes / 60);
         return `Tra ${hours} ${hours === 1 ? 'ora' : 'ore'}`;
+    } else if (diffMinutes < 7 * 24 * 60) {
+        const days = Math.round(diffMinutes / (24 * 60));
+        return `Tra ${days} ${days === 1 ? 'giorno' : 'giorni'}`;
+    } else if (diffMinutes < 30 * 24 * 60) {
+        const weeks = Math.round(diffMinutes / (7 * 24 * 60));
+        return `Tra ${weeks} ${weeks === 1 ? 'settimana' : 'settimane'}`;
+    } else if (diffMinutes < 365 * 24 * 60) {
+        const months = Math.round(diffMinutes / (30 * 24 * 60));
+        return `Tra ${months} ${months === 1 ? 'mese' : 'mesi'}`;
+    } else {
+        return 'Tra 1+ anno';
     }
-
-    return formatDateTime(value);
 }
 
 function formatScore(goalCasa: number | null, goalOspite: number | null) {
@@ -84,10 +100,25 @@ export default function PartitaCard({
     fase,
     girone,
 }: Props) {
+    const { isPlayed, isLive } = React.useMemo(() => {
+        if (!fischioInizio) return { isPlayed: false, isLive: false };
+
+        const matchDate = new Date(fischioInizio);
+        if (isNaN(matchDate.getTime())) return { isPlayed: false, isLive: false };
+
+        const diffMs = Date.now() - matchDate.getTime();
+        const diffMinutes = diffMs / 60_000;
+
+        const isLive = diffMinutes >= 0 && diffMinutes < 90;
+        const isPlayed = diffMinutes >= 90;
+
+        return { isPlayed, isLive };
+    }, [fischioInizio]);
+
     const score = formatScore(goalCasa, goalOspite);
-    const isPlayed = goalCasa !== null && goalOspite !== null;
-    const primaryValue = isPlayed ? score : formatTime(fischioInizio);
-    const status = formatStatus(fischioInizio, isPlayed);
+    const primaryValue = isPlayed ? score : isLive ? score : 'In arrivo';
+    const status = formatStatus(fischioInizio, isPlayed, isLive);
+
     const gironeLabel = girone || null;
     const leftMeta = [categoria, gironeLabel].filter(Boolean).join(' - ');
 
@@ -97,8 +128,20 @@ export default function PartitaCard({
                 <InterText style={styles.phaseText} numberOfLines={1}>
                     {leftMeta || 'Partita'}
                 </InterText>
-                <View style={[styles.statusPill, isPlayed && styles.statusPillPlayed]}>
-                    <InterText style={[styles.statusText, isPlayed && styles.statusTextPlayed]}>
+                <View
+                    style={[
+                        styles.statusPill,
+                        isPlayed && styles.statusPillPlayed,
+                        isLive && styles.statusPillLive,
+                        isLive && { flexDirection: 'row', alignItems: 'center' },
+                    ]}>
+                    {isLive && <LiveCircle />}
+                    <InterText
+                        style={[
+                            styles.statusText,
+                            isPlayed && styles.statusTextPlayed,
+                            isLive && styles.statusTextLive,
+                        ]}>
                         {status}
                     </InterText>
                 </View>
@@ -120,7 +163,7 @@ export default function PartitaCard({
                         style={[
                             styles.scoreText,
                             isPlayed && styles.scoreTextPlayed,
-                            !isPlayed && styles.scoreTextScheduled,
+                            !isPlayed && !isLive && styles.scoreTextScheduled,
                         ]}
                         numberOfLines={1}
                         adjustsFontSizeToFit>
@@ -213,25 +256,31 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
     },
+    statusPillLive: {
+        backgroundColor: '#ffeded',
+    },
+    statusTextLive: {
+        color: '#994d4d',
+    },
     statusPill: {
         maxWidth: 132,
         borderRadius: 999,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: '#fff2d9',
         paddingHorizontal: 8,
         paddingVertical: 4,
     },
     statusPillPlayed: {
-        backgroundColor: '#ffeded',
+        backgroundColor: '#f1f5f9',
     },
     statusText: {
-        color: '#64748b',
+        color: '#8c8370',
         fontFamily: 'Inter-SemiBold',
         fontSize: 11,
         fontWeight: '600',
         textAlign: 'center',
     },
     statusTextPlayed: {
-        color: '#994d4d',
+        color: '#64748b',
     },
     groupText: {
         flex: 1,

@@ -21,7 +21,7 @@ function dedupeSquadre<
     return result;
 }
 
-export async function getListaSquadre(searchParam: string | null, idTorneo: number) {
+export async function getListaSquadre(searchParam: string | null, idTorneo: number | null) {
     let query = supabase
         .from('ricerca_squadre')
         .select(
@@ -37,16 +37,23 @@ export async function getListaSquadre(searchParam: string | null, idTorneo: numb
             g_nome,
             g_cognome
         `
-        )
-        .eq('t_id', idTorneo);
+        );
+
+    if (idTorneo) {
+        query = query.eq('t_id', idTorneo);
+    }
 
     if (searchParam && searchParam.trim().length > 0) {
         query = query.ilike('s_nome', `%${searchParam.trim()}%`);
     }
 
+    query = query.order('s_nome', { ascending: true });
+
+    if (idTorneo) {
+        query = query.order('t_id', { ascending: false });
+    }
+
     query = query
-        .order('s_nome', { ascending: true })
-        .order('t_id', { ascending: false })
         .abortSignal(AbortSignal.timeout(20000));
 
     const { data, error } = await query;

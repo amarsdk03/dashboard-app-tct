@@ -1,4 +1,4 @@
-import React, { type ReactNode, useEffect, useState } from 'react';
+import React, { type ReactNode, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -35,6 +35,8 @@ import {
 } from '@/data/partite';
 import { getListaSquadre } from '@/data/squadre';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';
+import CurrentRankingsTables from '@/components/home/CurrentRankingsTables';
+import { useAuthContext } from '@/hooks/use-auth-context';
 
 function formatDateRange(dataInizio: string | null, dataFine: string | null) {
     if (!dataInizio && !dataFine) return 'Date da definire';
@@ -71,6 +73,8 @@ type ContactRowProps = {
 };
 
 export default function HomeScreen() {
+    const { claims, profile } = useAuthContext();
+
     const [torneo, setTorneo] = useState<listaTorneiType | null>(null);
     const [partiteOggi, setPartiteOggi] = useState<partiteOggiType[]>([]);
     const [stats, setStats] = useState<homeTorneoStatsType>(emptyStats);
@@ -78,6 +82,14 @@ export default function HomeScreen() {
     const [giocatoriCount, setGiocatoriCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+
+    const adminName = useMemo(() => {
+        const fullName = [profile?.nome, profile?.cognome].filter(Boolean).join(' ');
+        const email = typeof claims?.email === 'string' ? claims.email : null;
+        const name = profile?.full_name ?? profile?.name ?? (fullName || email?.split('@')[0] || 'Admin');
+
+        return name.charAt(0).toUpperCase() + name.slice(1);
+    }, [claims?.email, profile]);
 
     async function openExternalUrl(url: string) {
         try {
@@ -170,62 +182,88 @@ export default function HomeScreen() {
                     </View>
                 ) : (
                     <>
-                        <View style={styles.torneoCard}>
-                            <View style={styles.torneoIcon}>
-                                <AwardIcon size={22} color="#b3642c" />
-                            </View>
-                            <View style={styles.torneoTextBlock}>
-                                <InterText style={styles.torneoLabel}>Torneo in corso:</InterText>
-                                <InterText style={styles.torneoName} numberOfLines={1}>
-                                    {torneo.nome}
-                                </InterText>
-                                <InterText style={styles.torneoMeta} numberOfLines={1}>
-                                    {formatDateRange(torneo.data_inizio, torneo.data_fine)}
+                        <View>
+                            <View style={styles.greetingBlock}>
+                                <InterText style={styles.eyebrow}>Bentornato,</InterText>
+                                <InterText style={styles.title} numberOfLines={1}>
+                                    {adminName}!
                                 </InterText>
                             </View>
-                        </View>
 
-                        <View style={styles.section}>
-                            <View style={styles.sectionHeader}>
-                                <InterText style={styles.sectionTitle}>Partite di oggi</InterText>
-                                <Link href={buildTorneoHref('/partite', torneo.id)} asChild>
-                                    <TouchableOpacity activeOpacity={0.75}>
-                                        <InterText style={styles.sectionLink}>Vedi tutte</InterText>
-                                    </TouchableOpacity>
-                                </Link>
-                            </View>
-
-                            {partiteOggi.length > 0 ? (
-                                <View style={styles.matchList}>
-                                    {partiteOggi.map((partita, index) => (
-                                        <HomeMatchCard
-                                            key={
-                                                partita.id_partita ??
-                                                `${partita.fischio_inizio}-${index}`
-                                            }
-                                            fase={partita.fase}
-                                            categoria={partita.categoria_nome}
-                                            girone={partita.girone}
-                                            fischioInizio={partita.fischio_inizio}
-                                            squadraCasa={partita.squadra_casa_nome}
-                                            squadraOspite={partita.squadra_ospite_nome}
-                                            goalCasa={partita.goal_casa}
-                                            goalOspite={partita.goal_ospite}
-                                        />
-                                    ))}
-                                </View>
-                            ) : (
-                                <View style={styles.emptyInlineCard}>
-                                    <CalendarDaysIcon size={22} color="#94a3b8" />
-                                    <InterText style={styles.emptyInlineText}>
-                                        Nessuna partita in programma oggi
+                            <View style={styles.section}>
+                                <View style={styles.sectionHeader}>
+                                    <InterText style={styles.sectionTitle}>
+                                        Partite di oggi
                                     </InterText>
+                                    <Link href={buildTorneoHref('/partite', torneo.id)} asChild>
+                                        <TouchableOpacity activeOpacity={0.75}>
+                                            <InterText style={styles.sectionLink}>
+                                                Vedi tutte
+                                            </InterText>
+                                        </TouchableOpacity>
+                                    </Link>
                                 </View>
-                            )}
+
+                                {partiteOggi.length > 0 ? (
+                                    <View style={styles.matchList}>
+                                        {partiteOggi.map((p, index) => (
+                                            <Link
+                                                key={p.id_partita ?? `${p.fischio_inizio}-${index}`}
+                                                href={`/partite/modal?mode=edit&partitaId=${p.id_partita}&torneoId=${p.torneo_id}`}
+                                                asChild>
+                                                <TouchableOpacity activeOpacity={0.9}>
+                                                    <HomeMatchCard
+                                                        fase={p.fase}
+                                                        categoria={p.categoria_nome}
+                                                        girone={p.girone}
+                                                        fischioInizio={p.fischio_inizio}
+                                                        squadraCasa={p.squadra_casa_nome}
+                                                        squadraOspite={p.squadra_ospite_nome}
+                                                        goalCasa={p.goal_casa}
+                                                        goalOspite={p.goal_ospite}
+                                                    />
+                                                </TouchableOpacity>
+                                            </Link>
+                                        ))}
+                                    </View>
+                                ) : (
+                                    <View style={styles.emptyInlineCard}>
+                                        <CalendarDaysIcon size={22} color="#94a3b8" />
+                                        <InterText style={styles.emptyInlineText}>
+                                            Nessuna partita in programma oggi
+                                        </InterText>
+                                    </View>
+                                )}
+                            </View>
                         </View>
 
                         <View style={styles.section}>
                             <InterText style={styles.sectionTitle}>Statistiche rapide</InterText>
+
+                            <Link href={`/tornei/modal?mode=view&torneoId=${torneo.id}`} asChild>
+                                <TouchableOpacity activeOpacity={0.9}>
+                                    <View style={styles.torneoCard}>
+                                        <View style={styles.torneoIcon}>
+                                            <AwardIcon size={22} color="#b3642c" />
+                                        </View>
+                                        <View style={styles.torneoTextBlock}>
+                                            <InterText style={styles.torneoLabel}>
+                                                Torneo in corso:
+                                            </InterText>
+                                            <InterText style={styles.torneoName} numberOfLines={1}>
+                                                {torneo.nome}
+                                            </InterText>
+                                            <InterText style={styles.torneoMeta} numberOfLines={1}>
+                                                {formatDateRange(
+                                                    torneo.data_inizio,
+                                                    torneo.data_fine
+                                                )}
+                                            </InterText>
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            </Link>
+
                             <View style={styles.statsGrid}>
                                 <View style={styles.statsRow}>
                                     <HomeStatCard
@@ -256,6 +294,11 @@ export default function HomeScreen() {
                                     />
                                 </View>
                             </View>
+                        </View>
+
+                        <View style={styles.section}>
+                            <InterText style={styles.sectionTitle}>Classifiche attuali</InterText>
+                            <CurrentRankingsTables />
                         </View>
 
                         <View style={styles.section}>
@@ -339,19 +382,14 @@ const styles = StyleSheet.create({
     },
     content: {
         padding: 20,
-        paddingBottom: 122,
-        gap: 22,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 16,
-        paddingTop: 4,
+        paddingBottom: 120,
+        gap: 32,
     },
     greetingBlock: {
         flex: 1,
         minWidth: 0,
+        marginTop: 4,
+        marginBottom: 24,
     },
     contactList: {
         gap: 4,
@@ -403,10 +441,17 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 2,
     },
+    eyebrow: {
+        color: '#64748b',
+        fontFamily: 'Inter-Medium',
+        fontSize: 14,
+        fontWeight: '500',
+        marginBottom: 2,
+    },
     title: {
         color: '#0f172a',
         fontFamily: 'Inter-Bold',
-        fontSize: 24,
+        fontSize: 32,
         fontWeight: '700',
         lineHeight: 38,
     },
@@ -527,6 +572,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.03,
         shadowRadius: 12,
         elevation: 2,
+        marginBottom: 2,
     },
     torneoIcon: {
         width: 48,

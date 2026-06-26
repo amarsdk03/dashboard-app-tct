@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { InterText } from '@/components/generic/InterText';
 
-// Lazy-load the native picker only on native platforms
 let DateTimePicker: any = null;
 if (Platform.OS !== 'web') {
     DateTimePicker = require('@expo/ui/community/datetime-picker').default;
@@ -17,38 +16,95 @@ interface DateTimePickerFieldProps {
     placeholder?: string;
 }
 
-// Converts a Date to "YYYY-MM-DD" for the HTML input value
-function toInputValue(date: Date | null): string {
+function toInputValue(date: Date | null, mode: 'date' | 'time' | 'datetime'): string {
     if (!date) return '';
+
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+
+    if (mode === 'time') return `${hh}:${mm}`;
+    if (mode === 'datetime') return `${y}-${m}-${d}T${hh}:${mm}`;
+    return `${y}-${m}-${d}`; // mode === 'date'
 }
 
-// Parses "YYYY-MM-DD" back to a local midnight Date
-function fromInputValue(val: string): Date | null {
+function fromInputValue(
+    val: string,
+    mode: 'date' | 'time' | 'datetime',
+    baseDate: Date | null
+): Date | null {
     if (!val) return null;
+
+    // Se c'è già una data memorizzata nello stato, preserviamola come base
+    const finalDate = baseDate ? new Date(baseDate) : new Date();
+
+    if (mode === 'time') {
+        const [hh, mm] = val.split(':').map(Number);
+        finalDate.setHours(hh, mm, 0, 0);
+        return finalDate;
+    }
+
+    if (mode === 'datetime') {
+        const [datePart, timePart] = val.split('T');
+        const [y, m, d] = datePart.split('-').map(Number);
+        const [hh, mm] = timePart.split(':').map(Number);
+        return new Date(y, m - 1, d, hh, mm, 0, 0);
+    }
+
+    // mode === 'date'
     const [y, m, d] = val.split('-').map(Number);
-    return new Date(y, m - 1, d);
+    finalDate.setFullYear(y, m - 1, d);
+    return finalDate;
 }
 
-export default function DateTimePickerField(
-    {
-        mode,
-        label,
-        readonly = false,
-        value,
-        onChange,
-        placeholder = 'Seleziona data',
-    }: DateTimePickerFieldProps) {
+function formatDisplayValue(date: Date | null, mode: 'date' | 'time' | 'datetime'): string {
+    if (!date) return '';
+
+    // mode === 'date'
+    if (mode === 'date') {
+        return date.toLocaleDateString(undefined, {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        });
+    }
+
+    // mode === 'time'
+    if (mode === 'time') {
+        return date.toLocaleTimeString(undefined, {
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    }
+
+    // mode === 'datetime'
+    const dataPart = date.toLocaleDateString(undefined, {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    });
+    const oraPart = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+    return `${dataPart} - ${oraPart}`;
+}
+
+export default function DateTimePickerField({
+    mode,
+    label,
+    readonly = false,
+    value,
+    onChange,
+    placeholder = 'Seleziona data',
+}: DateTimePickerFieldProps) {
     const [showPicker, setShowPicker] = useState(false);
     const webInputRef = useRef<any>(null);
 
     const placeholderValue = readonly ? 'N/A' : placeholder;
 
     const handleWebChange = (e: any) => {
-        onChange(fromInputValue(e.target.value));
+        onChange(fromInputValue(e.target.value, mode, value));
     };
 
     return (
@@ -60,7 +116,6 @@ export default function DateTimePickerField(
                 style={[styles.fieldBox, readonly && styles.readonlyFieldBox]}
                 onPress={() => {
                     if (Platform.OS === 'web') {
-                        // Programmatically open the native browser date picker
                         webInputRef.current?.showPicker?.();
                     } else {
                         setShowPicker(true);
@@ -72,7 +127,7 @@ export default function DateTimePickerField(
                         !value && styles.placeholder,
                         readonly && styles.readonlyInputText,
                     ]}>
-                    {value ? value.toLocaleDateString() : placeholderValue}
+                    {value ? formatDisplayValue(value, mode) : placeholderValue}
                 </Text>
 
                 {/* Clear button */}
@@ -87,12 +142,12 @@ export default function DateTimePickerField(
                     </Pressable>
                 )}
 
-                {/* Invisible web date input — sits on top, triggers the browser picker */}
+                {/* Input web invisibile, customizzato sul mode */}
                 {Platform.OS === 'web' && (
                     <input
                         ref={webInputRef}
                         type={mode === 'datetime' ? 'datetime-local' : mode}
-                        value={toInputValue(value)}
+                        value={toInputValue(value, mode)}
                         onChange={handleWebChange}
                         style={{
                             position: 'absolute',
@@ -101,7 +156,6 @@ export default function DateTimePickerField(
                             width: '100%',
                             height: '100%',
                             cursor: 'pointer',
-                            // Hide the default input chrome but keep it clickable
                             border: 'none',
                             background: 'transparent',
                         }}
@@ -109,7 +163,7 @@ export default function DateTimePickerField(
                 )}
             </Pressable>
 
-            {/* Native DateTimePicker — Android / iOS only */}
+            {/* Native Picker */}
             {Platform.OS !== 'web' && showPicker && DateTimePicker && (
                 <DateTimePicker
                     value={value ?? new Date()}

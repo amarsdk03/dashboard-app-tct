@@ -1,19 +1,19 @@
 import {
-    filterNationalities,
-    findNationality,
-    formatNationalityLabel,
-    getNationalityFlag,
-    NATIONALITIES,
-} from '@/constants/nationalities';
-import {
-    getConteggioPartiteTorneo,
+    arbitriPartitaType,
+    azioniPartitaType,
+    campiPartitaType,
+    datiPartitaType,
+    deleteAzionePartita,
+    getArbitriPartita,
     getAzioniPartita,
+    getCampiPartita,
+    getConteggioPartiteTorneo,
     getDatiPartita,
+    getGiocatoriPartita,
     getListaPartite,
     getPartiteOggi,
     getStatisticheHomeTorneo,
-    azioniPartitaType,
-    datiPartitaType,
+    giocatoriPartitaType,
     homeTorneoStatsType,
     insertAzionePartita,
     insertAzionePartitaPayload,
@@ -21,23 +21,18 @@ import {
     insertPartitaPayload,
     listaPartiteType,
     partiteOggiType,
-    getGiocatoriPartita,
-    giocatoriPartitaType,
-    getCampiPartita,
-    campiPartitaType,
-    getArbitriPartita,
-    arbitriPartitaType,
     updateAzionePartita,
     updateAzionePartitaPayload,
     updatePartita,
     updatePartitaPayload,
-    deleteAzionePartita,
 } from '@/data/partite';
 import {
-    getGiocatoriDisponibiliSquadra,
-    giocatoriDisponibiliSquadraType,
+    createSquadraConRoster,
+    createSquadraConRosterPayload,
     deleteIscrizioneSquadra,
     deleteIscrizioneSquadraType,
+    getGiocatoriDisponibiliSquadra,
+    giocatoriDisponibiliSquadraType,
     insertIscrizioneSquadra,
     insertIscrizioneSquadraPayload,
     insertSquadra,
@@ -48,48 +43,29 @@ import {
 import {
     createTorneoCompleto,
     createTorneoCompletoPayload,
-    getSetupTorneo,
-    setupTorneoType,
     getListaSquadreTorneoSetup,
+    getSetupTorneo,
     insertCategoriaTorneo,
     insertCategoriaTorneoPayload,
+    listaSquadreTorneoSetupType,
+    setupTorneoType,
     updateCategoriaTorneo,
     updateCategoriaTorneoPayload,
     upsertCalendarioTorneo,
     upsertCalendarioTorneoPayload,
-    listaSquadreTorneoSetupType,
 } from '@/data/tornei';
 import {
-    getClassificheTorneo,
+    categorieGestioneTorneoType,
     classificheTorneoType,
     getCategorieGestioneTorneo,
-    categorieGestioneTorneoType,
+    getClassificheTorneo,
 } from '@/data/classifiche';
-import {
-    createGiocatoreConIscrizione,
-    createGiocatoreConIscrizionePayload,
-} from '@/data/giocatori';
-import {
-    createSquadraConRoster,
-    createSquadraConRosterPayload,
-} from '@/data/squadre';
-import {
-    canAccessAdminArea,
-    getDeniedAccessReason,
-    isAdminAuthState,
-} from '@/lib/auth-guards';
+import { createGiocatoreConIscrizione, createGiocatoreConIscrizionePayload, } from '@/data/giocatori';
+import { canAccessAdminArea, getDeniedAccessReason, isAdminAuthState, } from '@/lib/auth-guards';
 import { readRequiredPublicEnvValue } from '@/lib/env';
 
-const filtered = filterNationalities('ita');
-const firstName: string | undefined = filtered[0]?.name;
-const exactFlag: string | null = getNationalityFlag('Italia');
-const exactLabel: string | null = formatNationalityLabel('Italia');
-const exactCountry = findNationality('Italia');
-const listLength: number = NATIONALITIES.length;
-
 async function assertMatchCount() {
-    const count: number = await getConteggioPartiteTorneo(1);
-    return count;
+    return await getConteggioPartiteTorneo(1);
 }
 
 async function assertHomeContracts() {
@@ -281,11 +257,6 @@ function assertEnvContract() {
     return value;
 }
 
-void firstName;
-void exactFlag;
-void exactLabel;
-void exactCountry;
-void listLength;
 void assertMatchCount;
 void assertHomeContracts;
 void assertPartiteListFilters;

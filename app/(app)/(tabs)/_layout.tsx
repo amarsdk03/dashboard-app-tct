@@ -12,6 +12,7 @@ https://docs.expo.dev/router/advanced/tabs/
 export default function BottomNavbar() {
     return (
         <Tabs
+            initialRouteName="index"
             screenOptions={{
                 headerShown: true,
                 tabBarActiveTintColor: '#bf7f4b',

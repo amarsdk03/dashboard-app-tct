@@ -1,64 +1,65 @@
 {
-  "expo": {
-    "name": "dashboard-cdt",
-    "slug": "dashboard-cdt",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/logo-eagle-only.png",
-    "scheme": "dashboard-cdt",
-    "userInterfaceStyle": "light",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "ios": {
-      "userInterfaceStyle": "light",
-      "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.dashboardcdt",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
-    },
-    "android": {
-      "userInterfaceStyle": "light",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo-eagle-only.png",
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.anonymous.dashboardcdt"
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/logo-eagle-only.png"
-    },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/logo-eagle-only.png",
-          "imageWidth": 200
+    "expo": {
+        "name": "Torneo Città di Trento",
+        "slug": "dashboard-cdt",
+        "version": "1.0.0",
+        "backgroundColor": "#ffffff",
+        "orientation": "portrait",
+        "icon": "./assets/images/app-icon.png",
+        "scheme": "dashboard-cdt",
+        "userInterfaceStyle": "light",
+        "newArchEnabled": true,
+        "assetBundlePatterns": ["**/*"],
+        "ios": {
+            "userInterfaceStyle": "light",
+            "supportsTablet": true,
+            "bundleIdentifier": "com.anonymous.dashboard-cdt",
+            "infoPlist": {
+                "ITSAppUsesNonExemptEncryption": false
+            }
+        },
+        "android": {
+            "userInterfaceStyle": "light",
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/images/app-icon.png",
+                "backgroundColor": "#ffffff"
+            },
+            "package": "com.anonymous.dashboard-cdt",
+            "softwareKeyboardLayoutMode": "pan"
+        },
+        "web": {
+            "bundler": "metro",
+            "output": "static",
+            "favicon": "./assets/images/logo-eagle-only.png"
+        },
+        "plugins": [
+            "expo-router",
+            [
+                "expo-splash-screen",
+                {
+                    "image": "./assets/images/logo-eagle-only.png",
+                    "imageWidth": 200,
+                    "backgroundColor": "#ffffff",
+                    "resizeMode": "contain"
+                }
+            ],
+            [
+                "expo-font",
+                {
+                    "fonts": ["node_modules/@expo-google-fonts/inter/900Black/Inter_900Black.ttf"]
+                }
+            ],
+            "expo-status-bar",
+            "expo-secure-store"
+        ],
+        "experiments": {
+            "typedRoutes": true
+        },
+        "extra": {
+            "router": {},
+            "eas": {
+                "projectId": "1d3ebbba-fca9-4c6d-bbf2-f9a8b88f258f"
+            }
         }
-      ],
-      [
-        "expo-font",
-        {
-          "fonts": [
-            "node_modules/@expo-google-fonts/inter/900Black/Inter_900Black.ttf"
-          ]
-        }
-      ],
-      "expo-status-bar",
-      "expo-secure-store"
-    ],
-    "experiments": {
-      "typedRoutes": true
-    },
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "1d3ebbba-fca9-4c6d-bbf2-f9a8b88f258f"
-      }
     }
-  }
 }

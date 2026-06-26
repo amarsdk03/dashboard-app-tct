@@ -20,7 +20,6 @@ import {
     XIcon,
 } from 'lucide-react-native';
 import { InterText } from '@/components/generic/InterText';
-import ImageInputField from '@/components/input/ImageInputField';
 import TextInputField from '@/components/input/TextInputField';
 import errorMessage from '@/components/generic/ErrorMessage';
 import { insertGiocatore } from '@/data/giocatori';
@@ -444,8 +443,16 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
             return;
         }
 
+        const uppercase3LetterRegex = /^[A-Z]{3}$/;
+
         if (!acronimo) {
             errorMessage('Dati mancanti', "Inserisci l'acronimo della squadra.");
+            return;
+        } else if (!uppercase3LetterRegex.test(acronimo)) {
+            errorMessage(
+                'Formato errato',
+                "L'acronimo della squadra dev'essere di esattamente 3 lettere maiuscole."
+            );
             return;
         }
 
@@ -597,7 +604,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
 
                 {isCreate && (
                     <GenericSelectField
-                        label="Torneo"
+                        label="Torneo prima iscrizione"
                         placeholder="Seleziona torneo"
                         enableNullValue={false}
                         value={form.idTorneo?.toString() || ''}
@@ -671,7 +678,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                         onNewPlayerSurnameChange={setNewPlayerSurname}
                         onCreateNewPlayer={handleCreateInlinePlayer}
                         selectedTitle="Selezionati"
-                        emptyText="Nessun giocatore libero per questo torneo. Crea prima un giocatore o libera una iscrizione."
+                        emptyText="Nessun giocatore libero trovato"
                     />
                 )}
 
@@ -696,7 +703,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                         onNewPlayerSurnameChange={setNewPlayerSurname}
                         onCreateNewPlayer={handleCreateInlinePlayer}
                         selectedTitle="Rosa attuale"
-                        emptyText="Nessun giocatore libero per questo torneo. Puoi creare un nuovo giocatore e aggiungerlo subito."
+                        emptyText="Nessun giocatore trovato, puoi creare un nuovo giocatore e aggiungerlo subito."
                     />
                 )}
 
