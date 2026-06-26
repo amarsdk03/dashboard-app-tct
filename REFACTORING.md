@@ -9,7 +9,7 @@ any new change or implementation follows the current style and conventions. All 
 should not break the app, if you are quite unsure of it, prioritize not breaking the app instead.
 
 When done, create a RESULT.md file in the root directory with all the changes made and a brief 
-description of them.
+description of them. Include a "Skipped" section for anything that was not implemented.
 
 ## New screen header layout
 
@@ -19,12 +19,12 @@ In the four section screens (Tornei, Partite, Squadre and Giocatori), the top ba
 This button should be hidden when inside any of the modal views (view, create and edit).
 Also, when in "view" or "edit" mode, it should be replaced with a redirect button (same style, choose 
 an ideal Lucide icon) which opens a link based on the following format:
-- Tornei: https://torneo-citta-di-trento.vercel.app/classifiche?edizione=ID
-- Partite: https://torneo-citta-di-trento.vercel.app/partite/dettagli?id=ID
-- Squadre: https://torneo-citta-di-trento.vercel.app/squadre/dettagli?id=ID
-- Giocatori: https://torneo-citta-di-trento.vercel.app/giocatori/dettagli?id=ID
+- Tornei: https://torneo-citta-di-trento.vercel.app/classifiche?edizione={id}
+- Partite: https://torneo-citta-di-trento.vercel.app/partite/dettagli?id={id}
+- Squadre: https://torneo-citta-di-trento.vercel.app/squadre/dettagli?id={id}
+- Giocatori: https://torneo-citta-di-trento.vercel.app/giocatori/dettagli?id={id}
 
-where ID is the id of the object.
+where {id} is the id of the currently open record.
 
 
 ## Multiple 'iscrizioni' for the same player
@@ -60,8 +60,9 @@ In the four section screens (Tornei, Partite, Squadre and Giocatori), the top ba
 "createButton" in the right side.
 
 I want you to add a feedback button alongside it, perhaps with a "?" icon, to all to four screens.
-This button simply opens a modal with various contacts links (devs emails and torunament ig page)
-so that the user can contact the developers/organizers for eventual feedback.
+
+This button opens a basic modal with various contacts links (devs emails and torunament ig page)
+so that the user can contact the developers/organizers for any eventual feedback/assistance/problem.
 
 ## README.md
 
@@ -70,14 +71,22 @@ structure, and following the same writing style, update all obsolete/wrong info 
 
 ## Bugs and problems
 
+#### 'Categorie tornei' not recovered correctly
+When editing a tournament, the categories are not the ones of that tournament, analyze the queries/
+functions and make sure they are working correctly.
+
 #### Wrong captain in SquadraCard.tsx
 The shown captain is just a randomly selected player from the squad. If no captain is assigned,
 show a dedicated label (ex: "Nessun capitano assegnato").
 
-#### Prevent destructive "back"
+#### Prevent destructive "go back" or delete actions
 Prevent the user from going back to the previous screen when clicking a "go back" button by showing
-a confirmation dialog first. This should not be shown on intermediate step screens but only on the first
-(or whenever the button makes it so that the form resets).
+a confirmation dialog first. This should only be shown whenever the button makes it so that a current
+form resets, or when deleting an element that cannot be re-added. For intermediate steps, the back
+button should not show the confirmation dialog, as the form data is in theory preserved.
+
+#### Remove all unusued components, stylesheet styles and functions
+Whenever you know for certain that something is not being used anywhere, remove it completely.
 
 #### Other possible bugs or problems
 If you find any other bugs, issues or possible optimizations, feel free to fix/apply them when necessary,

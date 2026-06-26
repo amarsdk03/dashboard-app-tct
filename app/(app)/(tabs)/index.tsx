@@ -330,8 +330,8 @@ export default function HomeScreen() {
                                     </InterText>
                                     <InterText style={styles.sectionSubtitle}>
                                         Problemi durante l'utilizzo dell'app? Errori o bug strani?
-                                        Nessun problema: contattaci e risolveremo il problema il
-                                        prima possibile!
+                                        Nessun problema: contattaci e ti risponderemo il prima
+                                        possibile!
                                     </InterText>
                                 </View>
                             </View>
