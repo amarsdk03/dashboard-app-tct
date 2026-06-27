@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
-import { InterText } from '@/components/generic/InterText';
+import InputLabel from '@/components/input/InputLabel';
 
 let DateTimePicker: any = null;
 if (Platform.OS !== 'web') {
@@ -14,6 +14,7 @@ interface DateTimePickerFieldProps {
     readonly?: boolean;
     onChange: (date: Date | null) => void;
     placeholder?: string;
+    tooltip?: string;
 }
 
 function toInputValue(date: Date | null, mode: 'date' | 'time' | 'datetime'): string {
@@ -97,6 +98,7 @@ export default function DateTimePickerField({
     value,
     onChange,
     placeholder = 'Seleziona data',
+    tooltip,
 }: DateTimePickerFieldProps) {
     const [showPicker, setShowPicker] = useState(false);
     const webInputRef = useRef<any>(null);
@@ -109,7 +111,7 @@ export default function DateTimePickerField({
 
     return (
         <View style={styles.inputContainer}>
-            <InterText style={styles.label}>{label}:</InterText>
+            <InputLabel label={label} tooltip={tooltip} style={styles.label} />
 
             <Pressable
                 disabled={readonly}

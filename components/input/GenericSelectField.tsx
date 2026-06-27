@@ -4,6 +4,7 @@ import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { InterText } from '@/components/generic/InterText';
+import InputLabel from '@/components/input/InputLabel';
 
 export type SelectOption = {
     id: string;
@@ -21,6 +22,7 @@ type GenericSelectFieldProps = {
     readonly?: boolean;
     required?: boolean;
     defaultLabelStyle?: boolean;
+    tooltip?: string;
 };
 
 export default function GenericSelectField({
@@ -34,6 +36,7 @@ export default function GenericSelectField({
     readonly = false,
     required = false,
     defaultLabelStyle = true,
+    tooltip,
 }: GenericSelectFieldProps) {
     // Inject the fallback/null value safely if enabled
     const dropdownData = React.useMemo(() => {
@@ -54,10 +57,12 @@ export default function GenericSelectField({
     return (
         <View style={styles.container}>
             {label && (
-                <InterText style={defaultLabelStyle ? styles.label : styles.filterLabel}>
-                    {required && <InterText style={styles.asterisk}>*</InterText>}
-                    {label}:
-                </InterText>
+                <InputLabel
+                    label={label}
+                    required={required}
+                    tooltip={tooltip}
+                    style={defaultLabelStyle ? styles.label : styles.filterLabel}
+                />
             )}
 
             <Dropdown
@@ -113,11 +118,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '500',
         color: '#111111',
-    },
-    asterisk: {
-        color: '#d93636',
-        fontWeight: '800',
-        letterSpacing: 2,
     },
     filterLabel: {
         color: '#64748b',

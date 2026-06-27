@@ -38,6 +38,7 @@ import GenericSelectField from '@/components/input/GenericSelectField';
 import TeamSelectField from '@/components/input/TeamSelectField';
 import FormButton from '@/components/input/FormButton';
 import ChipPickerField from '@/components/input/ChipPickerField';
+import { confirmDiscardChanges } from '@/lib/confirm';
 
 export type PartitaModalMode = 'view' | 'create' | 'edit';
 
@@ -657,6 +658,18 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
         ]);
     }
 
+    function handleCancelForm() {
+        confirmDiscardChanges(() => {
+            if (isCreate) {
+                onClose();
+                return;
+            }
+
+            if (partita) setForm(buildFormFromPartita(partita));
+            setActiveMode('view');
+        });
+    }
+
     useEffect(() => {
         loadInitialData().then(() => null);
     }, []);
@@ -1016,14 +1029,7 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                         <FormButton
                             type={'destructive'}
                             label={'Annulla'}
-                            onPress={() => {
-                                if (isCreate) {
-                                    onClose();
-                                } else {
-                                    if (partita) setForm(buildFormFromPartita(partita));
-                                    setActiveMode('view');
-                                }
-                            }}
+                            onPress={handleCancelForm}
                             icon={ArrowLeftIcon}
                         />
                     )}

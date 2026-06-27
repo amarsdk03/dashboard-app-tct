@@ -2,6 +2,7 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { InterText } from '@/components/generic/InterText';
 import React from 'react';
 import TextInputField from '@/components/input/TextInputField';
+import InputLabel from '@/components/input/InputLabel';
 
 type SelectableFieldProps<T> = {
     label?: string;
@@ -12,6 +13,7 @@ type SelectableFieldProps<T> = {
     getValue: (item: T) => string;
     onSelect: (item: T) => void;
     required?: boolean;
+    tooltip?: string;
 };
 
 export default function ChipPickerField<T>({
@@ -23,6 +25,7 @@ export default function ChipPickerField<T>({
     getValue,
     onSelect,
     required = false,
+    tooltip,
 }: SelectableFieldProps<T>) {
     const selected = options.find((option) => getId(option) === selectedId) ?? null;
 
@@ -34,6 +37,7 @@ export default function ChipPickerField<T>({
                 onChange={() => null}
                 placeholder={'Nessun opzione selezionata'}
                 readonly={true}
+                tooltip={tooltip}
             />
         );
     }
@@ -41,10 +45,12 @@ export default function ChipPickerField<T>({
     return (
         <View style={styles.inputGroup}>
             {label && (
-                <InterText style={styles.label}>
-                    {required && <InterText style={styles.asterisk}>*</InterText>}
-                    {label}:
-                </InterText>
+                <InputLabel
+                    label={label}
+                    required={required}
+                    tooltip={tooltip}
+                    style={styles.label}
+                />
             )}
             <View style={styles.chipRow}>
                 {options.length === 0 ? (
@@ -84,11 +90,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '500',
         marginBottom: 6,
-    },
-    asterisk: {
-        color: '#d93636',
-        fontWeight: '800',
-        letterSpacing: 2,
     },
     readonlyValue: {
         color: '#737373',

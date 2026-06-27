@@ -14,7 +14,7 @@ export interface ClassificheRaggruppate {
     };
 }
 
-export function calcolaClassifiche(listaPartite: listaPartiteType) {
+export function calcolaClassifiche(listaPartite: listaPartiteType[]) {
     const mappaClassifiche: ClassificheRaggruppate = {};
 
     listaPartite.forEach((partita) => {
@@ -99,7 +99,7 @@ export function calcolaClassifiche(listaPartite: listaPartiteType) {
 }
 
 export default function CurrentRankingsTables() {
-    const [listaPartite, setListaPartite] = useState<listaPartiteType>([]);
+    const [listaPartite, setListaPartite] = useState<listaPartiteType[]>([]);
     const [categorieClassifica, setCategorieClassifica] = useState<categorieClassificaType>();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);

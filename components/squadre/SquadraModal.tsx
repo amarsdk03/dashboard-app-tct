@@ -41,6 +41,7 @@ import ChipPickerField from '@/components/input/ChipPickerField';
 import FormButton from '@/components/input/FormButton';
 import GenericSelectField from '@/components/input/GenericSelectField';
 import ColorPickerField from '@/components/input/ColorPickerField';
+import { confirmDiscardChanges } from '@/lib/confirm';
 
 export type SquadraModalMode = 'view' | 'create' | 'edit';
 
@@ -519,6 +520,10 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
         }
     }
 
+    function handleCancelForm() {
+        confirmDiscardChanges(onClose);
+    }
+
     useEffect(() => {
         if (isCreate) {
             loadTornei()
@@ -640,6 +645,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                             onChange={(value) => setField('acronimo', value.toUpperCase())}
                             placeholder="RMA"
                             required={true}
+                            tooltip="Usa esattamente 3 lettere maiuscole, ad esempio RMA."
                         />
                     </View>
                     <View style={styles.flexChild}>
@@ -649,6 +655,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                             value={form.coloreSquadra}
                             onChange={(value) => setField('coloreSquadra', value)}
                             placeholder="#ffcc33"
+                            tooltip="Inserisci un colore esadecimale, ad esempio #FFCC33."
                         />
                     </View>
                     <View style={styles.flexChild}>
@@ -745,7 +752,7 @@ export default function SquadraModal({ mode, squadraId, torneoId, onClose }: Pro
                         <FormButton
                             type={'destructive'}
                             label={'Indietro'}
-                            onPress={onClose}
+                            onPress={handleCancelForm}
                             icon={ArrowLeftIcon}
                         />
                     )}

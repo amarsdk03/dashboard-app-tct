@@ -4,6 +4,7 @@ import * as React from 'react';
 import { StyleSheet, View, Image } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { InterText } from '@/components/generic/InterText';
+import InputLabel from '@/components/input/InputLabel';
 
 export type Team = {
     id: string;
@@ -21,6 +22,7 @@ type TeamSelectFieldProps = {
     readonly?: boolean;
     required?: boolean;
     defaultLabelStyle?: boolean;
+    tooltip?: string;
 };
 
 export default function TeamSelectField({
@@ -33,6 +35,7 @@ export default function TeamSelectField({
     readonly = false,
     required = false,
     defaultLabelStyle = true,
+    tooltip,
 }: TeamSelectFieldProps) {
     // Combine the static "Nessuna" option with the incoming dynamic teams list
     const dropdownData = React.useMemo(() => {
@@ -88,10 +91,12 @@ export default function TeamSelectField({
     return (
         <View style={styles.container}>
             {label && (
-                <InterText style={defaultLabelStyle ? styles.label : styles.filterLabel}>
-                    {required && <InterText style={styles.asterisk}>*</InterText>}
-                    {label}:
-                </InterText>
+                <InputLabel
+                    label={label}
+                    required={required}
+                    tooltip={tooltip}
+                    style={defaultLabelStyle ? styles.label : styles.filterLabel}
+                />
             )}
 
             <Dropdown
@@ -126,11 +131,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '500',
         color: '#111111',
-    },
-    asterisk: {
-        color: '#d93636',
-        fontWeight: '800',
-        letterSpacing: 2,
     },
     filterLabel: {
         color: '#64748b',

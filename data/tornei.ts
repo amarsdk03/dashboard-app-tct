@@ -520,10 +520,16 @@ export async function createTorneoSetup(payload: {
         Array.isArray(rpcData?.categorie) &&
         Array.isArray(rpcData?.squadre)
     ) {
-        return rpcData as {
+        const result = rpcData as {
             torneo: Tables<'torneo'>;
             categorie: Tables<'categoria'>[];
             squadre: Tables<'squadra'>[];
+            partite?: Tables<'partita'>[];
+        };
+
+        return {
+            ...result,
+            partite: result.partite ?? [],
         };
     } else {
         throw new Error('Risposta RPC create_torneo_setup non valida.');
@@ -566,6 +572,7 @@ export async function createTorneoSetup(payload: {
         torneo,
         categorie: categorie ?? [],
         squadre: squadre ?? [],
+        partite: [],
     };
 }
 

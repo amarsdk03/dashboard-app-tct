@@ -101,6 +101,41 @@ export type datiGiocatoreConIscrizioneType = Awaited<
     ReturnType<typeof getDatiGiocatoreConIscrizione>
 >;
 
+export async function getDatiGiocatoreConIscrizioni(idGiocatore: number) {
+    const { data: giocatore, error: giocatoreError } = await supabase
+        .from('giocatore')
+        .select(`*`)
+        .eq('id', idGiocatore)
+        .maybeSingle();
+
+    if (giocatoreError) throw giocatoreError;
+
+    const { data: iscrizioni, error: iscrizioniError } = await supabase
+        .from('iscrizione')
+        .select(
+            `
+            *,
+            squadra:id_squadra(
+                id,
+                nome,
+                acronimo,
+                link_stemma
+            )
+        `
+        )
+        .eq('id_giocatore', idGiocatore)
+        .order('id_torneo', { ascending: false })
+        .abortSignal(AbortSignal.timeout(20000));
+
+    if (iscrizioniError) throw iscrizioniError;
+
+    return { giocatore, iscrizioni: iscrizioni ?? [] };
+}
+
+export type datiGiocatoreConIscrizioniType = Awaited<
+    ReturnType<typeof getDatiGiocatoreConIscrizioni>
+>;
+
 
 
 export async function getStatisticheGiocatore(idGiocatore: number) {
@@ -206,6 +241,40 @@ export type createGiocatoreConIscrizioneType = Awaited<
     ReturnType<typeof createGiocatoreConIscrizione>
 >;
 
+type CreateGiocatoreConIscrizioniInput = {
+    giocatore: TablesInsert<'giocatore'>;
+    iscrizioni: Array<
+        Omit<TablesInsert<'iscrizione'>, 'id_giocatore'> & {
+            id_giocatore?: number;
+        }
+    >;
+};
+
+export async function createGiocatoreConIscrizioni(payload: CreateGiocatoreConIscrizioniInput) {
+    const normalizedPayload = removeUndefined(payload);
+    const giocatore = await insertGiocatore(normalizedPayload.giocatore);
+    const iscrizioni: Tables<'iscrizione'>[] = [];
+
+    for (const iscrizionePayload of normalizedPayload.iscrizioni) {
+        iscrizioni.push(
+            await insertIscrizione({
+                ...iscrizionePayload,
+                id_giocatore: giocatore.id,
+            })
+        );
+    }
+
+    return { giocatore, iscrizioni };
+}
+
+export type createGiocatoreConIscrizioniPayload = Parameters<
+    typeof createGiocatoreConIscrizioni
+>[0];
+
+export type createGiocatoreConIscrizioniType = Awaited<
+    ReturnType<typeof createGiocatoreConIscrizioni>
+>;
+
 
 export async function updateGiocatore(
     idGiocatore: number,
@@ -258,3 +327,18 @@ export async function updateIscrizione(
 }
 
 export type updateIscrizionePayload = Parameters<typeof updateIscrizione>[1];
+
+export async function deleteIscrizione(idIscrizione: number) {
+    const { data, error } = await supabase
+        .from('iscrizione')
+        .delete()
+        .eq('id', idIscrizione)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    return data;
+}
+
+export type deleteIscrizioneType = Awaited<ReturnType<typeof deleteIscrizione>>;

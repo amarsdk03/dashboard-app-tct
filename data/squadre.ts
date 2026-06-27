@@ -21,6 +21,48 @@ function dedupeSquadre<
     return result;
 }
 
+async function hydrateSquadreCaptains<
+    T extends {
+        s_id_capitano: number | null;
+        g_nome: string | null;
+        g_cognome: string | null;
+    },
+>(squadre: T[]) {
+    const captainIds = Array.from(
+        new Set(
+            squadre
+                .map((squadra) => squadra.s_id_capitano)
+                .filter((id): id is number => typeof id === 'number')
+        )
+    );
+
+    if (captainIds.length === 0) {
+        return squadre.map((squadra) => ({ ...squadra, g_nome: null, g_cognome: null }));
+    }
+
+    const { data, error } = await supabase
+        .from('giocatore')
+        .select('id, nome, cognome')
+        .in('id', captainIds)
+        .abortSignal(AbortSignal.timeout(20000));
+
+    if (error) throw error;
+
+    const captainsById = new Map((data ?? []).map((giocatore) => [giocatore.id, giocatore]));
+
+    return squadre.map((squadra) => {
+        const captain = squadra.s_id_capitano
+            ? captainsById.get(squadra.s_id_capitano)
+            : null;
+
+        return {
+            ...squadra,
+            g_nome: captain?.nome ?? null,
+            g_cognome: captain?.cognome ?? null,
+        };
+    });
+}
+
 export async function getListaSquadre(searchParam: string | null, idTorneo: number | null) {
     let query = supabase
         .from('ricerca_squadre')
@@ -59,7 +101,7 @@ export async function getListaSquadre(searchParam: string | null, idTorneo: numb
     const { data, error } = await query;
     if (error) throw error;
 
-    return dedupeSquadre(data);
+    return hydrateSquadreCaptains(dedupeSquadre(data));
 }
 
 export type listaSquadreType = Awaited<ReturnType<typeof getListaSquadre>>[number];

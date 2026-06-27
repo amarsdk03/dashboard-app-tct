@@ -3,6 +3,7 @@ import { Image, Platform, Pressable, StyleSheet, TextInput, View } from 'react-n
 import * as ImagePicker from 'expo-image-picker';
 import { ImageIcon, LinkIcon, UploadIcon, XIcon } from 'lucide-react-native';
 import { InterText } from '@/components/generic/InterText';
+import InputLabel from '@/components/input/InputLabel';
 
 type Props = {
     label: string;
@@ -10,6 +11,7 @@ type Props = {
     readonly?: boolean;
     onChange: (value: string) => void;
     placeholder?: string;
+    tooltip?: string;
 };
 
 function getMimeType(uri: string, fallback = 'image/jpeg') {
@@ -25,6 +27,7 @@ export default function ImageInputField({
     readonly = false,
     onChange,
     placeholder = 'https://example.com/foto.png',
+    tooltip,
 }: Props) {
     const webInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -75,7 +78,7 @@ export default function ImageInputField({
 
     return (
         <View style={styles.inputContainer}>
-            <InterText style={styles.label}>{label}:</InterText>
+            <InputLabel label={label} tooltip={tooltip} style={styles.label} />
 
             <View style={styles.previewRow}>
                 {value ? (

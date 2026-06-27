@@ -4,6 +4,7 @@ import { Award, CalendarDays, ShieldUser, UsersRound } from 'lucide-react-native
 import { BlurView } from 'expo-blur';
 import React from 'react';
 import TabBarButton from '@/components/generic/TabBarButton';
+import SectionHeaderActions from '@/components/generic/SectionHeaderActions';
 
 /*
 Navbar principale dell'applicazione, basata sulle Tabs di Expo Router:
@@ -73,7 +74,12 @@ export default function BottomNavbar() {
                         padding: 18,
                     },
                     tabBarIcon: ({ color }) => <Award color={color} size={24} />,
-                    headerRight: () => <TabBarButton link={'/tornei/modal?mode=create'} />,
+                    headerRight: () => (
+                        <SectionHeaderActions
+                            section="tornei"
+                            createHref={'/tornei/modal?mode=create'}
+                        />
+                    ),
                 }}
             />
 
@@ -94,7 +100,12 @@ export default function BottomNavbar() {
                         padding: 18,
                     },
                     tabBarIcon: ({ color }) => <CalendarDays color={color} size={24} />,
-                    headerRight: () => <TabBarButton link={'/partite/modal?mode=create'} />,
+                    headerRight: () => (
+                        <SectionHeaderActions
+                            section="partite"
+                            createHref={'/partite/modal?mode=create'}
+                        />
+                    ),
                 }}
             />
 
@@ -153,7 +164,12 @@ export default function BottomNavbar() {
                         padding: 18,
                     },
                     tabBarIcon: ({ color }) => <ShieldUser color={color} size={24} />,
-                    headerRight: () => <TabBarButton link={'/squadre/modal?mode=create'} />,
+                    headerRight: () => (
+                        <SectionHeaderActions
+                            section="squadre"
+                            createHref={'/squadre/modal?mode=create'}
+                        />
+                    ),
                 }}
             />
 
@@ -174,7 +190,12 @@ export default function BottomNavbar() {
                         padding: 18,
                     },
                     tabBarIcon: ({ color }) => <UsersRound color={color} size={24} />,
-                    headerRight: () => <TabBarButton link={'/giocatori/modal?mode=create'} />,
+                    headerRight: () => (
+                        <SectionHeaderActions
+                            section="giocatori"
+                            createHref={'/giocatori/modal?mode=create'}
+                        />
+                    ),
                 }}
             />
         </Tabs>

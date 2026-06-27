@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { InterText } from '@/components/generic/InterText';
 import TextInputField from '@/components/input/TextInputField';
+import InputLabel from '@/components/input/InputLabel';
 
 interface ColorPickerFieldProps {
     label: string;
@@ -10,6 +10,7 @@ interface ColorPickerFieldProps {
     onChange: (text: string) => void;
     placeholder?: string;
     required?: boolean;
+    tooltip?: string;
 }
 
 const PRESET_COLORS = [
@@ -43,6 +44,7 @@ export default function ColorPickerField({
     onChange,
     placeholder = '#000000',
     required = false,
+    tooltip,
 }: ColorPickerFieldProps) {
     const [hexInput, setHexInput] = useState(value ?? '');
 
@@ -56,6 +58,7 @@ export default function ColorPickerField({
                 onChange={() => null}
                 placeholder={placeholder}
                 readonly={true}
+                tooltip={tooltip}
             />
         );
     }
@@ -85,10 +88,7 @@ export default function ColorPickerField({
 
     return (
         <View style={styles.inputGroup}>
-            <InterText style={styles.label}>
-                {required && <InterText style={styles.asterisk}>* </InterText>}
-                {label}:
-            </InterText>
+            <InputLabel label={label} required={required} tooltip={tooltip} style={styles.label} />
 
             {/* ── Preview + hex input row ── */}
             <View style={styles.hexRow}>
@@ -146,11 +146,6 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter',
         fontSize: 14,
         fontWeight: '500',
-    },
-    asterisk: {
-        color: '#d93636',
-        fontWeight: '800',
-        letterSpacing: 2,
     },
     hexRow: {
         flexDirection: 'row',

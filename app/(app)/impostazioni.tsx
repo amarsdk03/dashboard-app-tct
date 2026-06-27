@@ -5,7 +5,6 @@ import {
     ActivityIndicator,
     Alert,
     Linking,
-    Platform,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
@@ -25,6 +24,14 @@ import {
 import { InterText } from '@/components/generic/InterText';
 import { useAuthContext } from '@/hooks/use-auth-context';
 import { supabase } from '@/lib/supabase';
+import {
+    getNotificationPermissionStatus,
+    NotificationPermissionStatus,
+    requestNotificationPermission,
+    scheduleUpcomingMatchReminders,
+    supportsLocalNotifications,
+} from '@/lib/notifications';
+import { getListaPartite } from '@/data/partite';
 
 type AccountSession = {
     email: string | null;
@@ -67,34 +74,6 @@ function formatDateTime(value: string | null) {
     }).format(date);
 }
 
-function getNotificationStatus() {
-    if (Platform.OS === 'web') {
-        const notificationApi = (globalThis as any).Notification;
-        if (!notificationApi?.permission) {
-            return {
-                title: 'Permesso non configurato',
-                description: 'Il browser non espone lo stato dei permessi per questa sessione.',
-            };
-        }
-
-        const permissionLabels: Record<string, string> = {
-            default: 'Non richiesto',
-            granted: 'Consentito',
-            denied: 'Negato',
-        };
-
-        return {
-            title: permissionLabels[notificationApi.permission] ?? notificationApi.permission,
-            description: 'Stato letto dal permesso notifiche del browser.',
-        };
-    }
-
-    return {
-        title: 'Non configurate',
-        description: 'Questa build non include una API notifiche push dedicata.',
-    };
-}
-
 function DetailRow({ icon, label, value }: DetailRowProps) {
     return (
         <View style={styles.detailRow}>
@@ -131,6 +110,12 @@ export default function ImpostazioniScreen() {
         lastSignInAt: null,
     });
     const [isSigningOut, setIsSigningOut] = useState(false);
+    const [notificationStatus, setNotificationStatus] = useState<NotificationPermissionStatus>({
+        granted: false,
+        title: 'Caricamento...',
+        description: 'Verifica dello stato notifiche in corso.',
+    });
+    const [requestingNotifications, setRequestingNotifications] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
@@ -185,9 +170,30 @@ export default function ImpostazioniScreen() {
         );
     }, [claims, profile]);
 
-    const notificationStatus = useMemo(() => getNotificationStatus(), []);
     const appName = Constants.expoConfig?.name ?? 'dashboard-cdt';
     const appVersion = Constants.expoConfig?.version ?? '1.0.0';
+
+    useEffect(() => {
+        let isMounted = true;
+
+        getNotificationPermissionStatus()
+            .then((status) => {
+                if (isMounted) setNotificationStatus(status);
+            })
+            .catch(() => {
+                if (!isMounted) return;
+
+                setNotificationStatus({
+                    granted: false,
+                    title: 'Non disponibili',
+                    description: 'Non e stato possibile leggere i permessi notifiche.',
+                });
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     async function openExternalUrl(url: string) {
         try {
@@ -220,6 +226,33 @@ export default function ImpostazioniScreen() {
         }
     }
 
+    async function handleRequestNotifications() {
+        setRequestingNotifications(true);
+
+        try {
+            const status = await requestNotificationPermission();
+            setNotificationStatus(status);
+            if (status.granted) {
+                const partite = await getListaPartite(null, { upcomingOnly: true });
+                await scheduleUpcomingMatchReminders(
+                    partite.map((partita) => ({
+                        idPartita: partita.id_partita,
+                        fischioInizio: partita.fischio_inizio,
+                        squadraCasa: partita.squadra_casa_nome,
+                        squadraOspite: partita.squadra_ospite_nome,
+                    }))
+                );
+            }
+        } catch {
+            Alert.alert(
+                'Notifiche non disponibili',
+                'Non e stato possibile richiedere il permesso notifiche.'
+            );
+        } finally {
+            setRequestingNotifications(false);
+        }
+    }
+
     return (
         <View style={styles.screen}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
@@ -249,6 +282,23 @@ export default function ImpostazioniScreen() {
                         <View style={styles.statusDot} />
                         <InterText style={styles.statusText}>{notificationStatus.title}</InterText>
                     </View>
+                    {!notificationStatus.granted && supportsLocalNotifications() && (
+                        <TouchableOpacity
+                            style={[
+                                styles.notificationButton,
+                                requestingNotifications && styles.notificationButtonDisabled,
+                            ]}
+                            onPress={handleRequestNotifications}
+                            activeOpacity={0.85}
+                            disabled={requestingNotifications}>
+                            {requestingNotifications && <ActivityIndicator color="#ffffff" />}
+                            <InterText style={styles.notificationButtonText}>
+                                {requestingNotifications
+                                    ? 'Richiesta in corso...'
+                                    : 'Abilita promemoria'}
+                            </InterText>
+                        </TouchableOpacity>
+                    )}
                 </View>
 
                 <View style={styles.card}>
@@ -491,6 +541,32 @@ const styles = StyleSheet.create({
     },
     statusText: {
         color: '#0f172a',
+        fontFamily: 'Inter-SemiBold',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    notificationButton: {
+        minHeight: 44,
+        alignSelf: 'flex-start',
+        borderRadius: 12,
+        backgroundColor: '#0f172a',
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
+    },
+    notificationButtonDisabled: {
+        opacity: 0.7,
+    },
+    notificationButtonText: {
+        color: '#ffffff',
         fontFamily: 'Inter-SemiBold',
         fontSize: 13,
         fontWeight: '600',

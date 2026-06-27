@@ -49,7 +49,7 @@ export default function SquadraCard({
                         style={[styles.colorDot, { backgroundColor: coloreSquadra ?? '#cbd5e1' }]}
                     />
                     <InterText style={styles.meta} numberOfLines={1}>
-                        {captain ? `Capitano: ${captain}` : 'Capitano non assegnato'}
+                        {captain ? `Capitano: ${captain}` : 'Nessun capitano assegnato'}
                     </InterText>
                 </View>
             </View>

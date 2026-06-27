@@ -21,6 +21,7 @@ import {
     datiTorneoType,
     getDatiTorneo,
     getSetupTorneo,
+    updateTorneoSetup,
 } from '@/data/tornei';
 import { InterText } from '@/components/generic/InterText';
 import DateTimePickerField from '@/components/input/DateTimePickerField';
@@ -30,6 +31,7 @@ import ChipPickerField from '@/components/input/ChipPickerField';
 import { getListaCampi, listaCampiType } from '@/data/campi';
 import { TorneoModalMode } from '@/app/(app)/(tabs)/tornei/modal';
 import FormButton from '@/components/input/FormButton';
+import { confirmDiscardChanges } from '@/lib/confirm';
 
 type Props = {
     mode: TorneoModalMode;
@@ -154,12 +156,16 @@ export default function TorneoModalForm(props: Props) {
         [categorieDraft]
     );
 
-    useMemo(() => {
+    const editCategorieById = useMemo(() => {
         return new Map(editCategorieDraft.map((categoria) => [categoria.id, categoria]));
     }, [editCategorieDraft]);
 
     const handleClose = () => {
         props.onClose();
+    };
+
+    const handleCancelForm = () => {
+        confirmDiscardChanges(handleClose);
     };
 
     async function loadCampi() {
@@ -224,6 +230,18 @@ export default function TorneoModalForm(props: Props) {
                             numQualificate: String(categoria.num_qualificate),
                             numPlayoff: String(categoria.num_playoff),
                             numEliminate: String(categoria.num_eliminate),
+                        }))
+                    );
+                    setCategorieDraft(
+                        setup.categorie.map((categoria) => ({
+                            tempId: String(categoria.id),
+                            nome: categoria.nome,
+                            numGironi: String(categoria.num_gironi),
+                            durataPartita:
+                                categoria.durata_partita == null
+                                    ? ''
+                                    : String(categoria.durata_partita),
+                            fasiPartite: categoria.fasi_partite.join(', '),
                         }))
                     );
                 }
@@ -385,6 +403,38 @@ export default function TorneoModalForm(props: Props) {
                     errorMessage('Errore', 'ID torneo mancante');
                     return;
                 }
+
+                if (!validateCategorie()) return;
+
+                await updateTorneoSetup(form.id, {
+                    torneo: payload,
+                    categorie: categorieNormalizzate.map((categoria) => {
+                        const id = Number.parseInt(categoria.draft.tempId, 10);
+                        const current = editCategorieById.get(id);
+
+                        if (!current) {
+                            throw new Error(
+                                'Una o piu categorie non appartengono al torneo in modifica.'
+                            );
+                        }
+
+                        return {
+                            id,
+                            payload: {
+                                nome: categoria.nome,
+                                num_gironi: categoria.numGironi,
+                                durata_partita: categoria.durataPartita,
+                                fasi_partite: categoria.fasiPartite.length
+                                    ? categoria.fasiPartite
+                                    : ['Gironi'],
+                                num_qualificate: Number.parseInt(current.numQualificate, 10) || 0,
+                                num_playoff: Number.parseInt(current.numPlayoff, 10) || 0,
+                                num_eliminate: Number.parseInt(current.numEliminate, 10) || 0,
+                            },
+                        };
+                    }),
+                    calendario: [],
+                });
             } else {
                 errorMessage(
                     'handleSubmit(): modalità non supportata',
@@ -444,6 +494,7 @@ export default function TorneoModalForm(props: Props) {
                         onFieldChange={setCategoriaField}
                         onAdd={addCategoria}
                         onRemove={removeCategoria}
+                        canChangeCount={props.mode === 'create'}
                     />
                 )}
 
@@ -473,7 +524,7 @@ export default function TorneoModalForm(props: Props) {
                         <FormButton
                             type={'destructive'}
                             label={'Annulla'}
-                            onPress={handleClose}
+                            onPress={handleCancelForm}
                             icon={ArrowLeftIcon}
                         />
                     ) : (
@@ -637,6 +688,7 @@ function CreateCategoriesStep({
     onFieldChange,
     onAdd,
     onRemove,
+    canChangeCount = true,
 }: {
     categorie: CategoriaType[];
     onFieldChange: (
@@ -646,6 +698,7 @@ function CreateCategoriesStep({
     ) => void;
     onAdd: () => void;
     onRemove: (draftId: string) => void;
+    canChangeCount?: boolean;
 }) {
     return (
         <View style={styles.section}>
@@ -663,7 +716,7 @@ function CreateCategoriesStep({
                     <View key={categoria.tempId} style={styles.subCard}>
                         <View style={styles.subCardHeader}>
                             <InterText style={styles.subCardTitle}>Categoria {index + 1}</InterText>
-                            {categorie.length > 1 && (
+                            {canChangeCount && categorie.length > 1 && (
                                 <TouchableOpacity
                                     style={styles.iconButton}
                                     onPress={() => onRemove(categoria.tempId)}
@@ -712,15 +765,21 @@ function CreateCategoriesStep({
                                 onFieldChange(categoria.tempId, 'fasiPartite', value)
                             }
                             placeholder="es: Fase a gironi, Semifinale, Finale"
+                            tooltip="Separa le fasi con una virgola."
                             multiline={true}
                         />
                     </View>
                 ))}
 
-                <TouchableOpacity style={styles.outlineButton} onPress={onAdd} activeOpacity={0.85}>
-                    <PlusIcon size={16} color="#0f172a" />
-                    <InterText style={styles.outlineButtonText}>Aggiungi categoria</InterText>
-                </TouchableOpacity>
+                {canChangeCount && (
+                    <TouchableOpacity
+                        style={styles.outlineButton}
+                        onPress={onAdd}
+                        activeOpacity={0.85}>
+                        <PlusIcon size={16} color="#0f172a" />
+                        <InterText style={styles.outlineButtonText}>Aggiungi categoria</InterText>
+                    </TouchableOpacity>
+                )}
             </View>
         </View>
     );

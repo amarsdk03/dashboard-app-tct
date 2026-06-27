@@ -1,23 +1,51 @@
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Href, Link } from 'expo-router';
-import { PlusIcon, SettingsIcon } from 'lucide-react-native';
+import {
+    ExternalLinkIcon,
+    HelpCircleIcon,
+    LucideIcon,
+    PlusIcon,
+    SettingsIcon,
+} from 'lucide-react-native';
 import React from 'react';
 
 type TabBarButtonProps = {
-    link: Href;
-    type?: 'create' | 'settings';
+    link?: Href;
+    type?: 'create' | 'settings' | 'feedback' | 'external';
+    onPress?: () => void;
+    accessibilityLabel?: string;
 };
 
-export default function TabBarButton({ link, type = 'create' }: TabBarButtonProps) {
+const ICONS: Record<NonNullable<TabBarButtonProps['type']>, LucideIcon> = {
+    create: PlusIcon,
+    settings: SettingsIcon,
+    feedback: HelpCircleIcon,
+    external: ExternalLinkIcon,
+};
+
+export default function TabBarButton({
+    link,
+    type = 'create',
+    onPress,
+    accessibilityLabel,
+}: TabBarButtonProps) {
+    const Icon = ICONS[type];
+    const button = (
+        <TouchableOpacity
+            style={styles.tabBarButton}
+            onPress={onPress}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={accessibilityLabel}>
+            <Icon style={styles.tabBarButtonIcon} strokeWidth={type === 'settings' ? 1.5 : 2.5} />
+        </TouchableOpacity>
+    );
+
+    if (!link) return button;
+
     return (
         <Link href={link} asChild>
-            <TouchableOpacity style={styles.tabBarButton} activeOpacity={0.7}>
-                {type === 'create' ? (
-                    <PlusIcon style={styles.tabBarButtonIcon} strokeWidth={2.5} />
-                ) : (
-                    <SettingsIcon style={styles.tabBarButtonIcon} strokeWidth={1.5} />
-                )}
-            </TouchableOpacity>
+            {button}
         </Link>
     );
 }

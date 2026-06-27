@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { StyleSheet, TextInput, View } from 'react-native';
-import { InterText } from '@/components/generic/InterText';
 import { InputModeOptions } from 'react-native/Libraries/Components/TextInput/TextInput';
+import InputLabel from '@/components/input/InputLabel';
 
 interface TextInputFieldProps {
     label: string;
@@ -13,6 +13,7 @@ interface TextInputFieldProps {
     multiline?: boolean;
     inputMode?: InputModeOptions;
     required?: boolean;
+    tooltip?: string;
 }
 
 export default function TextInputField({
@@ -24,15 +25,13 @@ export default function TextInputField({
     multiline,
     inputMode = 'text',
     required = false,
+    tooltip,
 }: TextInputFieldProps) {
     const placeholderValue = readonly ? 'N/A' : placeholder;
 
     return (
         <View style={styles.inputContainer}>
-            <InterText style={styles.label}>
-                {required && <InterText style={styles.asterisk}>*</InterText>}
-                {label}:
-            </InterText>
+            <InputLabel label={label} required={required} tooltip={tooltip} style={styles.label} />
             <TextInput
                 inputMode={inputMode}
                 editable={!readonly}
@@ -64,11 +63,6 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         color: '#111111',
         marginBottom: 5,
-    },
-    asterisk: {
-        color: '#d93636',
-        fontWeight: '800',
-        letterSpacing: 2,
     },
     input: {
         backgroundColor: '#ffffff',

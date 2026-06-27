@@ -1,13 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator, Platform,
+    ActivityIndicator,
+    Alert,
+    Platform,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
     View,
 } from 'react-native';
 import { Link, type Href } from 'expo-router';
-import { ArrowLeftIcon, ArrowRightIcon, SaveIcon, SquarePenIcon } from 'lucide-react-native';
+import {
+    ArrowLeftIcon,
+    ArrowRightIcon,
+    PlusIcon,
+    SaveIcon,
+    SquarePenIcon,
+    XIcon,
+} from 'lucide-react-native';
 import { InterText } from '@/components/generic/InterText';
 import DateTimePickerField from '@/components/input/DateTimePickerField';
 import ImageInputField from '@/components/input/ImageInputField';
@@ -15,8 +24,9 @@ import TextInputField from '@/components/input/TextInputField';
 import NationalitySelectField from '@/components/input/NationalitySelectField';
 import errorMessage from '@/components/generic/ErrorMessage';
 import {
-    createGiocatoreConIscrizione,
-    getDatiGiocatoreConIscrizione,
+    createGiocatoreConIscrizioni,
+    deleteIscrizione,
+    getDatiGiocatoreConIscrizioni,
     insertIscrizione,
     updateGiocatore,
     updateIscrizione,
@@ -28,6 +38,12 @@ import GenericSelectField from '@/components/input/GenericSelectField';
 import TeamSelectField from '@/components/input/TeamSelectField';
 import ChipPickerField from '@/components/input/ChipPickerField';
 import FormButton from '@/components/input/FormButton';
+import {
+    createRegistrationDraft,
+    RegistrationDraft,
+    validateRegistrationDrafts,
+} from '@/lib/registration-utils';
+import { confirmDiscardChanges } from '@/lib/confirm';
 
 export type GiocatoreModalMode = 'view' | 'create' | 'edit';
 
@@ -51,10 +67,7 @@ type FormState = {
     numeroMaglia: string;
     usernameIg: string;
     isCapitano: boolean;
-    idIscrizione: number | null;
-    idTorneo: number | null;
-    idSquadra: number | null;
-    dettagli: string;
+    registrations: RegistrationDraft[];
 };
 
 const RUOLI: Enums<'ruolo_giocatore'>[] = [
@@ -80,10 +93,7 @@ const EMPTY_FORM: FormState = {
     numeroMaglia: '',
     usernameIg: '',
     isCapitano: false,
-    idIscrizione: null,
-    idTorneo: null,
-    idSquadra: null,
-    dettagli: '',
+    registrations: [],
 };
 
 function emptyToNull(value: string) {
@@ -102,43 +112,122 @@ function parseDate(value: string | null) {
 }
 
 export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }: Props) {
-    const [form, setForm] = useState<FormState>({ ...EMPTY_FORM, idTorneo: torneoId ?? null });
+    const [form, setForm] = useState<FormState>({
+        ...EMPTY_FORM,
+        registrations: [createRegistrationDraft({ idTorneo: torneoId ?? null })],
+    });
     const [tornei, setTornei] = useState<listaTorneiType[]>([]);
-    const [squadre, setSquadre] = useState<listaSquadreType[]>([]);
+    const [squadreByTorneo, setSquadreByTorneo] = useState<Record<number, listaSquadreType[]>>({});
     const [loading, setLoading] = useState(mode !== 'create');
     const [submitting, setSubmitting] = useState(false);
     const [createStep, setCreateStep] = useState<1 | 2>(1);
 
     const readonly = mode === 'view';
-    const selectedTorneo = useMemo(
-        () => tornei.find((torneo) => torneo.id === form.idTorneo) ?? null,
-        [form.idTorneo, tornei],
-    );
-    useMemo(
-        () => squadre.find((squadra) => squadra.s_id === form.idSquadra) ?? null,
-        [form.idSquadra, squadre],
-    );
     const editHref = useMemo(() => {
-        return `/giocatori/modal?mode=edit&giocatoreId=${form.id ?? giocatoreId}&torneoId=${form.idTorneo ?? torneoId}` as Href;
-    }, [form.id, form.idTorneo, giocatoreId, torneoId]);
+        const primaryRegistration = form.registrations[0];
+        return `/giocatori/modal?mode=edit&giocatoreId=${form.id ?? giocatoreId}&torneoId=${primaryRegistration?.idTorneo ?? torneoId ?? ''}` as Href;
+    }, [form.id, form.registrations, giocatoreId, torneoId]);
 
     function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
         setForm((current) => ({ ...current, [key]: value }));
     }
 
+    function setRegistrationField<K extends keyof RegistrationDraft>(
+        localId: string,
+        key: K,
+        value: RegistrationDraft[K]
+    ) {
+        setForm((current) => ({
+            ...current,
+            registrations: current.registrations.map((registration) =>
+                registration.localId === localId ? { ...registration, [key]: value } : registration
+            ),
+        }));
+    }
+
+    function addRegistration() {
+        setForm((current) => {
+            const usedTournamentIds = new Set(
+                current.registrations
+                    .map((registration) => registration.idTorneo)
+                    .filter((id): id is number => typeof id === 'number')
+            );
+            const nextTournament = tornei.find((torneo) => !usedTournamentIds.has(torneo.id));
+
+            return {
+                ...current,
+                registrations: [
+                    ...current.registrations,
+                    createRegistrationDraft({ idTorneo: nextTournament?.id ?? null }),
+                ],
+            };
+        });
+    }
+
+    function removeRegistration(localId: string) {
+        setForm((current) => {
+            if (current.registrations.length === 1) return current;
+            return {
+                ...current,
+                registrations: current.registrations.filter(
+                    (registration) => registration.localId !== localId
+                ),
+            };
+        });
+    }
+
+    function confirmRemoveRegistration(registration: RegistrationDraft) {
+        if (!registration.id) {
+            removeRegistration(registration.localId);
+            return;
+        }
+
+        Alert.alert(
+            'Rimuovere iscrizione?',
+            'Questa iscrizione verra eliminata dal giocatore al prossimo salvataggio.',
+            [
+                { text: 'Annulla', style: 'cancel' },
+                {
+                    text: 'Rimuovi',
+                    style: 'destructive',
+                    onPress: () => removeRegistration(registration.localId),
+                },
+            ]
+        );
+    }
+
     async function loadTornei() {
         try {
             const data = await getListaTornei(null);
-            setTornei(data ?? []);
+            const lista = data ?? [];
+            setTornei(lista);
+            setForm((current) => {
+                if (mode !== 'create' || current.registrations[0]?.idTorneo) return current;
+
+                const firstTorneoId = torneoId ?? lista[0]?.id ?? null;
+                return {
+                    ...current,
+                    registrations: current.registrations.map((registration, index) =>
+                        index === 0
+                            ? { ...registration, idTorneo: firstTorneoId }
+                            : registration
+                    ),
+                };
+            });
         } catch (error: any) {
             errorMessage('Impossibile recuperare i tornei', error.message ?? String(error));
         }
     }
 
     async function loadSquadre(idTorneo: number) {
+        if (squadreByTorneo[idTorneo]) return;
+
         try {
             const data = await getListaSquadre(null, idTorneo);
-            setSquadre(data ?? []);
+            setSquadreByTorneo((current) => ({
+                ...current,
+                [idTorneo]: data ?? [],
+            }));
         } catch (error: any) {
             errorMessage('Impossibile recuperare le squadre', error.message ?? String(error));
         }
@@ -150,23 +239,33 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
             return;
         }
 
-        if (!giocatoreId || !torneoId) {
-            errorMessage('Parametri mancanti', 'ID giocatore o torneo mancante');
+        if (!giocatoreId) {
+            errorMessage('Parametri mancanti', 'ID giocatore mancante');
             setLoading(false);
             return;
         }
 
         setLoading(true);
         try {
-            const { giocatore, iscrizione } = await getDatiGiocatoreConIscrizione(
-                giocatoreId,
-                torneoId,
-            );
+            const { giocatore, iscrizioni } = await getDatiGiocatoreConIscrizioni(giocatoreId);
 
             if (!giocatore) {
                 errorMessage('Giocatore non trovato', `ID giocatore: ${giocatoreId}`);
                 return;
             }
+
+            const registrationDrafts =
+                iscrizioni.length > 0
+                    ? iscrizioni.map((iscrizione) =>
+                          createRegistrationDraft({
+                              localId: String(iscrizione.id),
+                              id: iscrizione.id,
+                              idTorneo: iscrizione.id_torneo,
+                              idSquadra: iscrizione.id_squadra,
+                              dettagli: iscrizione.dettagli ?? '',
+                          })
+                      )
+                    : [createRegistrationDraft({ idTorneo: torneoId ?? null })];
 
             setForm({
                 id: giocatore.id,
@@ -181,10 +280,7 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                 numeroMaglia: giocatore.numero_maglia ?? '',
                 usernameIg: giocatore.username_ig ?? '',
                 isCapitano: giocatore.is_capitano ?? false,
-                idIscrizione: iscrizione?.id ?? null,
-                idTorneo: iscrizione?.id_torneo ?? torneoId,
-                idSquadra: iscrizione?.id_squadra ?? null,
-                dettagli: iscrizione?.dettagli ?? '',
+                registrations: registrationDrafts,
             });
         } catch (error: any) {
             errorMessage('Impossibile recuperare i dati', error.message ?? String(error));
@@ -208,8 +304,10 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
     }
 
     function validateRegistrationFields() {
-        if (!form.idTorneo || !form.idSquadra) {
-            errorMessage('Campi obbligatori mancanti', 'Seleziona torneo e squadra');
+        const validation = validateRegistrationDrafts(form.registrations);
+
+        if (!validation.valid) {
+            errorMessage('Iscrizioni non valide', validation.message ?? 'Controlla le iscrizioni.');
             return false;
         }
 
@@ -230,12 +328,16 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
         setCreateStep(1);
     }
 
+    function handleCancelForm() {
+        confirmDiscardChanges(onClose);
+    }
+
     async function handleCreateSubmit() {
         if (!validateForm()) return;
 
         setSubmitting(true);
         try {
-            await createGiocatoreConIscrizione({
+            await createGiocatoreConIscrizioni({
                 giocatore: {
                     nome: form.nome.trim(),
                     cognome: form.cognome.trim(),
@@ -249,11 +351,11 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                     username_ig: emptyToNull(form.usernameIg),
                     is_capitano: form.isCapitano,
                 },
-                iscrizione: {
-                    id_torneo: form.idTorneo!,
-                    id_squadra: form.idSquadra!,
-                    dettagli: emptyToNull(form.dettagli),
-                },
+                iscrizioni: form.registrations.map((registration) => ({
+                    id_torneo: registration.idTorneo!,
+                    id_squadra: registration.idSquadra!,
+                    dettagli: emptyToNull(registration.dettagli),
+                })),
             });
 
             onClose();
@@ -288,17 +390,36 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                 is_capitano: form.isCapitano,
             });
 
-            const iscrizionePayload = {
-                id_giocatore: form.id,
-                id_torneo: form.idTorneo!,
-                id_squadra: form.idSquadra!,
-                dettagli: emptyToNull(form.dettagli),
-            };
+            const originalIds = new Set(
+                (await getDatiGiocatoreConIscrizioni(form.id)).iscrizioni.map(
+                    (iscrizione) => iscrizione.id
+                )
+            );
+            const currentIds = new Set(
+                form.registrations
+                    .map((registration) => registration.id)
+                    .filter((id): id is number => typeof id === 'number')
+            );
 
-            if (form.idIscrizione) {
-                await updateIscrizione(form.idIscrizione, iscrizionePayload);
-            } else {
-                await insertIscrizione(iscrizionePayload);
+            for (const originalId of originalIds) {
+                if (!currentIds.has(originalId)) {
+                    await deleteIscrizione(originalId);
+                }
+            }
+
+            for (const registration of form.registrations) {
+                const iscrizionePayload = {
+                    id_giocatore: form.id,
+                    id_torneo: registration.idTorneo!,
+                    id_squadra: registration.idSquadra!,
+                    dettagli: emptyToNull(registration.dettagli),
+                };
+
+                if (registration.id) {
+                    await updateIscrizione(registration.id, iscrizionePayload);
+                } else {
+                    await insertIscrizione(iscrizionePayload);
+                }
             }
 
             onClose();
@@ -318,12 +439,18 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
     }, [mode, giocatoreId, torneoId]);
 
     useEffect(() => {
-        if (form.idTorneo) {
-            loadSquadre(form.idTorneo).then(() => null);
-        } else {
-            setSquadre([]);
-        }
-    }, [form.idTorneo]);
+        const torneoIds = Array.from(
+            new Set(
+                form.registrations
+                    .map((registration) => registration.idTorneo)
+                    .filter((id): id is number => typeof id === 'number')
+            )
+        );
+
+        torneoIds.forEach((idTorneo) => {
+            loadSquadre(idTorneo).then(() => null);
+        });
+    }, [form.registrations]);
 
     if (loading) {
         return (
@@ -492,47 +619,115 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                         <View style={styles.separator} />
                         <InterText style={styles.sectionTitle}>Storico carriera:</InterText>
 
-                        <GenericSelectField
-                            label="Torneo"
-                            placeholder="Seleziona torneo"
-                            enableNullValue={false}
-                            value={selectedTorneo?.id ? selectedTorneo?.id.toString() : ''}
-                            options={tornei.map((torneo) => ({
-                                id: String(torneo.id),
-                                name: torneo.nome,
-                            }))}
-                            onChange={(val) => {
-                                setField('idTorneo', Number.parseInt(val));
-                                setField('idSquadra', null);
-                            }}
-                            readonly={readonly}
-                            required={true}
-                        />
+                        <View style={styles.registrationList}>
+                            {form.registrations.map((registration, index) => {
+                                const squadre = registration.idTorneo
+                                    ? (squadreByTorneo[registration.idTorneo] ?? [])
+                                    : [];
 
-                        <TeamSelectField
-                            label="Squadra"
-                            enableNullValue={false}
-                            value={form.idSquadra ? String(form.idSquadra) : ''}
-                            teams={squadre.map((s, index) => ({
-                                id: String(s.s_id),
-                                name: s.s_nome ?? 'Squadra senza nome',
-                                logoUrl: s.s_link_stemma ?? undefined,
-                            }))}
-                            onChange={(val) => {
-                                setField('idSquadra', val ? Number.parseInt(val) : null);
-                            }}
-                            readonly={readonly}
-                            required={true}
-                        />
+                                return (
+                                    <View key={registration.localId} style={styles.registrationCard}>
+                                        <View style={styles.registrationHeader}>
+                                            <InterText style={styles.registrationTitle}>
+                                                Iscrizione {index + 1}
+                                            </InterText>
+                                            {!readonly && form.registrations.length > 1 && (
+                                                <TouchableOpacity
+                                                    style={styles.removeRegistrationButton}
+                                                    onPress={() =>
+                                                        confirmRemoveRegistration(registration)
+                                                    }
+                                                    activeOpacity={0.82}>
+                                                    <XIcon size={15} color="#7c3f3f" />
+                                                </TouchableOpacity>
+                                            )}
+                                        </View>
 
-                        <TextInputField
-                            label="Dettagli"
-                            readonly={readonly}
-                            value={form.dettagli}
-                            onChange={(value) => setField('dettagli', value)}
-                            placeholder="Note iscrizione..."
-                            multiline
-                        />
+                                        <GenericSelectField
+                                            label="Torneo"
+                                            placeholder="Seleziona torneo"
+                                            enableNullValue={false}
+                                            value={
+                                                registration.idTorneo
+                                                    ? registration.idTorneo.toString()
+                                                    : ''
+                                            }
+                                            options={tornei.map((torneo) => ({
+                                                id: String(torneo.id),
+                                                name: torneo.nome,
+                                            }))}
+                                            onChange={(val) => {
+                                                const idTorneo = Number.parseInt(val);
+                                                setRegistrationField(
+                                                    registration.localId,
+                                                    'idTorneo',
+                                                    idTorneo
+                                                );
+                                                setRegistrationField(
+                                                    registration.localId,
+                                                    'idSquadra',
+                                                    null
+                                                );
+                                                loadSquadre(idTorneo).then(() => null);
+                                            }}
+                                            readonly={readonly}
+                                            required={true}
+                                        />
+
+                                        <TeamSelectField
+                                            label="Squadra"
+                                            enableNullValue={false}
+                                            value={
+                                                registration.idSquadra
+                                                    ? String(registration.idSquadra)
+                                                    : ''
+                                            }
+                                            teams={squadre.map((s) => ({
+                                                id: String(s.s_id),
+                                                name: s.s_nome ?? 'Squadra senza nome',
+                                                logoUrl: s.s_link_stemma ?? undefined,
+                                            }))}
+                                            onChange={(val) => {
+                                                setRegistrationField(
+                                                    registration.localId,
+                                                    'idSquadra',
+                                                    val ? Number.parseInt(val) : null
+                                                );
+                                            }}
+                                            readonly={readonly}
+                                            required={true}
+                                        />
+
+                                        <TextInputField
+                                            label="Dettagli"
+                                            readonly={readonly}
+                                            value={registration.dettagli}
+                                            onChange={(value) =>
+                                                setRegistrationField(
+                                                    registration.localId,
+                                                    'dettagli',
+                                                    value
+                                                )
+                                            }
+                                            placeholder="Note iscrizione..."
+                                            multiline
+                                        />
+                                    </View>
+                                );
+                            })}
+                        </View>
+
+                        {!readonly && (
+                            <TouchableOpacity
+                                style={styles.addRegistrationButton}
+                                onPress={addRegistration}
+                                activeOpacity={0.85}>
+                                <PlusIcon size={16} color="#0f172a" />
+                                <InterText style={styles.addRegistrationText}>
+                                    Aggiungi iscrizione
+                                </InterText>
+                            </TouchableOpacity>
+                        )}
                     </>
                 )}
 
@@ -543,7 +738,7 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                                 <FormButton
                                     type={'destructive'}
                                     label={'Annulla'}
-                                    onPress={onClose}
+                                    onPress={handleCancelForm}
                                     icon={ArrowLeftIcon}
                                 />
                             ) : (
@@ -574,7 +769,7 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                         <FormButton
                             type={'destructive'}
                             label={'Annulla'}
-                            onPress={onClose}
+                            onPress={handleCancelForm}
                             icon={ArrowLeftIcon}
                         />
                     ) : (
@@ -698,6 +893,58 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         width: '100%',
         gap: 8,
+    },
+    registrationList: {
+        gap: 12,
+    },
+    registrationCard: {
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+        backgroundColor: '#ffffff',
+        padding: 14,
+        gap: 4,
+    },
+    registrationHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+        gap: 10,
+    },
+    registrationTitle: {
+        color: '#0f172a',
+        fontFamily: 'Inter-SemiBold',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    removeRegistrationButton: {
+        width: 32,
+        height: 32,
+        borderRadius: 10,
+        backgroundColor: '#d9a3a3',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    addRegistrationButton: {
+        minHeight: 44,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        backgroundColor: '#ffffff',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        marginTop: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+    },
+    addRegistrationText: {
+        color: '#0f172a',
+        fontFamily: 'Inter-SemiBold',
+        fontSize: 13,
+        fontWeight: '600',
     },
     label: {
         fontSize: 14,

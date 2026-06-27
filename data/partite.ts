@@ -119,7 +119,7 @@ export async function getListaPartite(
     return data ?? [];
 }
 
-export type listaPartiteType = Awaited<ReturnType<typeof getListaPartite>>;
+export type listaPartiteType = Awaited<ReturnType<typeof getListaPartite>>[number];
 
 export async function insertPartita(payload: TablesInsert<'partita'>) {
     const { data, error } = await supabase.from('partita').insert(payload).select().single();

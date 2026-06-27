@@ -34,15 +34,16 @@ del costo richiesto di **99 USD annuali** per il rilascio tramite l'Apple Develo
 
 - **Lista tornei:**
     - Possibilità di visualizzare, cercare e filtrare la lista dei tornei
+    - Pulsante di feedback/assistenza e link rapido alla pagina pubblica del torneo
     - Modal per visualizzare i dati di un torneo
     - Modal per creare un nuovo torneo (tramite procedura guidata):
         - Inserimento dei dati del torneo
-        - Inserimento dei dati delle categorie e aggiunta squadre
-        - Inserimento delle partite
+        - Inserimento dei dati delle categorie
     - Modal per modificare i dati di un torneo
 
 - **Lista partite:**
     - Possibilità di visualizzare, cercare e filtrare la lista delle partite
+    - Pulsante di feedback/assistenza e link rapido alla pagina pubblica della partita
     - Modal per visualizzare i dati di una partita
     - Modal per creare una nuova partita (tramite procedura guidata):
         - Inserimento dei dati della partita
@@ -51,23 +52,26 @@ del costo richiesto di **99 USD annuali** per il rilascio tramite l'Apple Develo
 
 - **Lista squadre:**
     - Possibilità di visualizzare, cercare e filtrare la lista delle squadre
+    - Pulsante di feedback/assistenza e link rapido alla pagina pubblica della squadra
     - Modal per visualizzare i dati di una squadra
     - Modal per creare una nuova squadra (tramite procedura guidata):
         - Inserimento dei dati della squadra
         - Selezione dei giocatori dell'edizione attuale
-    - Modal per modificare i dati di una squadre
+    - Modal per modificare i dati di una squadra
 
 - **Lista giocatori:**
     - Possibilità di visualizzare, cercare e filtrare la lista dei giocatori
+    - Pulsante di feedback/assistenza e link rapido alla pagina pubblica del giocatore
     - Modal per visualizzare i dati di un giocatore
     - Modal per creare un nuovo giocatore (tramite procedura guidata):
-        - Inserimento dei dati della squadra
-        - Selezione della squadra (in base all'edizione)
+        - Inserimento dei dati del giocatore
+        - Selezione di una o più iscrizioni, ognuna associata a torneo e squadra
     - Modal per modificare i dati di un giocatore
 
 - **Impostazioni:**
     - Mostra le info principali (email di accesso, ultimo log-in...)
-    - Pulsante per abilitare/disabilitare il permesso delle notifiche
+    - Pulsante per abilitare il permesso delle notifiche locali
+    - Promemoria locale 30 minuti prima dell'inizio di una partita
     - Pulsante di logout
     - Contatti vari per supporto tecnico
     - Versione app e altre info secondarie
@@ -117,13 +121,12 @@ Contiene i componenti React riutilizzabili.
 * `input/`: componenti generici per i vari campi di input.
 * `login/`: componenti relativi all'autenticazione.
 * `ui/`: componenti generici dell'interfaccia utente (button, input, card, dialog, ecc.).
-* `ErrorMessage.tsx`: elemento di default per mostrare messaggi di errore all'utente.
-* `InterText.tsx`: elemento di testo di default con font Inter preapplicato.
+* `generic/`: componenti trasversali come testi Inter, pulsanti header, feedback e messaggi di errore.
 * `splash-screen-controller.tsx`: gestione della schermata iniziale dell'app.
 
 #### `data/`
 
-Contiene le varie query SQL utilizzate per recuperare i dati dal database.
+Contiene le funzioni Supabase utilizzate per recuperare e aggiornare i dati delle sezioni principali.
 
 #### `hooks/`
 
@@ -135,6 +138,8 @@ Raccoglie utility e configurazioni condivise.
 
 * `supabase.ts`: client Supabase per piattaforme native.
 * `supabase.web.ts`: configurazione specifica per il web.
+* `notifications.ts`: gestione dei promemoria locali delle partite.
+* `registration-utils.ts`: utilità di validazione per le iscrizioni dei giocatori.
 * `theme.ts`: gestione del tema chiaro e scuro.
 * `utils.ts`: funzioni di utilità generiche.
 
@@ -196,6 +201,7 @@ Di seguito la struttura parziale del progetto:
 │   │   └── logo-eagle-only.png
 │   └── screen-mockups
 ├── components
+│   ├── generic
 │   ├── giocatori
 │   ├── input
 │   ├── login
@@ -203,19 +209,21 @@ Di seguito la struttura parziale del progetto:
 │   ├── squadre
 │   ├── tornei
 │   ├── ui
-│   ├── ErrorMessage.tsx
-│   ├── InterText.tsx
 │   └── splash-screen-controller.tsx
 ├── data
-│   ├── fixtures.ts
-│   ├── players.ts
-│   ├── rankings.ts
-│   └── teams.ts
+│   ├── campi.ts
+│   ├── classifiche.ts
+│   ├── giocatori.ts
+│   ├── partite.ts
+│   ├── squadre.ts
+│   └── tornei.ts
 ├── hooks
 │   └── use-auth-context.tsx
 ├── lib
 │   ├── supabase.ts
 │   ├── supabase.web.ts
+│   ├── notifications.ts
+│   ├── registration-utils.ts
 │   ├── theme.ts
 │   └── utils.ts
 ├── providers
