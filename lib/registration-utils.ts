@@ -45,7 +45,7 @@ export function validateRegistrationDrafts(
         if (tournamentIds.has(registration.idTorneo)) {
             return {
                 valid: false,
-                message: 'Un giocatore non puo avere piu iscrizioni nello stesso torneo.',
+                message: 'Un giocatore non può avere più iscrizioni nello stesso torneo.',
             };
         }
 

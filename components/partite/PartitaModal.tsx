@@ -212,18 +212,6 @@ function isCardAction(action: azioniPartitaType[number]) {
     return action.a_tipo === 'Cartellino giallo' || action.a_tipo === 'Cartellino rosso';
 }
 
-function actionRequiresPlayer(tipo: TipoAzione) {
-    return (
-        tipo === 'Goal' ||
-        tipo === 'Goal su rigore' ||
-        tipo === 'Autogoal' ||
-        tipo === 'Cartellino giallo' ||
-        tipo === 'Cartellino rosso' ||
-        tipo === 'Calcio di rigore segnato' ||
-        tipo === 'Calcio di rigore sbagliato'
-    );
-}
-
 function emptyToNull(value: string) {
     const trimmed = value.trim();
     return trimmed ? trimmed : null;
@@ -596,11 +584,6 @@ export default function PartitaModal({ mode, partitaId, torneoId, onClose }: Pro
                 'Dati non validi',
                 'Il giocatore selezionato non appartiene alla squadra.'
             );
-            return;
-        }
-
-        if (actionRequiresPlayer(reportForm.tipo) && !reportForm.idGiocatore) {
-            errorMessage('Dati mancanti', 'Seleziona un giocatore per questa azione.');
             return;
         }
 

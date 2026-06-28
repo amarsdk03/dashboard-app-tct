@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
         gap: 5,
     },
     asterisk: {
@@ -61,17 +62,20 @@ const styles = StyleSheet.create({
         borderRadius: 11,
         alignItems: 'center',
         justifyContent: 'center',
+        transform: 'translateY(-2px)',
     },
     tooltip: {
+        width: '100%',
         alignSelf: 'flex-start',
         maxWidth: '100%',
         borderRadius: 10,
-        backgroundColor: '#0f172a',
+        backgroundColor: '#e6d1c3',
         paddingHorizontal: 10,
         paddingVertical: 7,
+        marginBottom: 4,
     },
     tooltipText: {
-        color: '#ffffff',
+        color: '#191919',
         fontFamily: 'Inter',
         fontSize: 12,
         lineHeight: 16,

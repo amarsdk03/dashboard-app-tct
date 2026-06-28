@@ -1,9 +1,26 @@
-import { Stack } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
+import { useAuthContext } from '@/hooks/use-auth-context';
 import { useEffect } from 'react';
+
 import { getListaPartite } from '@/data/partite';
 import { scheduleUpcomingMatchReminders } from '@/lib/notifications';
 
 export default function AppLayout() {
+    const auth = useAuthContext();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (auth.isLoading) return;
+        if (!auth.isLoggedIn) {
+            router.replace('/login');
+        }
+    }, [auth.isLoggedIn, auth.isLoading]);
+
+    // Don't render children until auth is resolved
+    if (auth.isLoading) return null;
+    // Don't flash protected content before redirect fires
+    if (!auth.isLoggedIn) return null;
+
     useEffect(() => {
         getListaPartite(null, { upcomingOnly: true })
             .then((partite) =>
@@ -19,7 +36,6 @@ export default function AppLayout() {
             .catch(() => null);
     }, []);
 
-    // This renders the navigation stack for all authenticated app routes.
     return (
         <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

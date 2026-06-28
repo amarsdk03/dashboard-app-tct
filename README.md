@@ -155,10 +155,6 @@ Definizioni TypeScript condivise in tutto il progetto.
 
 * `database.types.ts`: tipi generati dal database Supabase.
 
-#### `android/`
-
-Progetto Android generato da Expo per la compilazione e l'esecuzione dell'app su dispositivi Android.
-
 ### File di configurazione:
 
 | File                 | Descrizione                                   |
@@ -332,9 +328,14 @@ Per maggiori info sulle tecnologie di sviluppo utilizzate:
 
 Per il deployment viene usato [Expo Application Services (EAS)](https://expo.dev/eas).
 
-La configurazione per il deployment può essere direttamente eseguita tramite il seguente comando:
+La configurazione per il deployment degli APK può essere direttamente eseguita tramite il seguente comando:
 ```bash
 eas build
+```
+
+Il deployment dela versione Web invece viene effettuato tramite il seguente comando:
+```bash
+eas deploy
 ```
 
 

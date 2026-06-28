@@ -1,13 +1,10 @@
 import { Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import {
-    buildMatchReminderNotificationContent,
-    getReminderDate,
-} from '@/lib/notification-utils';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
+import { buildMatchReminderNotificationContent, getReminderDate } from '@/lib/notification-utils';
 
 const MATCH_REMINDER_CHANNEL_ID = 'match-reminders';
-const MATCH_REMINDER_DATA_TYPE = 'match-reminder-30';
-const REMINDER_MINUTES_BEFORE = 30;
+const MATCH_REMINDER_DATA_TYPE = 'match-reminder-15';
+const REMINDER_MINUTES_BEFORE = 15;
 
 export type MatchReminderInput = {
     idPartita: number | null;
@@ -22,25 +19,45 @@ export type NotificationPermissionStatus = {
     description: string;
 };
 
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowBanner: true,
-        shouldShowList: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-    }),
-});
+// expo-notifications remote push was removed from Expo Go in SDK 53.
+// Guard every call behind this check so the module doesn't crash at import time.
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+// Lazy-load the module so the top-level setNotificationHandler() call
+// inside expo-notifications never runs in Expo Go.
+const getNotifications = (() => {
+    let mod: typeof import('expo-notifications') | null = null;
+    return () => {
+        if (isExpoGo) return null;
+        if (!mod) mod = require('expo-notifications');
+        return mod;
+    };
+})();
+
+// Set the handler once, guarded
+const N = getNotifications();
+if (N) {
+    N.setNotificationHandler({
+        handleNotification: async () => ({
+            shouldShowBanner: !__DEV__,
+            shouldShowList: !__DEV__,
+            shouldPlaySound: !__DEV__,
+            shouldSetBadge: false,
+        }),
+    });
+}
 
 export function supportsLocalNotifications() {
-    return Platform.OS === 'ios' || Platform.OS === 'android';
+    return !isExpoGo && (Platform.OS === 'ios' || Platform.OS === 'android');
 }
 
 export async function configureNotificationChannel() {
-    if (Platform.OS !== 'android') return;
+    const N = getNotifications();
+    if (!N || Platform.OS !== 'android') return;
 
-    await Notifications.setNotificationChannelAsync(MATCH_REMINDER_CHANNEL_ID, {
+    await N.setNotificationChannelAsync(MATCH_REMINDER_CHANNEL_ID, {
         name: 'Promemoria partite',
-        importance: Notifications.AndroidImportance.DEFAULT,
+        importance: N.AndroidImportance.DEFAULT,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#b98e6b',
     });
@@ -55,7 +72,8 @@ export async function getNotificationPermissionStatus(): Promise<NotificationPer
         };
     }
 
-    const permissions = await Notifications.getPermissionsAsync();
+    const N = getNotifications()!;
+    const permissions = await N.getPermissionsAsync();
 
     if (permissions.granted) {
         return {
@@ -86,29 +104,33 @@ export async function requestNotificationPermission() {
     }
 
     await configureNotificationChannel();
-    await Notifications.requestPermissionsAsync();
+    const N = getNotifications()!;
+    await N.requestPermissionsAsync();
     return getNotificationPermissionStatus();
 }
 
 async function clearScheduledMatchReminders() {
-    if (!supportsLocalNotifications()) return;
+    const N = getNotifications();
+    if (!N || !supportsLocalNotifications()) return;
 
-    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    const scheduled = await N.getAllScheduledNotificationsAsync();
     await Promise.all(
         scheduled
-            .filter((notification) => notification.content.data?.type === MATCH_REMINDER_DATA_TYPE)
-            .map((notification) =>
-                Notifications.cancelScheduledNotificationAsync(notification.identifier)
-            )
+            .filter((n) => n.content.data?.type === MATCH_REMINDER_DATA_TYPE)
+            .map((n) => N.cancelScheduledNotificationAsync(n.identifier))
     );
 }
 
-export async function scheduleUpcomingMatchReminders(matches: MatchReminderInput[], now = new Date()) {
+export async function scheduleUpcomingMatchReminders(
+    matches: MatchReminderInput[],
+    now = new Date()
+) {
     if (!supportsLocalNotifications()) return 0;
 
     const permission = await getNotificationPermissionStatus();
     if (!permission.granted) return 0;
 
+    const N = getNotifications()!;
     await configureNotificationChannel();
     await clearScheduledMatchReminders();
 
@@ -124,7 +146,7 @@ export async function scheduleUpcomingMatchReminders(matches: MatchReminderInput
             fischioInizio: match.fischioInizio,
         });
 
-        await Notifications.scheduleNotificationAsync({
+        await N.scheduleNotificationAsync({
             content: {
                 ...content,
                 data: {
@@ -133,7 +155,7 @@ export async function scheduleUpcomingMatchReminders(matches: MatchReminderInput
                 },
             },
             trigger: {
-                type: Notifications.SchedulableTriggerInputTypes.DATE,
+                type: N.SchedulableTriggerInputTypes.DATE,
                 date: reminderDate,
                 channelId: MATCH_REMINDER_CHANNEL_ID,
             },

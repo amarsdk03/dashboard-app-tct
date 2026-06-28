@@ -70,7 +70,6 @@ export default function LoginScreen() {
                                 placeholder="Password"
                                 placeholderTextColor="rgba(255, 255, 255, 0.8)"
                                 autoCapitalize="none"
-                                keyboardType="visible-password"
                                 style={[styles.input]}
                                 className="h-12 rounded-2xl border-white bg-black/40 text-white"
                             />
@@ -119,7 +118,7 @@ export default function LoginScreen() {
                                         Problemi di accesso?
                                     </InterText>
                                     <InterText style={styles.modalSubtitle}>
-                                        In caso di ulteriori problemi, contatta uno sviluppatore per
+                                        In caso di ulteriori problemi, contattaci per ottenere
                                         assistenza!
                                     </InterText>
                                 </View>

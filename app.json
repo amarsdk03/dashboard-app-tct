@@ -8,12 +8,11 @@
         "icon": "./assets/images/app-icon.png",
         "scheme": "dashboard-cdt",
         "userInterfaceStyle": "light",
-        "newArchEnabled": true,
         "assetBundlePatterns": ["**/*"],
         "ios": {
             "userInterfaceStyle": "light",
             "supportsTablet": true,
-            "bundleIdentifier": "com.anonymous.dashboard_cdt",
+            "bundleIdentifier": "com.anonymous.dashboardcdt",
             "infoPlist": {
                 "ITSAppUsesNonExemptEncryption": false
             }
@@ -24,7 +23,7 @@
                 "foregroundImage": "./assets/images/app-icon.png",
                 "backgroundColor": "#ffffff"
             },
-            "package": "com.anonymous.dashboard_cdt",
+            "package": "com.anonymous.dashboardcdt",
             "softwareKeyboardLayoutMode": "pan"
         },
         "web": {

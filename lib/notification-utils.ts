@@ -18,7 +18,7 @@ export function buildMatchReminderNotificationContent(match: MatchReminderConten
     const away = match.squadraOspite?.trim() || 'Squadra ospite';
 
     return {
-        title: 'Partita tra 30 minuti',
-        body: `${home} - ${away} inizia tra 30 minuti.`,
+        title: 'Partita tra 15 minuti',
+        body: `${home} - ${away} inizia tra 15 minuti.`,
     };
 }

@@ -57,10 +57,10 @@ export default function FeedbackModal({ visible, onClose }: Props) {
                 <Pressable style={styles.card}>
                     <View style={styles.header}>
                         <View style={styles.titleBlock}>
-                            <InterText style={styles.title}>Feedback e assistenza</InterText>
+                            <InterText style={styles.title}>Bisogno di aiuto?</InterText>
                             <InterText style={styles.subtitle}>
-                                Contatta sviluppatori o organizzatori per problemi, richieste o
-                                segnalazioni.
+                                Contattaci per problemi, richieste o semplicemente se vuoi farci
+                                sapere qualcosa!
                             </InterText>
                         </View>
                         <TouchableOpacity

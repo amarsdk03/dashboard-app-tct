@@ -2,7 +2,7 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Href, Link } from 'expo-router';
 import {
     ExternalLinkIcon,
-    HelpCircleIcon,
+    CircleQuestionMark,
     LucideIcon,
     PlusIcon,
     SettingsIcon,
@@ -19,7 +19,7 @@ type TabBarButtonProps = {
 const ICONS: Record<NonNullable<TabBarButtonProps['type']>, LucideIcon> = {
     create: PlusIcon,
     settings: SettingsIcon,
-    feedback: HelpCircleIcon,
+    feedback: CircleQuestionMark,
     external: ExternalLinkIcon,
 };
 
