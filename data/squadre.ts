@@ -51,9 +51,7 @@ async function hydrateSquadreCaptains<
     const captainsById = new Map((data ?? []).map((giocatore) => [giocatore.id, giocatore]));
 
     return squadre.map((squadra) => {
-        const captain = squadra.s_id_capitano
-            ? captainsById.get(squadra.s_id_capitano)
-            : null;
+        const captain = squadra.s_id_capitano ? captainsById.get(squadra.s_id_capitano) : null;
 
         return {
             ...squadra,
@@ -64,10 +62,8 @@ async function hydrateSquadreCaptains<
 }
 
 export async function getListaSquadre(searchParam: string | null, idTorneo: number | null) {
-    let query = supabase
-        .from('ricerca_squadre')
-        .select(
-            `
+    let query = supabase.from('ricerca_squadre').select(
+        `
             t_id,
             t_nome,
             s_id,
@@ -79,7 +75,7 @@ export async function getListaSquadre(searchParam: string | null, idTorneo: numb
             g_nome,
             g_cognome
         `
-        );
+    );
 
     if (idTorneo) {
         query = query.eq('t_id', idTorneo);
@@ -95,8 +91,7 @@ export async function getListaSquadre(searchParam: string | null, idTorneo: numb
         query = query.order('t_id', { ascending: false });
     }
 
-    query = query
-        .abortSignal(AbortSignal.timeout(20000));
+    query = query.abortSignal(AbortSignal.timeout(20000));
 
     const { data, error } = await query;
     if (error) throw error;

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { StyleSheet, View, Image } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { InterText } from '@/components/generic/InterText';
 import InputLabel from '@/components/input/InputLabel';

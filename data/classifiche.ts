@@ -19,11 +19,7 @@ type ClassificaAccumulator = {
     goal_subiti: number;
 };
 
-function makeClassificaKey(
-    categoriaId: number | null,
-    girone: string | null,
-    squadraId: number
-) {
+function makeClassificaKey(categoriaId: number | null, girone: string | null, squadraId: number) {
     return `${categoriaId ?? 'no-categoria'}:${girone ?? 'no-girone'}:${squadraId}`;
 }
 
@@ -62,11 +58,11 @@ function getOrCreateClassificaRow(
     return nextRow;
 }
 
-
 export async function getListaTornei() {
     const query = supabase
         .from('torneo')
-        .select(`
+        .select(
+            `
             id,
             nome,
             descrizione,
@@ -80,7 +76,8 @@ export async function getListaTornei() {
                 dettagli,
                 link_google_maps
             )
-        `)
+        `
+        )
         .order('id', { ascending: false })
         .abortSignal(AbortSignal.timeout(20000));
 
@@ -90,16 +87,10 @@ export async function getListaTornei() {
     return data;
 }
 
-export type listaTorneiType = Awaited<
-    ReturnType<typeof getListaTornei>
->;
-
-
+export type listaTorneiType = Awaited<ReturnType<typeof getListaTornei>>;
 
 export async function getCategorieClassifica(idCategoria: number | null, idTorneo?: number) {
-    let query = supabase
-        .from('categoria')
-        .select("num_qualificate, num_playoff, num_eliminate");
+    let query = supabase.from('categoria').select('num_qualificate, num_playoff, num_eliminate');
 
     if (idCategoria) {
         query = query.eq('id', idCategoria);
@@ -110,16 +101,18 @@ export async function getCategorieClassifica(idCategoria: number | null, idTorne
     const { data, error } = await query;
     if (error) throw error;
 
-    return data || [{
-        num_qualificate: 0,
-        num_playoff: 0,
-        num_eliminate: 0
-    }];
+    return (
+        data || [
+            {
+                num_qualificate: 0,
+                num_playoff: 0,
+                num_eliminate: 0,
+            },
+        ]
+    );
 }
 
-export type categorieClassificaType = Awaited<
-    ReturnType<typeof getCategorieClassifica>
->;
+export type categorieClassificaType = Awaited<ReturnType<typeof getCategorieClassifica>>;
 
 export async function getClassificheTorneo(idTorneo: number) {
     const { data, error } = await supabase
@@ -210,7 +203,10 @@ export async function getClassificheTorneo(idTorneo: number) {
     });
 
     const ordered = Array.from(rows.values()).sort((a, b) => {
-        const categoriaCompare = (a.categoria_nome ?? '').localeCompare(b.categoria_nome ?? '', 'it');
+        const categoriaCompare = (a.categoria_nome ?? '').localeCompare(
+            b.categoria_nome ?? '',
+            'it'
+        );
         if (categoriaCompare !== 0) return categoriaCompare;
 
         const gironeCompare = (a.girone ?? '').localeCompare(b.girone ?? '', 'it');
@@ -274,13 +270,11 @@ export async function getCategorieGestioneTorneo(idTorneo: number) {
     (partite ?? []).forEach((partita) => {
         if (!partita.categoria_id) return;
 
-        const current =
-            statsByCategoria.get(partita.categoria_id) ??
-            {
-                gironi: new Set<string>(),
-                squadre: new Set<number>(),
-                partite: new Set<number>(),
-            };
+        const current = statsByCategoria.get(partita.categoria_id) ?? {
+            gironi: new Set<string>(),
+            squadre: new Set<number>(),
+            partite: new Set<number>(),
+        };
 
         if (partita.girone) current.gironi.add(partita.girone);
         if (partita.squadra_casa_id) current.squadre.add(partita.squadra_casa_id);

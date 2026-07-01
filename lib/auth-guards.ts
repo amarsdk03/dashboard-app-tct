@@ -48,7 +48,9 @@ export function isAdminAuthState(auth: Pick<AuthData, 'claims' | 'profile' | 'is
     return roleCandidates.some(isAllowedRole);
 }
 
-export function canAccessAdminArea(auth: Pick<AuthData, 'claims' | 'profile' | 'isLoading' | 'isLoggedIn'>) {
+export function canAccessAdminArea(
+    auth: Pick<AuthData, 'claims' | 'profile' | 'isLoading' | 'isLoggedIn'>
+) {
     if (auth.isLoading) return false;
 
     return isAdminAuthState(auth);

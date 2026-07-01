@@ -86,7 +86,8 @@ export default function HomeScreen() {
     const adminName = useMemo(() => {
         const fullName = [profile?.nome, profile?.cognome].filter(Boolean).join(' ');
         const email = typeof claims?.email === 'string' ? claims.email : null;
-        const name = profile?.full_name ?? profile?.name ?? (fullName || email?.split('@')[0] || 'Admin');
+        const name =
+            profile?.full_name ?? profile?.name ?? (fullName || email?.split('@')[0] || 'Admin');
 
         return name.charAt(0).toUpperCase() + name.slice(1);
     }, [claims?.email, profile]);
@@ -219,6 +220,16 @@ export default function HomeScreen() {
                                                         fischioInizio={p.fischio_inizio}
                                                         squadraCasa={p.squadra_casa_nome}
                                                         squadraOspite={p.squadra_ospite_nome}
+                                                        squadraCasaAcronimo={
+                                                            p.squadra_casa_acronimo
+                                                        }
+                                                        squadraOspiteAcronimo={
+                                                            p.squadra_ospite_acronimo
+                                                        }
+                                                        squadraCasaStemma={p.squadra_casa_stemma}
+                                                        squadraOspiteStemma={
+                                                            p.squadra_ospite_stemma
+                                                        }
                                                         goalCasa={p.goal_casa}
                                                         goalOspite={p.goal_ospite}
                                                     />

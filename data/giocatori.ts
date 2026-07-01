@@ -1,7 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { Enums, Tables, TablesInsert, TablesUpdate } from '@/types/database.types';
 
-
 export type filtroGiocatoriType = {
     idSquadra?: number | null;
     nomeSquadra?: string | null;
@@ -9,13 +8,12 @@ export type filtroGiocatoriType = {
     soloCapitani?: boolean;
 };
 
-
 export async function getListaGiocatori(
     searchParam: string | null,
     idTorneo: number,
     currentPage: number,
     resultsPerPage: number,
-    filters: filtroGiocatoriType = {},
+    filters: filtroGiocatoriType = {}
 ) {
     let query = supabase
         .from('ricerca_giocatori')
@@ -39,10 +37,10 @@ export async function getListaGiocatori(
     }
 
     query = query
-        .order('s_nome', {ascending: true})
-        .order('g_nome', {ascending: true})
-        .order('g_cognome', {ascending: true})
-        .range(resultsPerPage * (currentPage - 1), (resultsPerPage * currentPage) - 1)
+        .order('s_nome', { ascending: true })
+        .order('g_nome', { ascending: true })
+        .order('g_cognome', { ascending: true })
+        .range(resultsPerPage * (currentPage - 1), resultsPerPage * currentPage - 1)
         .abortSignal(AbortSignal.timeout(20000));
 
     const { data, count, error } = await query;
@@ -52,18 +50,10 @@ export async function getListaGiocatori(
     return { result, count };
 }
 
-export type listaGiocatoriType = Awaited<
-    ReturnType<typeof getListaGiocatori>
->['result'][number];
-
-
+export type listaGiocatoriType = Awaited<ReturnType<typeof getListaGiocatori>>['result'][number];
 
 export async function getDatiGiocatore(idGiocatore: number) {
-    const query = supabase
-        .from('giocatore')
-        .select(`*`)
-        .eq('id', idGiocatore)
-        .maybeSingle();
+    const query = supabase.from('giocatore').select(`*`).eq('id', idGiocatore).maybeSingle();
 
     const { data, error } = await query;
     if (error) throw error;
@@ -71,10 +61,7 @@ export async function getDatiGiocatore(idGiocatore: number) {
     return data;
 }
 
-export type datiGiocatoreType = Awaited<
-    ReturnType<typeof getDatiGiocatore>
->;
-
+export type datiGiocatoreType = Awaited<ReturnType<typeof getDatiGiocatore>>;
 
 export async function getDatiGiocatoreConIscrizione(idGiocatore: number, idTorneo: number) {
     const { data: giocatore, error: giocatoreError } = await supabase
@@ -136,13 +123,8 @@ export type datiGiocatoreConIscrizioniType = Awaited<
     ReturnType<typeof getDatiGiocatoreConIscrizioni>
 >;
 
-
-
 export async function getStatisticheGiocatore(idGiocatore: number) {
-    const query = supabase
-        .from('azioni_giocatori')
-        .select(`*`)
-        .eq('g_id', idGiocatore);
+    const query = supabase.from('azioni_giocatori').select(`*`).eq('g_id', idGiocatore);
 
     const { data, error } = await query;
     if (error) throw error;
@@ -150,17 +132,10 @@ export async function getStatisticheGiocatore(idGiocatore: number) {
     return data;
 }
 
-export type statisticheGiocatoreType = Awaited<
-    ReturnType<typeof getStatisticheGiocatore>
->;
-
+export type statisticheGiocatoreType = Awaited<ReturnType<typeof getStatisticheGiocatore>>;
 
 export async function insertGiocatore(payload: TablesInsert<'giocatore'>) {
-    const { data, error } = await supabase
-        .from('giocatore')
-        .insert(payload)
-        .select()
-        .single();
+    const { data, error } = await supabase.from('giocatore').insert(payload).select().single();
 
     if (error) throw error;
 
@@ -203,9 +178,7 @@ function isMissingRpcError(error: unknown) {
     );
 }
 
-export async function createGiocatoreConIscrizione(
-    payload: CreateGiocatoreConIscrizioneInput
-) {
+export async function createGiocatoreConIscrizione(payload: CreateGiocatoreConIscrizioneInput) {
     const normalizedPayload = removeUndefined(payload);
     const { data, error } = await (supabase as any).rpc('create_giocatore_con_iscrizione', {
         payload: normalizedPayload,
@@ -275,11 +248,7 @@ export type createGiocatoreConIscrizioniType = Awaited<
     ReturnType<typeof createGiocatoreConIscrizioni>
 >;
 
-
-export async function updateGiocatore(
-    idGiocatore: number,
-    payload: TablesUpdate<'giocatore'>,
-) {
+export async function updateGiocatore(idGiocatore: number, payload: TablesUpdate<'giocatore'>) {
     const { data, error } = await supabase
         .from('giocatore')
         .update({ ...payload, data_ultima_modifica: new Date().toISOString() })
@@ -294,13 +263,8 @@ export async function updateGiocatore(
 
 export type updateGiocatorePayload = Parameters<typeof updateGiocatore>[1];
 
-
 export async function insertIscrizione(payload: TablesInsert<'iscrizione'>) {
-    const { data, error } = await supabase
-        .from('iscrizione')
-        .insert(payload)
-        .select()
-        .single();
+    const { data, error } = await supabase.from('iscrizione').insert(payload).select().single();
 
     if (error) throw error;
 
@@ -309,11 +273,7 @@ export async function insertIscrizione(payload: TablesInsert<'iscrizione'>) {
 
 export type insertIscrizionePayload = Parameters<typeof insertIscrizione>[0];
 
-
-export async function updateIscrizione(
-    idIscrizione: number,
-    payload: TablesUpdate<'iscrizione'>,
-) {
+export async function updateIscrizione(idIscrizione: number, payload: TablesUpdate<'iscrizione'>) {
     const { data, error } = await supabase
         .from('iscrizione')
         .update({ ...payload, data_ultima_modifica: new Date().toISOString() })

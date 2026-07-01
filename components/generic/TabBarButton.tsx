@@ -1,8 +1,8 @@
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Href, Link } from 'expo-router';
 import {
-    ExternalLinkIcon,
     CircleQuestionMark,
+    ExternalLinkIcon,
     LucideIcon,
     PlusIcon,
     SettingsIcon,

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { InterText } from '@/components/generic/InterText';
-import { CircleIcon } from 'lucide-react-native';
 import LiveCircle from '@/components/generic/LiveCircle';
 
 type Props = {

@@ -279,7 +279,7 @@ export default function ImpostazioniScreen() {
                     </View>
 
                     <View style={styles.statusPill}>
-                        <View style={styles.statusDot} />
+                        <View style={[styles.statusDot, notificationStatus.granted ? { backgroundColor: '#86b32d' } : { backgroundColor: '#cc4033' }]} />
                         <InterText style={styles.statusText}>{notificationStatus.title}</InterText>
                     </View>
                     {!notificationStatus.granted && supportsLocalNotifications() && (
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#b3642c',
+        backgroundColor: '#b3b3b3',
     },
     statusText: {
         color: '#0f172a',

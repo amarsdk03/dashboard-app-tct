@@ -18,9 +18,7 @@ export default function SignOutButton() {
             style={[styles.logoutButton]}
             className="h-12 rounded-2xl bg-red-700">
             <LogOut color="white" size={20} />
-            <Text className="text-md font-bold text-white">
-                Logout
-            </Text>
+            <Text className="text-md font-bold text-white">Logout</Text>
         </Button>
     );
 }
@@ -29,5 +27,5 @@ const styles = StyleSheet.create({
     logoutButton: {
         borderRadius: 16,
         height: 48,
-    }
+    },
 });

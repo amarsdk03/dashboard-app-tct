@@ -18,8 +18,8 @@ export function calcolaClassifiche(listaPartite: listaPartiteType[]) {
     const mappaClassifiche: ClassificheRaggruppate = {};
 
     listaPartite.forEach((partita) => {
-        const catNome = partita.categoria_nome ?? "???";
-        const girNome = partita.girone ?? "???";
+        const catNome = partita.categoria_nome ?? '???';
+        const girNome = partita.girone ?? '???';
 
         // Consideriamo solo le partite giocate con un risultato valido
         if (partita.goal_casa === null || partita.goal_ospite === null) return;
@@ -31,27 +31,41 @@ export function calcolaClassifiche(listaPartite: listaPartiteType[]) {
         const rigaGirone = mappaClassifiche[catNome][girNome];
 
         // Inizializza la squadra di casa se non esiste nel girone
-        let casa = rigaGirone.find(s => s.id === partita.squadra_casa_id);
+        let casa = rigaGirone.find((s) => s.id === partita.squadra_casa_id);
         if (!casa) {
             casa = {
                 id: partita.squadra_casa_id,
-                nome: partita.squadra_casa_nome ?? "Home",
-                acronimo: partita.squadra_casa_acronimo ?? "HOM",
-                stemma: partita.squadra_casa_stemma ?? "",
-                giocate: 0, vinte: 0, pareggi: 0, perse: 0, golFatti: 0, golSubiti: 0, diffReti: 0, punti: 0
+                nome: partita.squadra_casa_nome ?? 'Home',
+                acronimo: partita.squadra_casa_acronimo ?? 'HOM',
+                stemma: partita.squadra_casa_stemma ?? '',
+                giocate: 0,
+                vinte: 0,
+                pareggi: 0,
+                perse: 0,
+                golFatti: 0,
+                golSubiti: 0,
+                diffReti: 0,
+                punti: 0,
             };
             rigaGirone.push(casa);
         }
 
         // Inizializza la squadra ospite se non esiste nel girone
-        let ospite = rigaGirone.find(s => s.id === partita.squadra_ospite_id);
+        let ospite = rigaGirone.find((s) => s.id === partita.squadra_ospite_id);
         if (!ospite) {
             ospite = {
                 id: partita.squadra_ospite_id,
-                nome: partita.squadra_ospite_nome ?? "Away",
-                acronimo: partita.squadra_ospite_acronimo ?? "AWA",
-                stemma: partita.squadra_ospite_stemma ?? "",
-                giocate: 0, vinte: 0, pareggi: 0, perse: 0, golFatti: 0, golSubiti: 0, diffReti: 0, punti: 0
+                nome: partita.squadra_ospite_nome ?? 'Away',
+                acronimo: partita.squadra_ospite_acronimo ?? 'AWA',
+                stemma: partita.squadra_ospite_stemma ?? '',
+                giocate: 0,
+                vinte: 0,
+                pareggi: 0,
+                perse: 0,
+                golFatti: 0,
+                golSubiti: 0,
+                diffReti: 0,
+                punti: 0,
             };
             rigaGirone.push(ospite);
         }
@@ -85,8 +99,8 @@ export function calcolaClassifiche(listaPartite: listaPartiteType[]) {
     });
 
     // Ordinamento delle classifiche (Punti -> Differenza Reti -> Gol Fatti)
-    Object.keys(mappaClassifiche).forEach(cat => {
-        Object.keys(mappaClassifiche[cat]).forEach(gir => {
+    Object.keys(mappaClassifiche).forEach((cat) => {
+        Object.keys(mappaClassifiche[cat]).forEach((gir) => {
             mappaClassifiche[cat][gir].sort((a, b) => {
                 if (b.punti !== a.punti) return b.punti - a.punti;
                 if (b.diffReti !== a.diffReti) return b.diffReti - a.diffReti;

@@ -2,14 +2,15 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
-    Image, Platform,
+    Image,
+    Platform,
     ScrollView,
     StyleSheet,
     TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Link, type Href } from 'expo-router';
+import { type Href, Link } from 'expo-router';
 import {
     ArrowLeftIcon,
     PlusIcon,
@@ -1024,11 +1025,7 @@ function PlayerAvatar({ player }: { player: PickerPlayer }) {
     return (
         <View style={styles.playerAvatar}>
             {photo ? (
-                <Image
-                    source={{ uri: photo }}
-                    style={styles.playerImage}
-                    resizeMode="cover"
-                />
+                <Image source={{ uri: photo }} style={styles.playerImage} resizeMode="cover" />
             ) : (
                 <InterText style={styles.playerInitials}>
                     {(name[0] ?? 'G').toUpperCase()}

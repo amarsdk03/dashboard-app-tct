@@ -213,7 +213,11 @@ type SelectNazioneProps = {
     readonly: boolean;
 };
 
-export default function NationalitySelectField({ value, onChange, readonly = false }: SelectNazioneProps) {
+export default function NationalitySelectField({
+    value,
+    onChange,
+    readonly = false,
+}: SelectNazioneProps) {
     // If value is empty or not selected, fall back to 'NONE'
     const currentValue = value || 'NONE';
 

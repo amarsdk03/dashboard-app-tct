@@ -17,10 +17,7 @@ function getTodayDateString() {
     return `${year}-${month}-${day}`;
 }
 
-export async function getListaTornei(
-    searchParam: string | null,
-    filters: listaTorneiFilters = {}
-) {
+export async function getListaTornei(searchParam: string | null, filters: listaTorneiFilters = {}) {
     let query = supabase.from('torneo').select(`
             id,
             nome,
@@ -143,9 +140,7 @@ export async function getCategorieClassifica(idCategoria: number | null, idTorne
     );
 }
 
-export type categorieClassificaType = Awaited<
-    ReturnType<typeof getCategorieClassifica>
->;
+export type categorieClassificaType = Awaited<ReturnType<typeof getCategorieClassifica>>;
 
 export type datiTorneoType = Awaited<ReturnType<typeof getDatiTorneo>>;
 
@@ -224,7 +219,9 @@ export async function getSquadreAssociateTorneo(idTorneo: number) {
 
         const current = squadreById.get(squadra.id);
         const nextFonte =
-            current && current.fonte !== fonte ? 'iscrizione_calendario' : current?.fonte ?? fonte;
+            current && current.fonte !== fonte
+                ? 'iscrizione_calendario'
+                : (current?.fonte ?? fonte);
 
         squadreById.set(squadra.id, {
             id: squadra.id,
@@ -377,16 +374,14 @@ export async function updateCategoriaTorneo(
 export type updateCategoriaTorneoPayload = Parameters<typeof updateCategoriaTorneo>[1];
 
 export type upsertCalendarioTorneoPayload = Array<
-    Pick<TablesInsert<'partita'>, 'id_categoria' | 'id_squadra_casa' | 'id_squadra_ospite' | 'fase'> &
+    Pick<
+        TablesInsert<'partita'>,
+        'id_categoria' | 'id_squadra_casa' | 'id_squadra_ospite' | 'fase'
+    > &
         Partial<
             Pick<
                 TablesInsert<'partita'>,
-                | 'id'
-                | 'girone'
-                | 'giornata'
-                | 'fischio_inizio'
-                | 'campo_svolgimento'
-                | 'id_arbitro'
+                'id' | 'girone' | 'giornata' | 'fischio_inizio' | 'campo_svolgimento' | 'id_arbitro'
             >
         >
 >;
@@ -596,7 +591,11 @@ export async function updateTorneoSetup(idTorneo: number, payload: updateTorneoS
 
     if (rpcError) {
         if (!isMissingRpcError(rpcError)) throw rpcError;
-    } else if (rpcData?.torneo && Array.isArray(rpcData?.categorie) && Array.isArray(rpcData?.partite)) {
+    } else if (
+        rpcData?.torneo &&
+        Array.isArray(rpcData?.categorie) &&
+        Array.isArray(rpcData?.partite)
+    ) {
         return rpcData as {
             torneo: Tables<'torneo'>;
             categorie: Tables<'categoria'>[];

@@ -179,7 +179,7 @@ export default function TorneoModalForm(props: Props) {
     }
 
     useEffect(() => {
-        loadCampi();
+        loadCampi().then(_ => null);
     }, []);
 
     useEffect(() => {
@@ -282,7 +282,7 @@ export default function TorneoModalForm(props: Props) {
         setCategorieDraft((current) => [
             ...current,
             {
-                tempId: String(current.length + 1),
+                tempId: (current[current.length - 1]?.tempId ?? 0) + 1,
                 nome: 'Categoria n.' + (current.length + 1),
                 numGironi: '2',
                 durataPartita: '25',
@@ -494,7 +494,7 @@ export default function TorneoModalForm(props: Props) {
                         onFieldChange={setCategoriaField}
                         onAdd={addCategoria}
                         onRemove={removeCategoria}
-                        canChangeCount={props.mode === 'create'}
+                        canChangeCount={props.mode === 'create' || props.mode === 'edit'}
                     />
                 )}
 

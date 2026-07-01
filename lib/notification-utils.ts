@@ -14,11 +14,11 @@ export function getReminderDate(kickoffIso: string | null, minutesBefore: number
 }
 
 export function buildMatchReminderNotificationContent(match: MatchReminderContentInput) {
-    const home = match.squadraCasa?.trim() || 'Squadra casa';
-    const away = match.squadraOspite?.trim() || 'Squadra ospite';
+    const home = match.squadraCasa?.trim() || 'Squad. casa';
+    const away = match.squadraOspite?.trim() || 'Squad. ospite';
 
     return {
-        title: 'Partita tra 15 minuti',
-        body: `${home} - ${away} inizia tra 15 minuti.`,
+        title: `${home} vs ${away}`,
+        body: `La partita inizia tra 15 minuti. Conferma i dati!`,
     };
 }

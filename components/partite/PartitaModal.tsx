@@ -14,22 +14,22 @@ import DateTimePickerField from '@/components/input/DateTimePickerField';
 import TextInputField from '@/components/input/TextInputField';
 import errorMessage from '@/components/generic/ErrorMessage';
 import {
-    getAzioniPartita,
-    getDatiPartita,
-    insertAzionePartita,
-    getListaCategorie,
-    insertPartita,
-    deleteAzionePartita,
-    updateAzionePartita,
-    updatePartita,
-    getGiocatoriPartita,
-    getGiocatoriSquadrePartita,
-    getCampiPartita,
     azioniPartitaType,
     campiPartitaType,
     datiPartitaType,
+    deleteAzionePartita,
+    getAzioniPartita,
+    getCampiPartita,
+    getDatiPartita,
+    getGiocatoriPartita,
+    getGiocatoriSquadrePartita,
+    getListaCategorie,
     giocatoriPartitaType,
+    insertAzionePartita,
+    insertPartita,
     listaCategorieType,
+    updateAzionePartita,
+    updatePartita,
 } from '@/data/partite';
 import { getListaSquadre, listaSquadreType } from '@/data/squadre';
 import { getListaTornei, listaTorneiType } from '@/data/tornei';

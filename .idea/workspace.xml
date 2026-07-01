@@ -7,69 +7,64 @@
     <list default="true" id="02039681-6d6f-43de-b84f-55cbb0bd0377" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/REFACTORING.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/RESULT.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/build.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/debug.keystore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/proguard-rules.pro" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/debug/AndroidManifest.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/debugOptimized/AndroidManifest.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/assets/fonts/Inter_900Black.ttf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/java/com/anonymous/dashboard_cdt/MainActivity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/java/com/anonymous/dashboard_cdt/MainApplication.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable-hdpi/splashscreen_logo.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable-mdpi/splashscreen_logo.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable-xhdpi/splashscreen_logo.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable-xxhdpi/splashscreen_logo.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable-xxxhdpi/splashscreen_logo.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable/ic_launcher_background.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable/rn_edit_text_material.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher_round.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher_round.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/values-night/colors.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/values/colors.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/values/strings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/values/styles.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/build.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/gradle.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/gradlew" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/gradlew.bat" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/settings.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(app)/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/(tabs)/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(app)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/login.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/generic/FeedbackModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/generic/FeedbackModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(app)/impostazioni.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/impostazioni.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/generic/InterText.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/generic/InterText.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/generic/SectionHeaderActions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/generic/SectionHeaderActions.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/generic/TabBarButton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/generic/TabBarButton.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/input/InputLabel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/InputLabel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/giocatori/GiocatoreCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/giocatori/GiocatoreCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/giocatori/GiocatoreModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/giocatori/GiocatoreModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/home/CurrentRankingsTables.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/home/CurrentRankingsTables.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/home/HomeMatchCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/home/HomeMatchCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/home/HomeQuickAction.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/home/HomeQuickAction.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/input/DateTimePickerField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/DateTimePickerField.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/input/NationalitySelectField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/NationalitySelectField.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/input/TeamSelectField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/input/TeamSelectField.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/login/SignOutButton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/login/SignOutButton.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/partite/PartitaCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/partite/PartitaCard.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/partite/PartitaModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/partite/PartitaModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/database/atomic-rpc.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/superpowers/plans/2026-06-27-refactoring.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/notification-utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/notification-utils.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/notifications.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/notifications.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/registration-utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/registration-utils.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/feature-contracts.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/refactoring-utils.test.mts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/squadre/SquadraModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/squadre/SquadraModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/tornei/TorneoCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/tornei/TorneoLinkedData.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoLinkedData.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/tornei/TorneoModalForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoModalForm.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/tornei/TorneoModalSummary.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/tornei/TorneoModalSummary.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/accordion.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/accordion.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/alert-dialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/alert-dialog.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/alert.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/alert.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/avatar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/avatar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/badge.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/badge.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/button.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/checkbox.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/checkbox.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/context-menu.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/context-menu.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/dialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/dialog.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/dropdown-menu.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/dropdown-menu.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/hover-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/hover-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/icon.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/icon.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/input.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/input.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/label.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/label.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/menubar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/menubar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/popover.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/popover.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/progress.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/progress.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/radio-group.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/radio-group.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/select.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/select.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/separator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/separator.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/skeleton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/skeleton.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/switch.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/switch.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/tabs.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/tabs.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/text.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/text.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/textarea.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/textarea.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/toggle-group.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/toggle-group.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/toggle.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/toggle.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/tooltip.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/tooltip.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/campi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/data/campi.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/classifiche.ts" beforeDir="false" afterPath="$PROJECT_DIR$/data/classifiche.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/giocatori.ts" beforeDir="false" afterPath="$PROJECT_DIR$/data/giocatori.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/squadre.ts" beforeDir="false" afterPath="$PROJECT_DIR$/data/squadre.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/tornei.ts" beforeDir="false" afterPath="$PROJECT_DIR$/data/tornei.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/auth-guards.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/auth-guards.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,7 +75,7 @@
     <option name="formatViaClangd" value="false" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="219" />
+    <option name="cachedIndexableFilesCount" value="178" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="ExternalProjectsManager">
@@ -128,62 +123,65 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0000018941736135" />
-      <entry key="S2" value="1.0370983800177769" />
-      <entry key="S5" value="1.2677583381810347" />
-      <entry key="S10" value="1.5192092185012434" />
-      <entry key="S30" value="2.2243044751668988" />
-      <entry key="S60" value="3.7239214807888503" />
-      <entry key="M2" value="6.3311332105961275" />
-      <entry key="M5" value="10.584701273575929" />
-      <entry key="M10" value="13.221373506410806" />
-      <entry key="M15" value="14.418196330012842" />
-      <entry key="M30" value="21.396748126077167" />
-      <entry key="H1" value="79.11962338651728" />
-      <entry key="H2" value="234.35481301963804" />
-      <entry key="H4" value="450.2143687618444" />
-      <entry key="D1" value="1463.2833298965124" />
-      <entry key="W1" value="2369.271067979097" />
+      <entry key="MS100" value="1.000000000004978" />
+      <entry key="MS500" value="1.0084348420951328" />
+      <entry key="S2" value="1.5082829182294926" />
+      <entry key="S5" value="2.247176930257731" />
+      <entry key="S10" value="2.825271044340646" />
+      <entry key="S30" value="3.583112592510135" />
+      <entry key="S60" value="4.463436617128334" />
+      <entry key="M2" value="6.396607224812324" />
+      <entry key="M5" value="12.115057575841163" />
+      <entry key="M10" value="19.997496931518253" />
+      <entry key="M15" value="25.553016597636493" />
+      <entry key="M30" value="37.14877989697251" />
+      <entry key="H1" value="78.1580063806406" />
+      <entry key="H2" value="210.50165905085782" />
+      <entry key="H4" value="425.61387789119374" />
+      <entry key="D1" value="1466.5895705655207" />
+      <entry key="W1" value="2400.7120580894007" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="4.7349834885531066E-177" />
-      <entry key="S2" value="9.025277897716918E-45" />
-      <entry key="S5" value="3.213289433234429E-18" />
-      <entry key="S10" value="2.49876521929378E-9" />
-      <entry key="S30" value="0.0026678981003510544" />
-      <entry key="S60" value="0.10335809525993575" />
-      <entry key="M2" value="0.7162336511829919" />
-      <entry key="M5" value="2.4771550077007545" />
-      <entry key="M10" value="3.8282249475557957" />
-      <entry key="M15" value="4.442652441619418" />
-      <entry key="M30" value="5.2736978692220005" />
-      <entry key="H1" value="6.612495403938798" />
-      <entry key="H2" value="12.674071442475881" />
-      <entry key="H4" value="32.096165245189866" />
-      <entry key="D1" value="206.50219992309613" />
-      <entry key="W1" value="360.6098262100585" />
+      <entry key="MS100" value="1.6048273381668366E-22" />
+      <entry key="MS500" value="4.3760841309076754E-5" />
+      <entry key="S2" value="0.08133386596512086" />
+      <entry key="S5" value="0.36652918929730244" />
+      <entry key="S10" value="0.6054165508156568" />
+      <entry key="S30" value="0.8491267684935266" />
+      <entry key="S60" value="1.0043525356880048" />
+      <entry key="M2" value="1.4563367982297786" />
+      <entry key="M5" value="3.043072527880858" />
+      <entry key="M10" value="5.111951780067766" />
+      <entry key="M15" value="6.567788804776893" />
+      <entry key="M30" value="9.345098321642189" />
+      <entry key="H1" value="12.403156092551965" />
+      <entry key="H2" value="18.734619126977865" />
+      <entry key="H4" value="37.265643187329694" />
+      <entry key="D1" value="211.3015998646785" />
+      <entry key="W1" value="369.30428909866333" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.7474246243174691" />
-      <entry key="MS500" value="0.9434399770581996" />
-      <entry key="S2" value="1.0217962011426658" />
-      <entry key="S5" value="1.2594773476282966" />
-      <entry key="S10" value="1.5138959704472719" />
-      <entry key="S30" value="2.2239085324327195" />
-      <entry key="S60" value="3.820962535819092" />
-      <entry key="M2" value="7.030149315589651" />
-      <entry key="M5" value="13.038183741043891" />
-      <entry key="M10" value="17.03134277239525" />
-      <entry key="M15" value="18.846699326955672" />
-      <entry key="M30" value="26.659907191753245" />
-      <entry key="H1" value="85.71487881646514" />
-      <entry key="H2" value="247.00321808638523" />
-      <entry key="H4" value="482.283280872151" />
-      <entry key="D1" value="1669.7673495836168" />
-      <entry key="W1" value="2729.876788341841" />
+      <entry key="MS100" value="3.519870762514223E-8" />
+      <entry key="MS500" value="0.037118055282109666" />
+      <entry key="S2" value="0.8351032151122398" />
+      <entry key="S5" value="2.073222930985537" />
+      <entry key="S10" value="3.06906903066352" />
+      <entry key="S30" value="4.276877867771472" />
+      <entry key="S60" value="5.379108330244933" />
+      <entry key="M2" value="7.7984531374945565" />
+      <entry key="M5" value="15.123581785609622" />
+      <entry key="M10" value="25.083195325668935" />
+      <entry key="M15" value="32.09891289203375" />
+      <entry key="M30" value="46.478004545317646" />
+      <entry key="H1" value="90.54460907783032" />
+      <entry key="H2" value="229.21352404521627" />
+      <entry key="H4" value="462.85414139126397" />
+      <entry key="D1" value="1677.8731087337592" />
+      <entry key="W1" value="2770.0122081134314" />
     </decayedShown>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
@@ -300,7 +298,9 @@
       <workItem from="1782408869268" duration="18296000" />
       <workItem from="1782473552716" duration="20270000" />
       <workItem from="1782511887682" duration="36000" />
-      <workItem from="1782599364360" duration="11583000" />
+      <workItem from="1782599364360" duration="12178000" />
+      <workItem from="1782661338520" duration="25000" />
+      <workItem from="1782917274988" duration="1975000" />
     </task>
     <servers />
   </component>

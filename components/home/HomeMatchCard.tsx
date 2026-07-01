@@ -1,7 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { InterText } from '@/components/generic/InterText';
-import { CircleIcon } from 'lucide-react-native';
 import LiveCircle from '@/components/generic/LiveCircle';
 
 type Props = {
@@ -20,32 +19,6 @@ type Props = {
     fase: string | null;
     girone: string | null;
 };
-
-function formatDateTime(value: string | null) {
-    if (!value) return 'Data da definire';
-
-    const date = new Date(value);
-    if (isNaN(date.getTime())) return 'Data da definire';
-
-    return new Intl.DateTimeFormat('it-IT', {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
-}
-
-function formatTime(value: string | null) {
-    if (!value) return 'vs';
-
-    const date = new Date(value);
-    if (isNaN(date.getTime())) return 'vs';
-
-    return new Intl.DateTimeFormat('it-IT', {
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
-}
 
 function formatStatus(value: string | null, isPlayed: boolean, isLive: boolean) {
     if (isLive) return 'In corso';
@@ -151,12 +124,18 @@ export default function HomeMatchCard({
             </View>
 
             <View style={styles.cardRow}>
-                <TeamBadge
-                    name={squadraCasa}
-                    acronym={squadraCasaAcronimo}
-                    logo={squadraCasaStemma}
-                    color={squadraCasaColore}
-                />
+                <View style={styles.cardTeamRow}>
+                    <TeamBadge
+                        name={squadraCasa}
+                        acronym={squadraCasaAcronimo}
+                        logo={squadraCasaStemma}
+                        color={squadraCasaColore}
+                    />
+
+                    <InterText style={styles.acronimText} adjustsFontSizeToFit>
+                        {squadraCasaAcronimo}
+                    </InterText>
+                </View>
 
                 <View style={[styles.scoreBox, isPlayed && styles.scoreBoxPlayed]}>
                     <InterText
@@ -171,12 +150,18 @@ export default function HomeMatchCard({
                     </InterText>
                 </View>
 
-                <TeamBadge
-                    name={squadraOspite}
-                    acronym={squadraOspiteAcronimo}
-                    logo={squadraOspiteStemma}
-                    color={squadraOspiteColore}
-                />
+                <View style={styles.cardTeamRow}>
+                    <InterText style={styles.acronimText} adjustsFontSizeToFit>
+                        {squadraOspiteAcronimo}
+                    </InterText>
+
+                    <TeamBadge
+                        name={squadraOspite}
+                        acronym={squadraOspiteAcronimo}
+                        logo={squadraOspiteStemma}
+                        color={squadraOspiteColore}
+                    />
+                </View>
             </View>
         </View>
     );
@@ -225,7 +210,7 @@ const styles = StyleSheet.create({
     cardRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-evenly',
+        justifyContent: 'space-between',
         gap: 8,
     },
     teamNamesRow: {
@@ -301,6 +286,19 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter-SemiBold',
         fontSize: 12,
         fontWeight: '600',
+    },
+    cardTeamRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        gap: 10,
+    },
+    acronimText: {
+        color: '#5a5a5a',
+        fontFamily: 'Inter-Bold',
+        fontSize: 12,
+        fontWeight: '700',
+        textAlign: 'center',
     },
     teamName: {
         color: '#0f172a',

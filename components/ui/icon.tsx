@@ -5,21 +5,21 @@ import { styled } from 'nativewind';
 import * as React from 'react';
 
 type IconProps = LucideProps & {
-  as: LucideIcon;
+    as: LucideIcon;
 } & React.RefAttributes<LucideIcon>;
 
 function IconImpl({ as: IconComponent, ...props }: IconProps) {
-  return <IconComponent {...props} />;
+    return <IconComponent {...props} />;
 }
 
 const StyledIconImpl = styled(IconImpl, {
-  className: {
-    target: 'style',
-    nativeStyleMapping: {
-      height: 'size',
-      width: 'size',
+    className: {
+        target: 'style',
+        nativeStyleMapping: {
+            height: 'size',
+            width: 'size',
+        },
     },
-  },
 });
 
 /**
@@ -43,15 +43,15 @@ const StyledIconImpl = styled(IconImpl, {
  * @param {...LucideProps} ...props - Additional Lucide icon props passed to the "as" icon.
  */
 function Icon({ as: IconComponent, className, size = 14, ...props }: IconProps) {
-  const textClass = React.useContext(TextClassContext);
-  return (
-    <StyledIconImpl
-      as={IconComponent}
-      className={cn('text-foreground', textClass, className)}
-      size={size}
-      {...props}
-    />
-  );
+    const textClass = React.useContext(TextClassContext);
+    return (
+        <StyledIconImpl
+            as={IconComponent}
+            className={cn('text-foreground', textClass, className)}
+            size={size}
+            {...props}
+        />
+    );
 }
 
 export { Icon };

@@ -7,15 +7,9 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import {
-    ArrowLeftIcon,
-    SquarePenIcon,
-} from 'lucide-react-native';
+import { ArrowLeftIcon, SquarePenIcon } from 'lucide-react-native';
 import { Link } from 'expo-router';
-import {
-    datiTorneoType,
-    getDatiTorneo,
-} from '@/data/tornei';
+import { datiTorneoType, getDatiTorneo } from '@/data/tornei';
 import { categorieGestioneTorneoType, getCategorieGestioneTorneo } from '@/data/classifiche';
 import { getListaGiocatori } from '@/data/giocatori';
 import { getConteggioPartiteTorneo } from '@/data/partite';

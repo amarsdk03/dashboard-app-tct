@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import InputLabel from '@/components/input/InputLabel';
 
 let DateTimePicker: any = null;

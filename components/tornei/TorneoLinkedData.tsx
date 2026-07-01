@@ -1,12 +1,7 @@
 import React from 'react';
-import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Link, type Href } from 'expo-router';
-import {
-    CalendarDaysIcon,
-    ChevronRightIcon,
-    ShieldIcon,
-    UsersRoundIcon,
-} from 'lucide-react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { type Href } from 'expo-router';
+import { CalendarDaysIcon, ShieldIcon, UsersRoundIcon } from 'lucide-react-native';
 import { InterText } from '@/components/generic/InterText';
 import HomeQuickAction from '@/components/home/HomeQuickAction';
 import HomeStatCard from '@/components/home/HomeStatCard';
@@ -68,7 +63,7 @@ export default function TorneoLinkedData({
                 />
                 <HomeStatCard
                     label="Partite"
-                    value={squadreCount}
+                    value={partiteCount}
                     tone="red"
                     icon={<CalendarDaysIcon size={20} color="#be123c" />}
                     smallValueSize={true}
@@ -76,9 +71,9 @@ export default function TorneoLinkedData({
             </View>
 
             <View style={styles.actions}>
-                {ACTIONS.map((action) => {
+                {ACTIONS.map((action, index) => {
                     const href = `${action.path}?torneoId=${torneoId}` as Href;
-                    return <HomeQuickAction label={action.label} href={href} icon={action.icon} />;
+                    return <HomeQuickAction key={index} label={action.label} href={href} icon={action.icon} />;
                 })}
             </View>
         </View>

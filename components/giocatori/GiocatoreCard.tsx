@@ -74,7 +74,11 @@ export default function GiocatoreCard({
                     activeOpacity={0.85}
                     disabled={!onOpen}>
                     {linkFoto ? (
-                        <Image source={{ uri: linkFoto }} style={styles.avatar} resizeMode="cover" />
+                        <Image
+                            source={{ uri: linkFoto }}
+                            style={styles.avatar}
+                            resizeMode="cover"
+                        />
                     ) : (
                         <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
                             <InterText style={[styles.avatarText, { color: avatarText }]}>

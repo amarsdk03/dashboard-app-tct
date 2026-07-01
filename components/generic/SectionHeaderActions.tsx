@@ -52,7 +52,8 @@ export default function SectionHeaderActions({ section, createHref }: Props) {
     const modalMode = getStringParam(params.mode);
     const recordId = getStringParam(params[ID_PARAM_BY_SECTION[section]]);
     const isSectionModal = pathname === `/${section}/modal`;
-    const showPublicLink = isSectionModal && (modalMode === 'view' || modalMode === 'edit') && recordId;
+    const showPublicLink =
+        isSectionModal && (modalMode === 'view' || modalMode === 'edit') && recordId;
     const showCreate = !isSectionModal;
 
     const publicUrl = useMemo(() => {

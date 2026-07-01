@@ -94,7 +94,7 @@ export async function getNotificationPermissionStatus(): Promise<NotificationPer
     return {
         granted: false,
         title: 'Non richieste',
-        description: 'Consenti le notifiche per ricevere il promemoria 30 minuti prima.',
+        description: 'Consenti le notifiche per ricevere il promemoria 15 minuti prima.',
     };
 }
 

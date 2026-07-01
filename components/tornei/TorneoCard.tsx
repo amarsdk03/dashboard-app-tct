@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Image, StyleSheet, Platform } from 'react-native';
-import { MapPin, Calendar } from 'lucide-react-native';
+import { Image, Platform, StyleSheet, View } from 'react-native';
+import { Calendar, MapPin } from 'lucide-react-native';
 import { InterText } from '@/components/generic/InterText';
 
 interface TorneoCardProps {
@@ -106,7 +106,7 @@ const COLORS = {
     icon: '#9CA3AF',
     idBg: '#F3F4F6',
     idText: '#9CA3AF',
-}
+};
 
 const styles = StyleSheet.create({
     card: {

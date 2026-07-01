@@ -158,7 +158,7 @@ Definizioni TypeScript condivise in tutto il progetto.
 ### File di configurazione:
 
 | File                 | Descrizione                                   |
-| -------------------- | --------------------------------------------- |
+|----------------------|-----------------------------------------------|
 | `app.json`           | Configurazione principale di Expo.            |
 | `.env.example`       | Esempio delle variabili d'ambiente richieste. |
 | `.env.local`         | Variabili d'ambiente locali.                  |

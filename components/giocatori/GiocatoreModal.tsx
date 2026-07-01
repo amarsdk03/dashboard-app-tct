@@ -8,7 +8,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Link, type Href } from 'expo-router';
+import { type Href, Link } from 'expo-router';
 import {
     ArrowLeftIcon,
     ArrowRightIcon,
@@ -208,9 +208,7 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                 return {
                     ...current,
                     registrations: current.registrations.map((registration, index) =>
-                        index === 0
-                            ? { ...registration, idTorneo: firstTorneoId }
-                            : registration
+                        index === 0 ? { ...registration, idTorneo: firstTorneoId } : registration
                     ),
                 };
             });
@@ -626,7 +624,9 @@ export default function GiocatoreModal({ mode, giocatoreId, torneoId, onClose }:
                                     : [];
 
                                 return (
-                                    <View key={registration.localId} style={styles.registrationCard}>
+                                    <View
+                                        key={registration.localId}
+                                        style={styles.registrationCard}>
                                         <View style={styles.registrationHeader}>
                                             <InterText style={styles.registrationTitle}>
                                                 Iscrizione {index + 1}
@@ -815,7 +815,11 @@ function ToggleRow({ label, readonly, value, onChange }: ToggleRowProps) {
             <InterText style={styles.label}>{label}</InterText>
             <TouchableOpacity
                 disabled={readonly}
-                style={[styles.toggle, value && styles.toggleActive, readonly && styles.readonlyChip]}
+                style={[
+                    styles.toggle,
+                    value && styles.toggleActive,
+                    readonly && styles.readonlyChip,
+                ]}
                 onPress={() => onChange(!value)}
                 activeOpacity={0.85}>
                 <InterText style={[styles.toggleText, value && styles.toggleTextActive]}>
